@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Activity, Database, CreditCard, Mail, MessageSquare, Webhook, AlertTriangle } from 'lucide-react'
+import { MetricsPanel } from '@/components/monitoring/MetricsPanel'
+import { ErrorFeed } from '@/components/monitoring/ErrorFeed'
+import { PerformancePanel } from '@/components/monitoring/PerformancePanel'
 
 interface HealthCheck {
   status: string
@@ -27,34 +30,64 @@ interface HealthData {
 
 export default function MonitoringDashboard() {
   const [health, setHealth] = useState<HealthData | null>(null)
+  const [metrics, setMetrics] = useState<any>(null)
+  const [errors, setErrors] = useState<any[]>([])
+  const [performance, setPerformance] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [sentryConfigured, setSentryConfigured] = useState(true)
 
-  const fetchHealth = async () => {
+  const fetchAllData = async () => {
     try {
-      const response = await fetch('/api/monitoring/health')
-      if (response.ok) {
-        const data = await response.json()
+      // Fetch health, metrics, errors, and performance in parallel
+      const [healthRes, metricsRes, errorsRes, perfRes] = await Promise.all([
+        fetch('/api/monitoring/health').catch(() => null),
+        fetch('/api/monitoring/metrics').catch(() => null),
+        fetch('/api/monitoring/errors').catch(() => null),
+        fetch('/api/monitoring/performance').catch(() => null),
+      ])
+
+      if (healthRes?.ok) {
+        const data = await healthRes.json()
         setHealth(data)
-        setLastUpdate(new Date())
       }
+
+      if (metricsRes?.ok) {
+        const data = await metricsRes.json()
+        setMetrics(data.metrics)
+      }
+
+      if (errorsRes?.ok) {
+        const data = await errorsRes.json()
+        setSentryConfigured(data.configured)
+        setErrors(data.errors || [])
+      }
+
+      if (perfRes?.ok) {
+        const data = await perfRes.json()
+        setPerformance(data.performance)
+      }
+
+      setLastUpdate(new Date())
     } catch (error) {
-      console.error('Failed to fetch health data:', error)
+      console.error('Failed to fetch monitoring data:', error)
     } finally {
       setLoading(false)
     }
   }
 
+  const fetchHealth = fetchAllData
+
   useEffect(() => {
-    fetchHealth()
+    fetchAllData()
   }, [])
 
   useEffect(() => {
     if (!autoRefresh) return
 
     const interval = setInterval(() => {
-      fetchHealth()
+      fetchAllData()
     }, 30000) // Refresh every 30 seconds
 
     return () => clearInterval(interval)
@@ -414,35 +447,16 @@ export default function MonitoringDashboard() {
         )}
       </div>
 
-      {/* Coming Soon Section */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>📊 Coming Soon</CardTitle>
-          <CardDescription>
-            Additional monitoring features in development
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">Real-time error feed from Sentry</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">Business metrics (registrations, revenue)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">Performance indicators</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">Automated alerts & warnings</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Business Metrics & Error Feed Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <MetricsPanel metrics={metrics} loading={loading} />
+        <ErrorFeed errors={errors} loading={loading} configured={sentryConfigured} />
+      </div>
+
+      {/* Performance Panel */}
+      <div className="mt-6">
+        <PerformancePanel performance={performance} loading={loading} />
+      </div>
     </div>
   )
 }
