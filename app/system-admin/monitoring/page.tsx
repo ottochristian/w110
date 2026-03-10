@@ -62,6 +62,8 @@ export default function MonitoringDashboard() {
         const data = await errorsRes.json()
         setSentryConfigured(data.configured)
         setErrors(data.errors || [])
+      } else {
+        console.error('Failed to fetch errors:', errorsRes?.status)
       }
 
       if (perfRes?.ok) {
@@ -69,7 +71,10 @@ export default function MonitoringDashboard() {
         setPerformance(data.performance)
       }
 
-      setLastUpdate(new Date())
+      // Force state update with new Date
+      const now = new Date()
+      setLastUpdate(now)
+      console.log(`[Monitoring] Updated at ${now.toISOString()}`)
     } catch (error) {
       console.error('Failed to fetch monitoring data:', error)
     } finally {
@@ -91,7 +96,7 @@ export default function MonitoringDashboard() {
     }, 30000) // Refresh every 30 seconds
 
     return () => clearInterval(interval)
-  }, [autoRefresh])
+  }, [autoRefresh, fetchAllData])
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -146,12 +151,18 @@ export default function MonitoringDashboard() {
   }
 
   const formatTimestamp = (date: Date) => {
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+    const now = Date.now()
+    const then = date.getTime()
+    const seconds = Math.floor((now - then) / 1000)
+    
+    if (seconds < 5) return 'just now'
     if (seconds < 60) return `${seconds}s ago`
     const minutes = Math.floor(seconds / 60)
     if (minutes < 60) return `${minutes}m ago`
     const hours = Math.floor(minutes / 60)
-    return `${hours}h ago`
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    return `${days}d ago`
   }
 
   if (loading) {
