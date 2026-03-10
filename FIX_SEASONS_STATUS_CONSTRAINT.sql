@@ -35,3 +35,6 @@ SELECT
 FROM seasons s
 JOIN clubs c ON s.club_id = c.id
 ORDER BY c.name, s.start_date DESC;
+
+
+

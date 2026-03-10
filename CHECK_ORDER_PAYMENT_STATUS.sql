@@ -86,3 +86,6 @@ WHERE we.event_type = 'checkout.session.completed'
 ORDER BY we.created_at DESC;
 
 
+
+
+

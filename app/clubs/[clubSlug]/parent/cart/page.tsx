@@ -106,19 +106,7 @@ export default function CartPage() {
   const { data: waivers = [], isLoading: loadingWaiversList } = useWaivers(currentSeason?.id)
   const requiredWaivers = waivers.filter((w: any) => w.required && w.status === 'active')
 
-  // Debug logging
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:47',message:'Cart waiver state',data:{currentSeasonId:currentSeason?.id,waiversCount:waivers.length,requiredWaiversCount:requiredWaivers.length,athleteIds,loadingWaiversList,clubId,clubSlug},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-    console.log('Cart waiver debug:', {
-      currentSeasonId: currentSeason?.id,
-      waiversCount: waivers.length,
-      requiredWaiversCount: requiredWaivers.length,
-      athleteIds,
-      loadingWaiversList,
-    })
-  }, [currentSeason?.id, waivers.length, requiredWaivers.length, athleteIds.length, loadingWaiversList, clubId, clubSlug])
+  useEffect(() => {}, [currentSeason?.id, waivers.length, requiredWaivers.length, athleteIds.length, loadingWaiversList, clubId, clubSlug])
 
   // Check waiver status for athletes using direct query (can't use hooks in loops)
   const [waiverStatus, setWaiverStatus] = useState<Record<string, boolean>>({})
@@ -132,13 +120,7 @@ export default function CartPage() {
 
   useEffect(() => {
     async function checkWaiverStatus() {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:62',message:'checkWaiverStatus entry',data:{athleteIdsCount:athleteIds.length,athleteIds,currentSeasonId:currentSeason?.id,requiredWaiversCount:requiredWaivers.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       if (athleteIds.length === 0 || !currentSeason?.id) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:65',message:'checkWaiverStatus early return',data:{athleteIdsCount:athleteIds.length,currentSeasonId:currentSeason?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         setWaiverStatus({})
         setLoadingWaivers(false)
         return
@@ -151,17 +133,11 @@ export default function CartPage() {
       
       for (const athleteId of athleteIds) {
         try {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:74',message:'RPC call before',data:{athleteId,seasonId:currentSeason.id,functionName:'has_signed_required_waivers'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           // Check if athlete has signed all required waivers for current season
           const { data, error } = await supabase.rpc('has_signed_required_waivers', {
             p_athlete_id: athleteId,
             p_season_id: currentSeason.id,
           })
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:80',message:'RPC call after',data:{athleteId,seasonId:currentSeason.id,result:data,error:error?.message||error?.code||error?.hint||JSON.stringify(error)||null,hasError:!!error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           if (error) {
             console.error('Error checking waiver status for athlete', athleteId, error)
             status[athleteId] = false
@@ -182,9 +158,6 @@ export default function CartPage() {
             individualStatuses[athleteId] = []
           }
         } catch (err) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:87',message:'RPC call exception',data:{athleteId,seasonId:currentSeason.id,error:String(err)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           console.error('Exception checking waiver status for athlete', athleteId, err)
           status[athleteId] = false
           individualStatuses[athleteId] = []
@@ -193,9 +166,6 @@ export default function CartPage() {
       
       setAthleteWaiverStatuses(individualStatuses)
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/cart/page.tsx:91',message:'checkWaiverStatus complete',data:{status,athleteIds},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       setWaiverStatus(status)
       setLoadingWaivers(false)
     }

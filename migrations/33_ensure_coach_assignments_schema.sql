@@ -61,3 +61,6 @@ WHERE table_name = 'coach_assignments'
 ORDER BY ordinal_position;
 
 
+
+
+

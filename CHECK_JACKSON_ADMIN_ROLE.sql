@@ -57,3 +57,6 @@ FROM profiles p
 LEFT JOIN clubs c ON p.club_id = c.id
 WHERE p.email LIKE '%admin%'
 ORDER BY c.name, p.email;
+
+
+

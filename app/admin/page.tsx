@@ -37,7 +37,10 @@ export default function AdminDashboard() {
 
   // PHASE 2: RLS handles club filtering automatically - no clubQuery needed!
   // React Query handles loading, error, and caching
-  const { data: totalAthletes = 0, isLoading: athletesLoading } = useAthletesCount()
+  const { data: totalAthletes = 0, isLoading: athletesLoading } = useAthletesCount(
+    profile?.club_id || null,
+    selectedSeason?.id || null
+  )
   
   // Get programs count (filter by status and season)
   const { data: allPrograms = [], isLoading: programsLoading } = usePrograms(selectedSeason?.id)

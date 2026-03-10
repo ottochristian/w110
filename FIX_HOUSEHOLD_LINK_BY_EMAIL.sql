@@ -101,3 +101,6 @@ LEFT JOIN athletes a ON a.household_id = hg.household_id
 WHERE p.email = 'YOUR_EMAIL@example.com';  -- ⚠️ REPLACE THIS
 
 
+
+
+

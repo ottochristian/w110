@@ -1,0 +1,438 @@
+{
+  "summary": {
+    "total": 44,
+    "authenticated": 31,
+    "public": 6,
+    "missingAuth": 7,
+    "needsMigration": 4
+  },
+  "criticalIssues": [
+    "/api/auth/complete-invitation-signup",
+    "/api/auth/create-session-after-verification",
+    "/api/auth/setup-password",
+    "/api/auth/setup-password-secure",
+    "/api/clubs/:clubId/slug",
+    "/api/otp/send",
+    "/api/otp/verify"
+  ],
+  "needsMigration": [
+    "/api/admin/registrations/program-timeseries",
+    "/api/admin/users/:userId/last-sign-in",
+    "/api/athletes/admin-create",
+    "/api/system-admin/invite-admin"
+  ],
+  "allRoutes": [
+    {
+      "path": "/api/admin/athletes/by-age",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/athletes/by-gender",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/athletes/by-program",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/athletes/summary",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/programs/analytics",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/programs",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/registrations/by-sport",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/registrations/program-timeseries",
+      "hasAuth": true,
+      "authMethod": "supabase.auth.getUser()",
+      "isPublic": false,
+      "notes": [
+        "⚠️  Manual auth - should migrate to requireAuth helper",
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/registrations/revenue-timeseries",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/registrations/summary",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/revenue/by-method",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/revenue/by-program",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/revenue/cumulative",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/revenue/outstanding",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/revenue/summary",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/users/:userId/last-sign-in",
+      "hasAuth": true,
+      "authMethod": "Authorization header check",
+      "isPublic": false,
+      "notes": [
+        "⚠️  Manual auth - should migrate to requireAuth helper",
+        "⚠️  Uses service role key - verify this is intentional",
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/waivers/by-program",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/waivers/details",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/waivers/missing",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/waivers/summary",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/admin/waivers/timeline",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/athletes/admin-create",
+      "hasAuth": true,
+      "authMethod": "supabase.auth.getUser()",
+      "isPublic": false,
+      "notes": [
+        "⚠️  Manual auth - should migrate to requireAuth helper",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/athletes/create",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/auth/complete-invitation-signup",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/auth/create-session-after-verification",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/auth/get-user-by-email",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": true,
+      "notes": [
+        "⚠️  Uses service role key - verify this is intentional",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/auth/setup-password",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "⚠️  Uses service role key - verify this is intentional",
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/auth/setup-password-secure",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/auth/verify-setup-token",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": true,
+      "notes": [
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/checkout",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": []
+    },
+    {
+      "path": "/api/clubs/:clubId/slug",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/clubs/public",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": true,
+      "notes": []
+    },
+    {
+      "path": "/api/coaches/invite",
+      "hasAuth": true,
+      "authMethod": "requireAdmin",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/health",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": true,
+      "notes": []
+    },
+    {
+      "path": "/api/household-guardians/accept",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/household-guardians/invitation-info",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": true,
+      "notes": []
+    },
+    {
+      "path": "/api/household-guardians/invite",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/household-guardians/resend",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/orders/:orderId/verify-payment",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting"
+      ]
+    },
+    {
+      "path": "/api/otp/send",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/otp/verify",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": false,
+      "notes": [
+        "❌ NO AUTHENTICATION FOUND - SECURITY RISK!",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/registrations/create",
+      "hasAuth": true,
+      "authMethod": "requireAuth",
+      "isPublic": false,
+      "notes": [
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/system-admin/invite-admin",
+      "hasAuth": true,
+      "authMethod": "Authorization header check",
+      "isPublic": false,
+      "notes": [
+        "⚠️  Manual auth - should migrate to requireAuth helper",
+        "⚠️  No rate limiting",
+        "⚠️  No input validation detected"
+      ]
+    },
+    {
+      "path": "/api/webhooks/stripe",
+      "hasAuth": false,
+      "authMethod": null,
+      "isPublic": true,
+      "notes": []
+    }
+  ]
+}

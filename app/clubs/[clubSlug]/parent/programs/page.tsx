@@ -157,9 +157,9 @@ export default function ParentProgramsPage() {
   }
 
   // Check if current season is accepting registrations
-  const isSeasonOpen = currentSeason.status === 'active'
-  const isSeasonClosed = currentSeason.status === 'closed'
-  const isSeasonDraft = currentSeason.status === 'draft'
+  const isSeasonOpen = currentSeason?.status === 'active'
+  const isSeasonClosed = currentSeason?.status === 'closed'
+  const isSeasonDraft = currentSeason?.status === 'draft'
 
   if (!household || !athletes || athletes.length === 0) {
     return (
@@ -200,7 +200,7 @@ export default function ParentProgramsPage() {
       <div>
         <h1 className="text-3xl font-bold">Available Programs</h1>
         <p className="text-muted-foreground">
-          Browse and register for programs for {currentSeason.name}
+          Browse and register for programs for {currentSeason?.name || 'current season'}
         </p>
       </div>
 

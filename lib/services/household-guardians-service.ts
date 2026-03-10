@@ -36,7 +36,7 @@ export class HouseholdGuardiansService extends BaseService {
       .maybeSingle()
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<string | null>(result)
     }
 
     return {
@@ -121,7 +121,7 @@ export class HouseholdGuardiansService extends BaseService {
       .order('created_at', { ascending: true })
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<any[]>(result)
     }
 
     return {
@@ -144,7 +144,7 @@ export class HouseholdGuardiansService extends BaseService {
       .order('created_at', { ascending: false })
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<any[]>(result)
     }
 
     return {
@@ -162,7 +162,7 @@ export class HouseholdGuardiansService extends BaseService {
     })
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<boolean>(result)
     }
 
     return {
@@ -180,7 +180,7 @@ export class HouseholdGuardiansService extends BaseService {
     })
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<number>(result)
     }
 
     return {
@@ -218,7 +218,7 @@ export class HouseholdGuardiansService extends BaseService {
       .eq('id', guardianId)
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<void>(result)
     }
 
     return {
@@ -242,7 +242,7 @@ export class HouseholdGuardiansService extends BaseService {
       .eq('status', 'pending')
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<void>(result)
     }
 
     return {
@@ -263,7 +263,7 @@ export class HouseholdGuardiansService extends BaseService {
       .maybeSingle()
 
     if (result.error) {
-      return handleSupabaseError(result)
+      return handleSupabaseError<any>(result)
     }
 
     return {

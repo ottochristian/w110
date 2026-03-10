@@ -110,3 +110,6 @@ LEFT JOIN athletes a ON a.household_id = hg.household_id
 WHERE p.role = 'parent'
 GROUP BY c.name, p.email
 ORDER BY c.name, p.email;
+
+
+

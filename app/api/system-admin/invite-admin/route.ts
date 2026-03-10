@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { otpService } from '@/lib/services/otp-service'
 import { notificationService } from '@/lib/services/notification-service'
 import { tokenService } from '@/lib/services/token-service'
+import { systemAdminInviteSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +35,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = systemAdminInviteSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { email, firstName, lastName, clubId } = body
 
     if (!email || !clubId) {

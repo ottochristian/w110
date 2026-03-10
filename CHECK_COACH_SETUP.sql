@@ -72,3 +72,6 @@ LEFT JOIN clubs pc ON p.club_id = pc.id
 LEFT JOIN clubs cc ON co.club_id = cc.id
 WHERE p.role = 'coach'
 ORDER BY pc.name, p.email;
+
+
+

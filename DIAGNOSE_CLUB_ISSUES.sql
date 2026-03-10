@@ -67,3 +67,6 @@ LEFT JOIN athletes a ON a.club_id = c.id
 GROUP BY c.id, c.name, c.slug
 ORDER BY c.name;
 
+
+
+

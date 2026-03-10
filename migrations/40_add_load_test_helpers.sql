@@ -274,3 +274,6 @@ COMMENT ON FUNCTION create_parent_with_household IS 'Atomically creates a parent
 COMMENT ON FUNCTION validate_data_integrity IS 'Validates database relationships and returns any issues found';
 COMMENT ON FUNCTION cleanup_orphaned_records IS 'Safely removes records without proper relationships';
 COMMENT ON FUNCTION get_data_statistics IS 'Returns counts of all major entities for monitoring';
+
+
+

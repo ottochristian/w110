@@ -76,3 +76,6 @@ JOIN clubs c ON c.id = p.club_id
 WHERE c.slug = 'jackson'
 ORDER BY p.name;
 
+
+
+

@@ -49,3 +49,6 @@ LEFT JOIN programs p ON p.season_id = s.id
 WHERE c.slug = 'gtssf'
 GROUP BY s.id, s.name, s.is_current, s.status
 ORDER BY s.name;
+
+
+

@@ -358,3 +358,6 @@ ALTER TABLE households ENABLE TRIGGER ALL;
 2. `scripts/validate-data-integrity.sql` - Post-generation validation
 3. `scripts/cleanup-load-test-data.sql` - Clean up script
 4. `LOAD_TEST_README.md` - Usage instructions
+
+
+

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { log } from '@/lib/logger'
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit'
 import Stripe from 'stripe'
 import { headers } from 'next/headers'
 
@@ -21,6 +22,13 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
  * Processes checkout.session.completed events and updates order/payment status.
  */
 export async function POST(request: NextRequest) {
+  // Rate limiting for webhooks - 100 per minute to prevent abuse
+  const rateLimitCheck = checkRateLimit(request, { limit: 100, windowMs: 60 * 1000 })
+  if (!rateLimitCheck.allowed) {
+    log.warn('Webhook rate limit exceeded', { ip: getRateLimitKey(request) })
+    return rateLimitCheck.response!
+  }
+
   const body = await request.text()
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')

@@ -21,3 +21,6 @@ WHERE table_name = 'profiles'
   AND column_name = 'avatar_url';
 
 
+
+
+

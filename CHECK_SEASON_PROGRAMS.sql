@@ -14,3 +14,6 @@ LEFT JOIN sub_programs sp ON sp.program_id = p.id
 WHERE c.slug = 'gtssf'
 GROUP BY s.id, s.name, s.is_current
 ORDER BY s.start_date DESC;
+
+
+

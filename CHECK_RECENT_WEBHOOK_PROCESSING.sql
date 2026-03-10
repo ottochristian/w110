@@ -92,3 +92,6 @@ JOIN registrations r ON r.id = oi.registration_id
 ORDER BY table_name;
 
 
+
+
+

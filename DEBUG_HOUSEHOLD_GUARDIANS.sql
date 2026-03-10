@@ -68,3 +68,6 @@ LEFT JOIN profiles p ON hg.user_id = p.id
 LEFT JOIN households h ON hg.household_id = h.id
 LEFT JOIN clubs c ON h.club_id = c.id
 ORDER BY c.name, p.email;
+
+
+

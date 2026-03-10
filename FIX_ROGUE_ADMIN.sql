@@ -30,3 +30,6 @@ SELECT
     END as status
 FROM profiles
 WHERE email = 'ottilieotto+jackson+admin@gmail.com';
+
+
+

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { createSessionSchema } from '@/lib/validation'
+import { z } from 'zod'
 
 /**
  * Create a session for a user after email verification
@@ -7,15 +9,28 @@ import { createAdminClient } from '@/lib/supabase/server'
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId } = body
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Missing userId' },
-        { status: 400 }
-      )
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = createSessionSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+
+    const { userId, verificationToken } = validatedData
 
     const supabaseAdmin = createAdminClient()
 

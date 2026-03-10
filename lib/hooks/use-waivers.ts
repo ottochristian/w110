@@ -34,13 +34,7 @@ export function useWaivers(seasonId?: string) {
   return useQuery({
     queryKey: ['waivers', club?.id, seasonId],
     queryFn: async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:36',message:'useWaivers queryFn entry',data:{clubId:club?.id,seasonId,hasClub:!!club?.id,hasSeason:!!seasonId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       if (!club?.id || !seasonId) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:40',message:'useWaivers early return',data:{clubId:club?.id,seasonId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         return []
       }
 
@@ -51,10 +45,6 @@ export function useWaivers(seasonId?: string) {
         .eq('club_id', club.id)
         .eq('season_id', seasonId)
         .order('created_at', { ascending: false })
-
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:49',message:'useWaivers query result',data:{clubId:club.id,seasonId,waiverCount:data?.length||0,error:error?.message||null,waivers:data?.map((w:any)=>({id:w.id,title:w.title,required:w.required,status:w.status}))||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
 
       if (error) throw error
       return data
@@ -89,17 +79,11 @@ export function useCreateWaiver() {
         required: waiver.required,
         created_by: profile.id, // Use profile.id (which matches auth.users.id)
       }
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:86',message:'createWaiver insert data',data:insertData,waiverData:waiver,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const { data, error } = await supabase
         .from('waivers')
         .insert(insertData)
         .select()
         .single()
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:95',message:'createWaiver result',data:{insertedRequired:data?.required,insertedId:data?.id,error:error?.message||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
 
       if (error) {
         const errorMessage = error.message || error.hint || error.details || JSON.stringify(error)
@@ -132,18 +116,12 @@ export function useUpdateWaiver() {
         required: waiver.required,
         updated_at: new Date().toISOString(),
       }
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:127',message:'updateWaiver update data',data:{updateData,waiverId:waiver.id,receivedRequired:waiver.required},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const { data, error } = await supabase
         .from('waivers')
         .update(updateData)
         .eq('id', waiver.id)
         .select()
         .single()
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/hooks/use-waivers.ts:137',message:'updateWaiver result',data:{updatedRequired:data?.required,updatedId:data?.id,error:error?.message||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
 
       if (error) {
         const errorMessage = error.message || error.hint || error.details || JSON.stringify(error)

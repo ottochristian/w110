@@ -15,7 +15,7 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[]
-  addItem: (item: CartItem) => void
+  addItem: (item: CartItem) => boolean
   removeItem: (itemId: string) => void
   clearCart: () => void
   total: number
@@ -27,17 +27,30 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
 
-  const addItem = (item: CartItem) => {
+  const addItem = (item: CartItem): boolean => {
+    // Check for duplicates using current state
+    // Note: This might have race conditions if multiple items added simultaneously,
+    // but the updater function will prevent duplicates as a safety check
+    const existing = items.find(
+      i => i.athlete_id === item.athlete_id && i.sub_program_id === item.sub_program_id
+    )
+    
+    if (existing) {
+      return false // Don't add duplicates
+    }
+    
     setItems(prev => {
-      // Check if this athlete is already registered for this sub-program
-      const existing = prev.find(
+      // Safety check: prevent duplicates if state changed between check and update
+      const duplicate = prev.find(
         i => i.athlete_id === item.athlete_id && i.sub_program_id === item.sub_program_id
       )
-      if (existing) {
-        return prev // Don't add duplicates
+      if (duplicate) {
+        return prev
       }
       return [...prev, item]
     })
+    
+    return true
   }
 
   const removeItem = (itemId: string) => {

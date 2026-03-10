@@ -49,18 +49,17 @@ export function ClubProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const { data, error: clubError } = await supabase
-        .from('clubs')
-        .select('id, name, slug, logo_url, primary_color')
-        .eq('slug', clubSlug)
-        .single()
+      const resp = await fetch(`/api/clubs/public?slug=${encodeURIComponent(clubSlug)}`)
+      const json = await resp.json()
 
-      if (clubError) {
+      if (!resp.ok || !json?.club) {
         setError(`Club not found: ${clubSlug}`)
         setClub(null)
         setCurrentClubSlug(null)
         return
       }
+
+      const data = json.club as Club
 
       // Only update if club data actually changed to prevent unnecessary re-renders
       setClub(prevClub => {
@@ -107,17 +106,13 @@ export function ClubProvider({ children }: { children: ReactNode }) {
         const loadAdminClub = async () => {
           try {
             setLoading(true)
-            const { data: clubData, error: clubError } = await supabase
-              .from('clubs')
-              .select('id, name, slug, logo_url, primary_color')
-              .eq('id', profile.club_id)
-              .single()
-
-            if (clubError) {
-              console.error('Error loading admin club:', clubError)
-              setError(`Failed to load club: ${clubError.message}`)
-            } else if (clubData) {
-              setClub(clubData as Club)
+            const resp = await fetch(`/api/clubs/public?id=${encodeURIComponent(profile.club_id ?? '')}`)
+            const json = await resp.json()
+            if (!resp.ok || !json?.club) {
+              setError('Failed to load club')
+            } else {
+              const clubData = json.club as Club
+              setClub(clubData)
               setCurrentClubSlug(clubData.slug)
               setHasLoadedUserClub(true)
             }
@@ -152,28 +147,15 @@ export function ClubProvider({ children }: { children: ReactNode }) {
         async function loadClubFromProfile() {
           try {
             setLoading(true)
-            const { data: clubData, error: clubError } = await supabase
-              .from('clubs')
-              .select('id, name, slug, logo_url, primary_color')
-              .eq('id', clubId)
-              .single()
+            const resp = await fetch(`/api/clubs/public?id=${encodeURIComponent(clubId)}`)
+            const json = await resp.json()
 
-            if (clubError) {
-              // Log the full error object for debugging
-              // Handle case where error object might be empty or malformed
-              const errorInfo = {
-                message: clubError.message || 'Unknown error',
-                code: clubError.code || 'NO_CODE',
-                details: clubError.details || null,
-                hint: clubError.hint || null,
-                fullError: clubError,
-              }
-              console.error('Error loading club:', errorInfo)
-              // Only set error if we have a meaningful error message
-              if (clubError.message) {
-                setError(`Failed to load club: ${clubError.message}`)
-              }
-            } else if (clubData) {
+            if (!resp.ok || !json?.club) {
+              setError('Failed to load club')
+              setClub(null)
+              setCurrentClubSlug(null)
+            } else {
+              const clubData = json.club as Club
               // Only update if club data actually changed to prevent unnecessary re-renders
               setClub(prevClub => {
                 if (prevClub && 
@@ -184,7 +166,7 @@ export function ClubProvider({ children }: { children: ReactNode }) {
                     prevClub.primary_color === clubData.primary_color) {
                   return prevClub // Return same object reference if nothing changed
                 }
-                return clubData as Club
+                return clubData
               })
               setCurrentClubSlug(clubData.slug)
             }

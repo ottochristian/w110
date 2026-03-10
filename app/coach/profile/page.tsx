@@ -115,6 +115,13 @@ export default function CoachProfilePage() {
     setSaving(true)
     setError(null)
 
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName) {
+      setError('First name and last name are required')
+      setSaving(false)
+      return
+    }
+
     try {
       const {
         data: { user },
@@ -130,8 +137,8 @@ export default function CoachProfilePage() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          first_name: formData.firstName || null,
-          last_name: formData.lastName || null,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
           avatar_url: formData.avatarUrl || null,
         })
         .eq('id', user.id)
@@ -249,25 +256,29 @@ export default function CoachProfilePage() {
 
             {/* First Name */}
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">First Name *</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
                 }
+                required
+                className={!formData.firstName ? 'border-red-300' : ''}
               />
             </div>
 
             {/* Last Name */}
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">Last Name *</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
                 }
+                required
+                className={!formData.lastName ? 'border-red-300' : ''}
               />
             </div>
 

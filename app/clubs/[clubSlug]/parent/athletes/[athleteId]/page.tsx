@@ -80,10 +80,6 @@ export default function AthleteDetailPage() {
   const handleSaveMedicalNotes = async () => {
     if (!athlete) return
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/athletes/[athleteId]/page.tsx:80',message:'handleSaveMedicalNotes called',data:{athleteId:athlete.id,medicalNotesValue:medicalNotesValue,trimmedValue:medicalNotesValue.trim()||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-
     try {
       const result = await updateAthlete.mutateAsync({
         athleteId: athlete.id,
@@ -93,24 +89,20 @@ export default function AthleteDetailPage() {
       })
       
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/athletes/[athleteId]/page.tsx:95',message:'mutation success',data:{result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
       
       toast.success('Medical notes updated successfully')
       setIsEditingMedicalNotes(false)
       
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/athletes/[athleteId]/page.tsx:99',message:'calling refetchAthlete',timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
       
       const refetchResult = await refetchAthlete()
       
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/athletes/[athleteId]/page.tsx:103',message:'refetchAthlete completed',data:{refetchResult:refetchResult?.data?{id:refetchResult.data.id,medical_notes:refetchResult.data.medical_notes}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
     } catch (error) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/parent/athletes/[athleteId]/page.tsx:109',message:'mutation error',data:{error:error?.message||String(error),errorType:error?.constructor?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
       
       toast.error('Failed to update medical notes')

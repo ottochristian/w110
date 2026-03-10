@@ -1,0 +1,641 @@
+
+> ski_admin@0.1.0 generate:load-test:simple
+> tsx scripts/generate-load-test-data-simple.ts --athletes 100000
+
+[dotenv@17.3.1] injecting env (13) from .env.local -- tip: ⚙️  suppress all logs with { quiet: true }
+
+🚀 Simplified Load Test Data Generation
+══════════════════════════════════════════════════
+
+📊 Configuration:
+  Total Athletes: 100,000
+  Seasons per Club: 3 (1 current + 2 historical)
+  Athletes per Household: 1-4
+  Registration Rate: 70%
+  Payment Rate: 85%
+
+✅ Found 32 existing clubs
+
+⚠️  This will create ~100,000 athletes!
+Press Ctrl+C to cancel, or wait 5 seconds...
+
+
+==================================================
+🏢 Processing: GTSSF
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,246 athletes)
+    Progress: 80.0% (2,463 athletes)
+    ✓ Created 3,076 athletes
+
+==================================================
+🏢 Processing: Jackson
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,268 athletes)
+    Progress: 80.0% (2,561 athletes)
+    ✓ Created 3,199 athletes
+
+==================================================
+🏢 Processing: New Ansleyhaven Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,269 athletes)
+    Progress: 80.0% (2,534 athletes)
+    ✓ Created 3,160 athletes
+
+==================================================
+🏢 Processing: Hannahboro Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,288 athletes)
+    Progress: 80.0% (2,543 athletes)
+    ✓ Created 3,152 athletes
+
+==================================================
+🏢 Processing: Cormierborough Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,334 athletes)
+    Progress: 80.0% (2,605 athletes)
+    ✓ Created 3,241 athletes
+
+==================================================
+🏢 Processing: Koeppworth Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,258 athletes)
+    Progress: 80.0% (2,518 athletes)
+    ✓ Created 3,113 athletes
+
+==================================================
+🏢 Processing: East Williamside Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,231 athletes)
+    Progress: 80.0% (2,476 athletes)
+    ✓ Created 3,085 athletes
+
+==================================================
+🏢 Processing: Port Don Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,255 athletes)
+    Progress: 80.0% (2,526 athletes)
+    ✓ Created 3,153 athletes
+
+==================================================
+🏢 Processing: Fort Hirambury Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,247 athletes)
+    Progress: 80.0% (2,466 athletes)
+    ✓ Created 3,089 athletes
+
+==================================================
+🏢 Processing: Robelberg Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,205 athletes)
+    Progress: 80.0% (2,488 athletes)
+    ✓ Created 3,083 athletes
+
+==================================================
+🏢 Processing: Beaumont Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,243 athletes)
+    Progress: 80.0% (2,462 athletes)
+    ✓ Created 3,088 athletes
+
+==================================================
+🏢 Processing: Lake Gabriel Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,237 athletes)
+    Progress: 80.0% (2,512 athletes)
+    ✓ Created 3,119 athletes
+
+==================================================
+🏢 Processing: Fort Maymieworth Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,242 athletes)
+    Progress: 80.0% (2,500 athletes)
+    ✓ Created 3,139 athletes
+
+==================================================
+🏢 Processing: Franeckimouth Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,237 athletes)
+    Progress: 80.0% (2,478 athletes)
+    ✓ Created 3,096 athletes
+
+==================================================
+🏢 Processing: Zoiehaven Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,195 athletes)
+    Progress: 80.0% (2,452 athletes)
+    ✓ Created 3,081 athletes
+
+==================================================
+🏢 Processing: West Laurelworth Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,254 athletes)
+    Progress: 80.0% (2,562 athletes)
+    ✓ Created 3,195 athletes
+
+==================================================
+🏢 Processing: Evelynside Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,245 athletes)
+    Progress: 80.0% (2,536 athletes)
+    ✓ Created 3,160 athletes
+
+==================================================
+🏢 Processing: Dameonborough Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,255 athletes)
+    Progress: 80.0% (2,504 athletes)
+    ✓ Created 3,150 athletes
+
+==================================================
+🏢 Processing: North Dariusfort Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,243 athletes)
+    Progress: 80.0% (2,532 athletes)
+    ✓ Created 3,138 athletes
+
+==================================================
+🏢 Processing: Victoriashire Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,234 athletes)
+    Progress: 80.0% (2,506 athletes)
+    ✓ Created 3,125 athletes
+
+==================================================
+🏢 Processing: Springfield Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,265 athletes)
+    Progress: 80.0% (2,533 athletes)
+    ✓ Created 3,180 athletes
+
+==================================================
+🏢 Processing: Riceton Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,249 athletes)
+    Progress: 80.0% (2,533 athletes)
+    ✓ Created 3,137 athletes
+
+==================================================
+🏢 Processing: Heidenreichborough Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,255 athletes)
+    Progress: 80.0% (2,491 athletes)
+    ✓ Created 3,100 athletes
+
+==================================================
+🏢 Processing: Sandy Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,243 athletes)
+    Progress: 80.0% (2,439 athletes)
+    ✓ Created 3,074 athletes
+
+==================================================
+🏢 Processing: Franciscoworth Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,284 athletes)
+    Progress: 80.0% (2,554 athletes)
+    ✓ Created 3,174 athletes
+
+==================================================
+🏢 Processing: Hilllhaven Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,295 athletes)
+    Progress: 80.0% (2,540 athletes)
+    ✓ Created 3,189 athletes
+
+==================================================
+🏢 Processing: Laurenside Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,235 athletes)
+    Progress: 80.0% (2,487 athletes)
+    ✓ Created 3,116 athletes
+
+==================================================
+🏢 Processing: Kochville Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,237 athletes)
+    Progress: 80.0% (2,499 athletes)
+    ✓ Created 3,107 athletes
+
+==================================================
+🏢 Processing: New Hectormouth Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,260 athletes)
+    Progress: 80.0% (2,531 athletes)
+    ✓ Created 3,152 athletes
+
+==================================================
+🏢 Processing: East Jazmynboro Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,211 athletes)
+    Progress: 80.0% (2,480 athletes)
+    ✓ Created 3,107 athletes
+
+==================================================
+🏢 Processing: Lake Abel Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,288 athletes)
+    Progress: 80.0% (2,519 athletes)
+    ✓ Created 3,152 athletes
+
+==================================================
+🏢 Processing: South Manley Ski Club
+==================================================
+
+  📅 Creating 3 seasons...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+
+  🏂 Creating programs for 2024-2025 Season...
+
+  🏂 Creating programs for 2025-2026 Season...
+
+  🏂 Creating programs for 2026-2027 Season...
+
+  👨‍👩‍👧‍👦 Creating ~3,125 athletes in households...
+    Progress: 40.0% (1,224 athletes)
+    Progress: 80.0% (2,437 athletes)
+    ✓ Created 3,057 athletes
+
+✅ Generation complete in 340.76 minutes!
+
+Run validation: npm run validate:data

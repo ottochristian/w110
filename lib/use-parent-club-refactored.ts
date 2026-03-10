@@ -27,7 +27,6 @@ export type Household = {
 export type Athlete = {
   id: string
   household_id?: string
-  family_id?: string
   first_name: string
   last_name: string
   date_of_birth?: string | null
@@ -37,7 +36,7 @@ export type Athlete = {
  * Hook for parent pages that:
  * 1. Uses useRequireParent() for authentication (no duplicate auth logic!)
  * 2. Uses useParentHousehold() to get household data
- * 3. Uses useAthletesByHousehold() for athletes (handles both household_id and family_id)
+ * 3. Uses useAthletesByHousehold() for athletes
  * 4. Composes all together with useClub() for club context
  * 
  * PHASE 2: Simplified - no duplicate logic!
@@ -56,12 +55,10 @@ export function useParentClub() {
     error: householdError,
   } = useParentHousehold()
 
-  // Get household ID (works for both households and legacy families)
-  // getAthletesByHousehold() handles both household_id and family_id automatically
+  // Get household ID
   const householdId = householdData?.id || null
 
   // Fetch athletes - React Query handles caching
-  // getAthletesByHousehold() automatically handles both household_id and family_id
   const {
     data: athletes = [],
     isLoading: athletesLoading,
@@ -92,7 +89,6 @@ export function useParentClub() {
   const mappedAthletes: Athlete[] = athletes.map((athlete: any) => ({
     id: athlete.id,
     household_id: athlete.household_id || null,
-    family_id: athlete.family_id || null, // Keep for backward compatibility
     first_name: athlete.first_name,
     last_name: athlete.last_name,
     date_of_birth: athlete.date_of_birth || null,
@@ -115,5 +111,7 @@ export function useParentClub() {
     error,
   }
 }
+
+
 
 

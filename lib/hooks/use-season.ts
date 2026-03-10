@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { createClient } from './supabase/client'
+import { supabase } from '../supabaseClient'
 import { useAuth } from '../auth-context'
 import { seasonsService } from '../services/seasons-service'
 
@@ -14,7 +14,7 @@ export interface Season {
   start_date: string
   end_date: string
   is_current: boolean
-  status: 'draft' | 'active' | 'archived'
+  status: 'draft' | 'active' | 'closed' | 'archived'
 }
 
 /**
@@ -138,7 +138,7 @@ export function useCreateSeason() {
       start_date: string
       end_date: string
       is_current: boolean
-      status: 'draft' | 'active' | 'archived'
+      status: 'draft' | 'active' | 'closed' | 'archived'
       club_id: string
     }) => {
       const result = await seasonsService.createSeason(data)
@@ -166,7 +166,7 @@ export function useUpdateSeason() {
         start_date: string
         end_date: string
         is_current: boolean
-        status: 'draft' | 'active' | 'archived'
+        status: 'draft' | 'active' | 'closed' | 'archived'
       }>
     }) => {
       const result = await seasonsService.updateSeason(seasonId, updates)

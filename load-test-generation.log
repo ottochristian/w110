@@ -1,0 +1,69 @@
+
+> ski_admin@0.1.0 generate:load-test
+> tsx scripts/generate-load-test-data.ts
+
+[dotenv@17.3.1] injecting env (13) from .env.local -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+🚀 Load Test Data Generation Plan
+══════════════════════════════════════════════════
+
+📊 Configuration:
+  Clubs: 10
+  Total Athletes: 100,000
+  Athletes per Club: ~10,000
+  Athletes per Household: 1-4
+  Seasons per Club: 3 (1 current + 2 historical)
+  Batch Size: 500
+  Registration Rate: 70%
+  Payment Rate: 85%
+
+📈 Estimated Totals:
+  Total Households: 40,000
+  Total Parents: 40,000
+  Total Admins: 20
+  Total Coaches: 100
+  Total Programs: 50
+  Total Sub-Programs: 150
+  Total Groups: 600
+  Total Registrations: 70,000
+  Total Orders: 56,000
+  Paid Orders: 47,600
+  Estimated Revenue: $39,313,792
+
+⚠️  WARNING: This will create a large amount of data!
+Press Ctrl+C to cancel, or wait 5 seconds to continue...
+
+
+📍 Creating 10 clubs...
+  ✓ Created club: Heidenreichborough Ski Club (heidenreichborough-ski-club-0)
+  ✓ Created club: Sandy Ski Club (sandy-ski-club-1)
+  ✓ Created club: Franciscoworth Ski Club (franciscoworth-ski-club-2)
+  ✓ Created club: Hilllhaven Ski Club (hilllhaven-ski-club-3)
+  ✓ Created club: Laurenside Ski Club (laurenside-ski-club-4)
+  ✓ Created club: Kochville Ski Club (kochville-ski-club-5)
+  ✓ Created club: New Hectormouth Ski Club (new-hectormouth-ski-club-6)
+  ✓ Created club: East Jazmynboro Ski Club (east-jazmynboro-ski-club-7)
+  ✓ Created club: Lake Abel Ski Club (lake-abel-ski-club-8)
+  ✓ Created club: South Manley Ski Club (south-manley-ski-club-9)
+
+==================================================
+🏢 Processing Club 1/10: Heidenreichborough Ski Club
+==================================================
+  📅 Creating 3 seasons for Heidenreichborough Ski Club...
+    ✓ 2024-2025 Season (closed)
+    ✓ 2025-2026 Season (closed)
+    ✓ 2026-2027 Season (active)
+  👤 Creating 2 admins for Heidenreichborough Ski Club...
+Error creating admin: {
+  code: '23503',
+  details: 'Key (id)=(646ac258-6d1d-4cde-a13a-ea63749c2321) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "profiles" violates foreign key constraint "profiles_id_fkey"'
+}
+
+❌ Error generating data: {
+  code: '23503',
+  details: 'Key (id)=(646ac258-6d1d-4cde-a13a-ea63749c2321) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "profiles" violates foreign key constraint "profiles_id_fkey"'
+}

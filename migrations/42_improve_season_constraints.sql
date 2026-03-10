@@ -87,3 +87,6 @@ FROM clubs c
 LEFT JOIN seasons s ON s.club_id = c.id
 GROUP BY c.id, c.name
 ORDER BY c.name;
+
+
+

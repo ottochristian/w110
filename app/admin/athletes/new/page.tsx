@@ -17,6 +17,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import Link from 'next/link'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
@@ -60,6 +67,13 @@ export default function NewAthletePage() {
       return
     }
 
+    // Validate required fields
+    if (!formData.gender) {
+      setError('Gender is required')
+      setSaving(false)
+      return
+    }
+
     try {
       // Get household to ensure it belongs to the club (RLS will enforce this)
       const householdResult = await supabase
@@ -79,7 +93,7 @@ export default function NewAthletePage() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         date_of_birth: formData.dateOfBirth || null,
-        gender: formData.gender || null,
+        gender: formData.gender,
         household_id: formData.householdId,
         club_id: profile.club_id,
       })
@@ -177,15 +191,23 @@ export default function NewAthletePage() {
             </div>
 
             <div>
-              <Label htmlFor="gender">Gender</Label>
-              <Input
-                id="gender"
-                value={formData.gender}
-                onChange={(e) =>
-                  setFormData({ ...formData, gender: e.target.value })
+              <Label htmlFor="gender">Gender *</Label>
+              <Select
+                value={formData.gender || undefined}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, gender: value })
                 }
-                placeholder="e.g., M, F, Other"
-              />
+                required
+              >
+                <SelectTrigger id="gender" className={!formData.gender ? 'border-red-300' : ''}>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

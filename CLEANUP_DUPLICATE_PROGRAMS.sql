@@ -85,3 +85,6 @@ JOIN clubs c ON c.id = p.club_id
 GROUP BY p.name, c.name
 HAVING COUNT(*) > 1;
 
+
+
+

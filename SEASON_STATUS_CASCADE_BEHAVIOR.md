@@ -139,3 +139,6 @@ When you set a season to `draft`:
 ## Summary
 
 Setting a season to **"active"** now automatically activates all programs, sub-programs, and groups within that season. This provides a much better admin experience and reduces the manual work required when setting up new seasons.
+
+
+

@@ -107,7 +107,7 @@ class NotificationService {
    * Send OTP code for email verification
    */
   async sendEmailVerificationOTP(email: string, code: string, firstName?: string): Promise<NotificationResult> {
-    const message = this.buildEmailOTPMessage(code, firstName, 'email verification')
+    const message = this.buildEmailOTPMessage(code, 'email verification', firstName)
     
     return this.send({
       method: 'email',
@@ -183,6 +183,31 @@ class NotificationService {
       message,
       code,
       template: 'password-reset'
+    })
+  }
+
+  /**
+   * Send guardian invitation email
+   */
+  async sendGuardianInvitation(
+    email: string,
+    options: {
+      inviterName?: string
+      inviterEmail: string
+      householdName?: string
+      clubName: string
+      invitationLink: string
+    }
+  ): Promise<NotificationResult> {
+    const message = this.buildGuardianInvitationMessage(options)
+    
+    return this.send({
+      method: 'email',
+      recipient: email,
+      subject: `Invitation to join ${options.clubName} household`,
+      message,
+      link: options.invitationLink,
+      template: 'invitation'
     })
   }
 
@@ -304,7 +329,7 @@ class NotificationService {
   /**
    * Build email OTP message
    */
-  private buildEmailOTPMessage(code: string, firstName?: string, purpose: string): string {
+  private buildEmailOTPMessage(code: string, purpose: string, firstName?: string): string {
     const greeting = firstName ? `Hi ${firstName},` : 'Hello,'
     
     return `
@@ -376,6 +401,48 @@ If you didn't request this, please ignore this email and your password will rema
 
 Thanks,
 The Ski Admin Team
+    `.trim()
+  }
+
+  /**
+   * Build guardian invitation message
+   */
+  private buildGuardianInvitationMessage(options: {
+    inviterName?: string
+    inviterEmail: string
+    householdName?: string
+    clubName: string
+    invitationLink: string
+  }): string {
+    const inviter = options.inviterName || options.inviterEmail
+    const householdText = options.householdName 
+      ? ` for the ${options.householdName} household`
+      : ''
+    
+    return `
+Hello,
+
+${inviter} has invited you to become a secondary guardian${householdText} at ${options.clubName}.
+
+As a secondary guardian, you'll be able to:
+- View and manage all athletes in the household
+- Register athletes for programs
+- Sign waivers
+- View billing and payment history
+
+To accept this invitation, click the link below:
+${options.invitationLink}
+
+This invitation will expire in 7 days.
+
+If you don't have an account yet, clicking the link will guide you through creating one.
+
+If you didn't expect this invitation, please ignore this email.
+
+Questions? Contact ${options.inviterEmail}
+
+Thanks,
+The ${options.clubName} Team
     `.trim()
   }
 

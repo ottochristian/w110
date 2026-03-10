@@ -106,3 +106,6 @@ WHERE event_object_table = 'profiles'
 ORDER BY trigger_name;
 
 
+
+
+

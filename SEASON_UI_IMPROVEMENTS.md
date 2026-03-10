@@ -184,3 +184,6 @@ The season management UI now fully supports the dual-flag architecture with:
 - Better UX with explanatory text
 
 This gives admins full control over season lifecycle while maintaining data integrity.
+
+
+

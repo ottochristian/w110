@@ -59,3 +59,6 @@ SELECT
   COUNT(*) - COUNT(DISTINCT stripe_checkout_session_id) as duplicate_count
 FROM payments
 WHERE stripe_checkout_session_id IS NOT NULL;
+
+
+

@@ -86,10 +86,6 @@ export default function WaiversAdminPage() {
   const handleUpdateWaiver = async () => {
     if (!editingWaiver) return
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/admin/settings/waivers/page.tsx:86',message:'handleUpdateWaiver called',data:{waiverId:editingWaiver.id,formData},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
-
     try {
       await updateWaiver.mutateAsync({
         id: editingWaiver.id,
@@ -116,18 +112,12 @@ export default function WaiversAdminPage() {
   }
 
   const handleEdit = (waiver: any) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/admin/settings/waivers/page.tsx:104',message:'handleEdit called',data:{waiverId:waiver.id,waiverRequired:waiver.required},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     setEditingWaiver(waiver)
     const newFormData = {
       title: waiver.title,
       body: waiver.body,
       required: waiver.required,
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/admin/settings/waivers/page.tsx:111',message:'handleEdit formData set',data:newFormData,timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     setFormData(newFormData)
   }
 
@@ -226,16 +216,7 @@ export default function WaiversAdminPage() {
                       id="required"
                       checked={formData.required}
                       onCheckedChange={(checked) => {
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/admin/settings/waivers/page.tsx:195',message:'Switch onCheckedChange',data:{checked,currentFormDataRequired:formData.required},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-                        // #endregion
-                        setFormData(prev => {
-                          const updated = { ...prev, required: checked }
-                          // #region agent log
-                          fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/clubs/[clubSlug]/admin/settings/waivers/page.tsx:200',message:'Switch formData updated',data:updated,timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-                          // #endregion
-                          return updated
-                        })
+                        setFormData(prev => ({ ...prev, required: checked }))
                       }}
                       className="h-7 w-12 data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                     />

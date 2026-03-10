@@ -1,0 +1,310 @@
+[dotenv@17.3.1] injecting env (13) from .env.local -- tip: ⚙️  override existing env vars with { override: true }
+
+🏂 Creating Programs for All Clubs
+══════════════════════════════════════════════════
+
+✅ Found 32 clubs
+
+
+==================================================
+🏢 Beaumont Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Beaumont Ski Club
+
+==================================================
+🏢 Cormierborough Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Cormierborough Ski Club
+
+==================================================
+🏢 Dameonborough Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Dameonborough Ski Club
+
+==================================================
+🏢 East Jazmynboro Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with East Jazmynboro Ski Club
+
+==================================================
+🏢 East Williamside Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with East Williamside Ski Club
+
+==================================================
+🏢 Evelynside Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Evelynside Ski Club
+
+==================================================
+🏢 Fort Hirambury Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Fort Hirambury Ski Club
+
+==================================================
+🏢 Fort Maymieworth Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Fort Maymieworth Ski Club
+
+==================================================
+🏢 Franciscoworth Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Franciscoworth Ski Club
+
+==================================================
+🏢 Franeckimouth Ski Club
+==================================================
+  📅 3 seasons found
+  ✓ 2026-2027 Season: 5 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2024-2025 Season: 3 programs already exist
+  ✅ Done with Franeckimouth Ski Club
+
+==================================================
+🏢 GTSSF
+==================================================
+  📅 5 seasons found
+  ✓ 2025-2026: 2 programs already exist
+  ✓ 2025-2026 Season: 3 programs already exist
+  ✓ 2025-2026 v2: 11 programs already exist
+  ✓ 2024-2025: 1 programs already exist
+  ✓ 2024-2025 Season: 2 programs already exist
+  ✅ Done with GTSSF
+
+==================================================
+🏢 Hannahboro Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Hannahboro Ski Club
+
+==================================================
+🏢 Heidenreichborough Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Heidenreichborough Ski Club
+
+==================================================
+🏢 Hilllhaven Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Hilllhaven Ski Club
+
+==================================================
+🏢 Jackson
+==================================================
+  📅 6 seasons found
+  🏂 Creating programs for 2025-2026...
+  🏂 Creating programs for 2025-2026 Season...
+  ✓ 2025-2026 v2: 3 programs already exist
+  ✓ 2025-2026 v3: 4 programs already exist
+  ✓ 2024-2025: 3 programs already exist
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Jackson
+
+==================================================
+🏢 Kochville Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Kochville Ski Club
+
+==================================================
+🏢 Koeppworth Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Koeppworth Ski Club
+
+==================================================
+🏢 Lake Abel Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Lake Abel Ski Club
+
+==================================================
+🏢 Lake Gabriel Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Lake Gabriel Ski Club
+
+==================================================
+🏢 Laurenside Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Laurenside Ski Club
+
+==================================================
+🏢 New Ansleyhaven Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with New Ansleyhaven Ski Club
+
+==================================================
+🏢 New Hectormouth Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with New Hectormouth Ski Club
+
+==================================================
+🏢 North Dariusfort Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with North Dariusfort Ski Club
+
+==================================================
+🏢 Port Don Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Port Don Ski Club
+
+==================================================
+🏢 Riceton Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Riceton Ski Club
+
+==================================================
+🏢 Robelberg Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Robelberg Ski Club
+
+==================================================
+🏢 Sandy Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Sandy Ski Club
+
+==================================================
+🏢 South Manley Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with South Manley Ski Club
+
+==================================================
+🏢 Springfield Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Springfield Ski Club
+
+==================================================
+🏢 Victoriashire Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Victoriashire Ski Club
+
+==================================================
+🏢 West Laurelworth Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with West Laurelworth Ski Club
+
+==================================================
+🏢 Zoiehaven Ski Club
+==================================================
+  📅 3 seasons found
+  🏂 Creating programs for 2026-2027 Season...
+  🏂 Creating programs for 2025-2026 Season...
+  🏂 Creating programs for 2024-2025 Season...
+  ✅ Done with Zoiehaven Ski Club
+
+══════════════════════════════════════════════════
+✅ PROGRAM CREATION COMPLETE!
+══════════════════════════════════════════════════
+⏱️  Duration: 2.04 minutes
+🏂 Total Programs: 229
+📚 Total Sub-Programs: 687
+👥 Total Groups: 0
+══════════════════════════════════════════════════
+

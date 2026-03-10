@@ -3,10 +3,10 @@ import { createAdminClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clubId: string } }
+  { params }: { params: Promise<{ clubId: string }> }
 ) {
   try {
-    const { clubId } = params
+    const { clubId } = await params
 
     if (!clubId) {
       return NextResponse.json(

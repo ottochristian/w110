@@ -8,3 +8,6 @@ FROM information_schema.columns
 WHERE table_name = 'households'
 ORDER BY ordinal_position;
 
+
+
+

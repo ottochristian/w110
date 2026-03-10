@@ -16,6 +16,7 @@ import { useToast } from '@/components/ui/use-toast'
 
 export default function EditClubPage() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const params = useParams()
   const clubId = params.clubId as string
   const { profile, loading: authLoading } = useSystemAdmin()

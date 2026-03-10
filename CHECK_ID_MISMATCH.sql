@@ -19,3 +19,6 @@ FROM profiles p
 LEFT JOIN auth.users au ON p.email = au.email
 LEFT JOIN household_guardians hg ON hg.user_id = p.id
 WHERE p.email = 'ottilieotto+jackson+parent+a@gmail.com';
+
+
+

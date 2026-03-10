@@ -53,3 +53,6 @@ JOIN clubs c ON p.club_id = c.id
 WHERE c.slug = 'gtssf' 
   AND s.is_current = true
 ORDER BY p.name, sp.name;
+
+
+

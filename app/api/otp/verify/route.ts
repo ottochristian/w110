@@ -2,10 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 import { otpService, OTPType } from '@/lib/services/otp-service'
 import { dbRateLimiter } from '@/lib/services/rate-limiter-db'
 import { createAdminClient } from '@/lib/supabase/server'
+import { otpSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = otpSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { userId, code, type, contact } = body
 
     // Validate required fields
@@ -98,13 +121,6 @@ export async function POST(request: NextRequest) {
           .eq('user_id', userId)
           .single()
         
-        console.log('[OTP VERIFY] Signup data result:', { 
-          found: !!signupData, 
-          error: signupDataError?.message,
-          clubId: signupData?.club_id,
-          email: signupData?.email 
-        })
-        
         if (!signupData) {
           console.log('[OTP VERIFY] ❌ No signup data found - user cannot complete setup')
           // Still return success for OTP verification, but user will need manual setup
@@ -113,6 +129,15 @@ export async function POST(request: NextRequest) {
             message: result.message,
             warning: 'Profile setup incomplete - please contact support'
           })
+        }
+
+        // Validate required profile fields
+        if (!signupData.first_name || !signupData.last_name) {
+          console.log('[OTP VERIFY] ❌ Missing required profile fields')
+          return NextResponse.json({
+            success: false,
+            message: 'First name and last name are required'
+          }, { status: 400 })
         }
         
         // STEP 3: Check/Create Profile
@@ -162,11 +187,6 @@ export async function POST(request: NextRequest) {
           .select('household_id, households(id)')
           .eq('user_id', userId)
           .maybeSingle()
-        
-        console.log('[OTP VERIFY] Household guardian check:', { 
-          exists: !!existingGuardian, 
-          error: guardianCheckError?.message 
-        })
         
         if (!existingGuardian) {
           console.log('[OTP VERIFY] Creating household...')

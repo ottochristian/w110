@@ -46,3 +46,6 @@ LEFT JOIN sub_programs sp ON sp.program_id = p.id
 WHERE c.slug = 'gtssf'
   AND s.name LIKE '%2025-2026%'
 ORDER BY s.name, p.name, sp.name;
+
+
+

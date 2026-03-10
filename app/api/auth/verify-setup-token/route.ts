@@ -1,18 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tokenService } from '@/lib/services/token-service'
 import { createAdminClient } from '@/lib/supabase/server'
+import { verifySetupTokenSchema } from '@/lib/validation'
+import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { token } = body
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Token is required' },
-        { status: 400 }
-      )
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = verifySetupTokenSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+
+    const { token } = validatedData
 
     // Verify the token signature and expiration
     const verification = await tokenService.verifySetupToken(token)

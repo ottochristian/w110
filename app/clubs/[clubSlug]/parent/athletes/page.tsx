@@ -95,9 +95,9 @@ export default function ParentAthletesPage() {
                     )}
                   </div>
                   <Link href={`/clubs/${clubSlug}/parent/athletes/${athlete.id}`}>
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
+                  <Button variant="outline" size="sm">
+                    View Details
+                  </Button>
                   </Link>
                 </div>
               ))}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Supabase Test</title>
+  <style>
+    body { font-family: Arial; padding: 40px; max-width: 600px; margin: 0 auto; }
+    button { padding: 12px 24px; font-size: 16px; margin: 10px; cursor: pointer; }
+    .result { margin-top: 20px; padding: 20px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; }
+    .success { background: #d1f2d1; }
+    .error { background: #ffd1d1; }
+    .info { background: #d1e7ff; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Supabase Connection Test</h1>
+  <p>This will test if you can reach Supabase from your browser.</p>
+  
+  <button onclick="testFetch()">Test with Fetch API</button>
+  <button onclick="testCORS()">Test CORS</button>
+  
+  <div id="result"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://hlclvdddefuwggwtmlzc.supabase.co'
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsY2x2ZGRkZWZ1d2dnd3RtbHpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMjIzNjIsImV4cCI6MjA3ODc5ODM2Mn0.VKOsL5li2eSiJA_Ec1k2tzDG0HgDVfY3z6sku4rbXc0'
+
+    function showResult(message, className) {
+      document.getElementById('result').innerHTML = `<div class="result ${className}">${message}</div>`
+    }
+
+    async function testFetch() {
+      showResult('⏳ Testing...', 'info')
+      
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+        
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+          method: 'GET',
+          headers: {
+            'apikey': ANON_KEY,
+            'Authorization': `Bearer ${ANON_KEY}`
+          },
+          signal: controller.signal
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (response.ok || response.status === 404) {
+          showResult(`✅ SUCCESS!\n\nSupabase is reachable.\nStatus: ${response.status}\n\nYour login issue is likely:\n- Wrong credentials\n- Account not set up\n- Auth service issue`, 'success')
+        } else {
+          showResult(`⚠️ Reachable but got ${response.status}\n\n${response.statusText}`, 'error')
+        }
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          showResult('❌ TIMEOUT\n\nSupabase took >10s to respond.\nCheck your internet connection.', 'error')
+        } else {
+          showResult(`❌ NETWORK ERROR\n\n${error.message}\n\nThis means:\n- Firewall is blocking Supabase\n- VPN/Proxy issue\n- No internet connection\n- Supabase is down`, 'error')
+        }
+      }
+    }
+
+    async function testCORS() {
+      showResult('⏳ Testing CORS...', 'info')
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+          method: 'GET',
+          headers: {
+            'apikey': ANON_KEY
+          }
+        })
+        
+        const data = await response.json()
+        showResult(`✅ CORS works!\n\nAuth health: ${data.name || 'OK'}\n\nYour credentials might be wrong.\nTry these:\n\nEmail: ottilieotto+gtssf+admin+a@gmail.com\nPassword: test12345`, 'success')
+      } catch (error) {
+        showResult(`❌ CORS Error\n\n${error.message}`, 'error')
+      }
+    }
+
+    // Auto-test on load
+    window.addEventListener('load', () => {
+      setTimeout(testFetch, 500)
+    })
+  </script>
+</body>
+</html>

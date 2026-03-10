@@ -51,3 +51,6 @@ SELECT
     '✅ Coach RLS Policy Added!' as status,
     'Coaches can now view all athletes in their club' as description,
     'Sign out, clear cache, and log back in as GTSSF Coach A to test' as next_step;
+
+
+

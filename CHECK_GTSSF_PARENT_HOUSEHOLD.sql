@@ -50,3 +50,6 @@ WHERE a.household_id IN (
     FROM household_guardians
     WHERE user_id = (SELECT id FROM profiles WHERE email = 'ottilieotto+gtssf+parent+a@gmail.com')
 );
+
+
+

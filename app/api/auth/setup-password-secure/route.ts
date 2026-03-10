@@ -1,26 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tokenService } from '@/lib/services/token-service'
 import { createAdminClient } from '@/lib/supabase/server'
+import { z } from 'zod'
+import { uuidSchema } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, password, token } = body
-
-    if (!userId || !password || !token) {
-      return NextResponse.json(
-        { error: 'Missing required fields: userId, password, token' },
-        { status: 400 }
-      )
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      const schema = z.object({
+        userId: uuidSchema,
+        password: z.string().min(12, 'Password must be at least 12 characters').max(100),
+        token: z.string().min(10),
+      })
+      validatedData = schema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
 
-    // Validate password strength
-    if (password.length < 12) {
-      return NextResponse.json(
-        { error: 'Password must be at least 12 characters' },
-        { status: 400 }
-      )
-    }
+    const { userId, password, token } = validatedData
 
     // Verify the token one more time (double-check)
     const verification = await tokenService.verifySetupToken(token)

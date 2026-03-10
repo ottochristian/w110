@@ -75,3 +75,6 @@ SELECT
   current_setting('request.jwt.claims', true)::json->>'role' as jwt_role,
   current_setting('request.jwt.claims', true)::json->>'email' as jwt_email;
 
+
+
+

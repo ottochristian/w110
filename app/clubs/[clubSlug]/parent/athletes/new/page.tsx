@@ -53,6 +53,12 @@ export default function NewAthletePage() {
       return
     }
 
+    // Validate required fields
+    if (!formData.gender) {
+      setError('Gender is required')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -185,21 +191,21 @@ export default function NewAthletePage() {
             </div>
 
             <div>
-              <Label htmlFor="gender">Gender <span className="text-muted-foreground">(Optional)</span></Label>
+              <Label htmlFor="gender">Gender *</Label>
               <Select
                 value={formData.gender || undefined}
                 onValueChange={(value) =>
                   setFormData({ ...formData, gender: value })
                 }
+                required
               >
-                <SelectTrigger id="gender">
+                <SelectTrigger id="gender" className={!formData.gender ? 'border-red-300' : ''}>
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Male">Male</SelectItem>
                   <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Non-binary">Non-binary</SelectItem>
-                  <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>

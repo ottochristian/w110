@@ -47,3 +47,6 @@ FROM pg_tables
 WHERE tablename IN ('households', 'household_guardians');
 
 
+
+
+

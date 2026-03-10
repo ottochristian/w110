@@ -91,3 +91,6 @@ LEFT JOIN clubs c ON h.club_id = c.id
 LEFT JOIN athletes a ON a.household_id = h.id
 GROUP BY c.name, p.email, hg.household_id
 ORDER BY c.name, p.email;
+
+
+

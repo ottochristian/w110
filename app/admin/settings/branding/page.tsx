@@ -23,6 +23,7 @@ import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
 export default function BrandingPage() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const { profile, loading: authLoading } = useRequireAdmin()
   const { club, loading: clubLoading, refreshClub } = useClub()
   const { toast: showToast } = useToast()

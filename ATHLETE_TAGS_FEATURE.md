@@ -210,3 +210,6 @@ Added rich visual tags to athlete list providing instant visibility into:
 - Registration state (active/pending/other)
 
 This significantly improves admin efficiency by reducing clicks needed to understand athlete status.
+
+
+

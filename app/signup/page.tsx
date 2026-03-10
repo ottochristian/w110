@@ -59,24 +59,12 @@ export default function SignupPage() {
       const clubIdParam = urlParams.get('clubId')
       const emailParam = urlParams.get('email')
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:56',message:'Checking URL for clubId and email params',data:{clubIdParam,emailParam,hasClubId:!!clubIdParam,hasEmail:!!emailParam},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
-      
       if (clubIdParam) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:60',message:'Setting clubFromInvitation and hiding club selection',data:{clubIdParam},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        
         setClubFromInvitation(clubIdParam)
         setShowClubSelection(false) // Hide club selection when coming from invitation
       }
       
       if (emailParam) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:70',message:'Setting email from invitation',data:{emailParam},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        
         setEmailFromInvitation(emailParam)
         setEmail(emailParam) // Pre-fill email field
       }
@@ -94,14 +82,11 @@ export default function SignupPage() {
           urlClubId = urlParams.get('clubId')
         }
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:90',message:'loadClubs effect running',data:{clubFromInvitation,urlClubId,clubId:club?.id,showClubSelection},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        
-        const { data, error: clubsError } = await supabase
-          .from('clubs')
-          .select('id, name, slug')
-          .order('name', { ascending: true })
+        // Fetch clubs via public API (uses admin client server-side) to avoid RLS blocking anon users
+        const resp = await fetch('/api/clubs/public')
+        const json = await resp.json()
+        const data = json?.clubs as Array<{ id: string; name: string; slug: string }> | null
+        const clubsError = resp.ok ? null : new Error(json?.error || 'Failed to load clubs')
 
         if (clubsError) {
           console.error('Error loading clubs:', clubsError)
@@ -113,17 +98,9 @@ export default function SignupPage() {
           
           // Priority: club from invitation (URL) > club from context > first club
           if (effectiveClubId) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:107',message:'Processing invitation club',data:{effectiveClubId,clubsCount:data?.length,loadingClubs},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
-            
             // CRITICAL: If we have a clubId from URL, ALWAYS hide club selection for invitations
             // Don't wait for clubs to load - the URL param is authoritative
             if (urlClubId) {
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:113',message:'URL has clubId - hiding club selection immediately',data:{urlClubId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-              // #endregion
-              
               setSelectedClubId(effectiveClubId)
               setShowClubSelection(false) // Always hide for invitations
               
@@ -135,18 +112,10 @@ export default function SignupPage() {
               // Only verify club exists if we don't have URL param (using state)
               const invitedClub = data?.find(c => c.id === effectiveClubId)
               if (invitedClub) {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:125',message:'Invited club found, setting selectedClubId and keeping showClubSelection false',data:{clubId:effectiveClubId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
-                
                 setSelectedClubId(effectiveClubId)
                 setShowClubSelection(false)
               } else if (data && data.length > 0) {
                 // Clubs loaded but club not found - fallback
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:133',message:'Invited club NOT found after clubs loaded, showing club selection as fallback',data:{effectiveClubId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
-                
                 setShowClubSelection(true)
                 setSelectedClubId(data[0].id)
               }
@@ -164,33 +133,17 @@ export default function SignupPage() {
               isActuallyInvitation = !!(urlClubIdCheck || (redirectParam && redirectParam.includes('accept-guardian-invitation')))
             }
             
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:157',message:'No invitation club in state, checking URL',data:{clubId:club?.id,isActuallyInvitation,currentShowClubSelection:showClubSelection},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
-            
             // Only proceed with regular signup logic if NOT an invitation
             if (!isActuallyInvitation) {
               if (club?.id) {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:165',message:'Using club from context',data:{clubId:club.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
-                
                 setSelectedClubId(club.id)
                 setShowClubSelection(true) // Show selection for regular signups
               } else if (data && data.length > 0) {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:171',message:'Using first club as default',data:{firstClubId:data[0].id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
-                
                 // Default to first club if no club in context
                 setSelectedClubId(data[0].id)
                 setShowClubSelection(true) // Show selection for regular signups
               }
             } else {
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:179',message:'Detected invitation from URL, keeping club selection hidden',data:{urlClubIdCheck},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-              // #endregion
-              
               // This is an invitation - keep club selection hidden
               setShowClubSelection(false)
             }
@@ -210,6 +163,13 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    // Validate required fields
+    if (!firstName || !lastName) {
+      setError('First name and last name are required')
+      setLoading(false)
+      return
+    }
 
     try {
       // 1. Sign up the user (try without metadata first to isolate the issue)
@@ -535,12 +495,12 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <div className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg">
-        <h1 className="mb-4 text-xl font-semibold text-slate-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+        <h1 className="mb-4 text-xl font-semibold text-gray-900">
           Create Parent Account & Household
         </h1>
-        <p className="mb-6 text-sm text-slate-400">
+        <p className="mb-6 text-sm text-gray-600">
           Create your account and set up your household information
         </p>
 
@@ -559,39 +519,34 @@ export default function SignupPage() {
               isInvitationFromUrl = !!(urlClubIdCheck || (redirectParam && redirectParam.includes('accept-guardian-invitation')))
             }
             
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/signup/page.tsx:450',message:'Rendering club selection check',data:{showClubSelection,clubFromInvitation,urlClubIdCheck,isInvitationFromUrl,isInvitationSignup},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
-            
             // CRITICAL: If URL has clubId or redirect to invitation, NEVER show club selection
             // This check happens during render, so it's always accurate
             const shouldShowClubSelection = !isInvitationFromUrl && showClubSelection
             
             return shouldShowClubSelection ? (
-              <div className="space-y-4 border-b border-slate-700 pb-4">
-                <h2 className="text-sm font-semibold text-slate-200">Club Selection</h2>
+              <div className="space-y-4 border-b border-gray-200 pb-4">
+                <h2 className="text-sm font-semibold text-gray-900">Club Selection</h2>
                 
                 {loadingClubs ? (
-                  <p className="text-sm text-slate-400">Loading clubs...</p>
+                  <p className="text-sm text-gray-600">Loading clubs...</p>
                 ) : (
-                  <div>
-                    <Label htmlFor="club" className="text-slate-300">
+                  <div className="space-y-2 relative z-0">
+                    <Label htmlFor="club" className="text-gray-700">
                       Select Club *
                     </Label>
                     <Select
-                      value={selectedClubId}
+                      value={selectedClubId || ''}
                       onValueChange={setSelectedClubId}
                       required
                     >
-                      <SelectTrigger className="mt-1 bg-slate-800 text-slate-100 border-slate-700">
+                      <SelectTrigger id="club" className="w-full">
                         <SelectValue placeholder="Select a club" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectContent className="z-[100] bg-white text-gray-900 border border-gray-200 shadow-lg">
                         {clubs.map(clubOption => (
                           <SelectItem 
                             key={clubOption.id} 
                             value={clubOption.id}
-                            className="text-slate-100 focus:bg-slate-700 focus:text-slate-50"
                           >
                             {clubOption.name}
                           </SelectItem>
@@ -643,12 +598,12 @@ export default function SignupPage() {
           
           {/* Club info is hidden for invitation signups - set automatically in background */}
 
-          <div className="space-y-4 border-b border-slate-700 pb-4">
-            <h2 className="text-sm font-semibold text-slate-200">Account Information</h2>
+          <div className="space-y-4 border-b border-gray-200 pb-4">
+            <h2 className="text-sm font-semibold text-gray-900">Account Information</h2>
             
             <div>
-              <Label htmlFor="firstName" className="text-slate-300">
-                First Name
+              <Label htmlFor="firstName" className="text-gray-700">
+                First Name *
               </Label>
               <Input
                 id="firstName"
@@ -656,13 +611,13 @@ export default function SignupPage() {
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 required
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="lastName" className="text-slate-300">
-                Last Name
+              <Label htmlFor="lastName" className="text-gray-700">
+                Last Name *
               </Label>
               <Input
                 id="lastName"
@@ -670,14 +625,14 @@ export default function SignupPage() {
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 required
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
               />
             </div>
 
             {/* Hide email field for invitation signups - we already have it */}
             {!emailFromInvitation && (
               <div>
-                <Label htmlFor="email" className="text-slate-300">
+                <Label htmlFor="email" className="text-gray-700">
                   Email
                 </Label>
                 <Input
@@ -686,14 +641,14 @@ export default function SignupPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                  className="mt-1"
                 />
               </div>
             )}
             {/* Show read-only email for invitation signups */}
             {emailFromInvitation && (
               <div>
-                <Label htmlFor="email" className="text-slate-300">
+                <Label htmlFor="email" className="text-gray-700">
                   Email
                 </Label>
                 <Input
@@ -701,16 +656,16 @@ export default function SignupPage() {
                   type="email"
                   value={email}
                   disabled
-                  className="mt-1 bg-slate-800/50 text-slate-400 cursor-not-allowed"
+                  className="mt-1 bg-gray-100 cursor-not-allowed"
                 />
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   This email address is from your invitation.
                 </p>
               </div>
             )}
 
             <div>
-              <Label htmlFor="password" className="text-slate-300">
+              <Label htmlFor="password" className="text-gray-700">
                 Password
               </Label>
               <Input
@@ -720,16 +675,16 @@ export default function SignupPage() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
               />
             </div>
           </div>
 
-          <div className="space-y-4 border-b border-slate-700 pb-4">
-            <h2 className="text-sm font-semibold text-slate-200">Contact Information</h2>
+          <div className="space-y-4 border-b border-gray-200 pb-4">
+            <h2 className="text-sm font-semibold text-gray-900">Contact Information</h2>
             
             <div>
-              <Label htmlFor="phone" className="text-slate-300">
+              <Label htmlFor="phone" className="text-gray-700">
                 Phone Number
               </Label>
               <Input
@@ -737,17 +692,17 @@ export default function SignupPage() {
                 type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
                 placeholder="(555) 123-4567"
               />
             </div>
           </div>
 
-          <div className="space-y-4 border-b border-slate-700 pb-4">
-            <h2 className="text-sm font-semibold text-slate-200">Address (Optional)</h2>
+          <div className="space-y-4 border-b border-gray-200 pb-4">
+            <h2 className="text-sm font-semibold text-gray-900">Address (Optional)</h2>
             
             <div>
-              <Label htmlFor="addressLine1" className="text-slate-300">
+              <Label htmlFor="addressLine1" className="text-gray-700">
                 Street Address
               </Label>
               <Input
@@ -755,12 +710,12 @@ export default function SignupPage() {
                 type="text"
                 value={addressLine1}
                 onChange={e => setAddressLine1(e.target.value)}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="addressLine2" className="text-slate-300">
+              <Label htmlFor="addressLine2" className="text-gray-700">
                 Apartment, suite, etc.
               </Label>
               <Input
@@ -768,13 +723,13 @@ export default function SignupPage() {
                 type="text"
                 value={addressLine2}
                 onChange={e => setAddressLine2(e.target.value)}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city" className="text-slate-300">
+                <Label htmlFor="city" className="text-gray-700">
                   City
                 </Label>
                 <Input
@@ -782,12 +737,12 @@ export default function SignupPage() {
                   type="text"
                   value={city}
                   onChange={e => setCity(e.target.value)}
-                  className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="state" className="text-slate-300">
+                <Label htmlFor="state" className="text-gray-700">
                   State
                 </Label>
                 <Input
@@ -796,14 +751,14 @@ export default function SignupPage() {
                   value={state}
                   onChange={e => setState(e.target.value)}
                   maxLength={2}
-                  className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                  className="mt-1"
                   placeholder="CO"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="zipCode" className="text-slate-300">
+              <Label htmlFor="zipCode" className="text-gray-700">
                 ZIP Code
               </Label>
               <Input
@@ -811,17 +766,17 @@ export default function SignupPage() {
                 type="text"
                 value={zipCode}
                 onChange={e => setZipCode(e.target.value)}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
                 placeholder="80401"
               />
             </div>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-slate-200">Emergency Contact (Optional)</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Emergency Contact (Optional)</h2>
             
             <div>
-              <Label htmlFor="emergencyContactName" className="text-slate-300">
+              <Label htmlFor="emergencyContactName" className="text-gray-700">
                 Emergency Contact Name
               </Label>
               <Input
@@ -829,12 +784,12 @@ export default function SignupPage() {
                 type="text"
                 value={emergencyContactName}
                 onChange={e => setEmergencyContactName(e.target.value)}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="emergencyContactPhone" className="text-slate-300">
+              <Label htmlFor="emergencyContactPhone" className="text-gray-700">
                 Emergency Contact Phone
               </Label>
               <Input
@@ -842,28 +797,28 @@ export default function SignupPage() {
                 type="tel"
                 value={emergencyContactPhone}
                 onChange={e => setEmergencyContactPhone(e.target.value)}
-                className="mt-1 bg-slate-800 text-slate-100 border-slate-700"
+                className="mt-1"
                 placeholder="(555) 123-4567"
               />
             </div>
           </div>
 
           {error && (
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-red-600">{error}</p>
           )}
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-sky-500 hover:bg-sky-400 text-slate-900"
+            className="w-full bg-sky-500 hover:bg-sky-400 text-white font-medium shadow-md border border-sky-500"
           >
             {loading ? 'Creating account…' : 'Sign Up'}
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-slate-400">
+        <p className="mt-4 text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/login" className="text-sky-400 hover:text-sky-300">
+          <Link href="/login" className="text-sky-600 hover:text-sky-700">
             Log in
           </Link>
         </p>

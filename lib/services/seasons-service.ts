@@ -19,12 +19,12 @@ export class SeasonsService extends BaseService {
     start_date: string
     end_date: string
     is_current: boolean
-    status: 'draft' | 'active' | 'archived'
+    status: 'draft' | 'active' | 'closed' | 'archived'
     club_id: string
   }): Promise<QueryResult<any>> {
     // If setting as current, unset other current seasons first
     if (data.is_current) {
-      await supabase
+      await this.supabase
         .from('seasons')
         .update({ is_current: false })
         .eq('is_current', true)
@@ -49,7 +49,7 @@ export class SeasonsService extends BaseService {
   ): Promise<QueryResult<any>> {
     // If setting as current, unset other current seasons first
     if (updates.is_current === true) {
-      await supabase
+      await this.supabase
         .from('seasons')
         .update({ is_current: false })
         .eq('is_current', true)

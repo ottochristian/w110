@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { log } from '@/lib/logger'
+import { createRegistrationSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 /**
  * API route to create registrations for parent checkout
@@ -25,7 +27,28 @@ export async function POST(request: NextRequest) {
     const adminSupabase = createSupabaseAdminClient()
 
     // 2. Parse request body
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = createRegistrationSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { registrations, clubId } = body
 
     if (!Array.isArray(registrations) || registrations.length === 0) {

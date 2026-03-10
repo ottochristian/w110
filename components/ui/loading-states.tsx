@@ -48,11 +48,22 @@ export function ErrorState({
   title = 'Error',
   onRetry,
 }: {
-  error: string | Error | null
+  error: string | Error | null | { message?: string; hint?: string; details?: string }
   title?: string
   onRetry?: () => void
 }) {
-  const errorMessage = error instanceof Error ? error.message : error || 'An error occurred'
+  let errorMessage = 'An error occurred'
+  
+  if (error) {
+    if (typeof error === 'string') {
+      errorMessage = error
+    } else if (error instanceof Error) {
+      errorMessage = error.message
+    } else if (typeof error === 'object' && error !== null) {
+      // Handle Supabase/PostgrestError objects
+      errorMessage = error.message || error.hint || error.details || JSON.stringify(error)
+    }
+  }
 
   return (
     <div className="flex items-center justify-center py-12">
@@ -84,11 +95,22 @@ export function FullPageError({
   title = 'Error',
   onRetry,
 }: {
-  error: string | Error | null
+  error: string | Error | null | { message?: string; hint?: string; details?: string }
   title?: string
   onRetry?: () => void
 }) {
-  const errorMessage = error instanceof Error ? error.message : error || 'An error occurred'
+  let errorMessage = 'An error occurred'
+  
+  if (error) {
+    if (typeof error === 'string') {
+      errorMessage = error
+    } else if (error instanceof Error) {
+      errorMessage = error.message
+    } else if (typeof error === 'object' && error !== null) {
+      // Handle Supabase/PostgrestError objects
+      errorMessage = error.message || error.hint || error.details || JSON.stringify(error)
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -132,5 +154,7 @@ export function EmptyState({
     </div>
   )
 }
+
+
 
 

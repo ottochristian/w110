@@ -34,6 +34,7 @@ type SubProgram = {
 
 export default function EditSubProgramPage() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const queryClient = useQueryClient()
   const params = useParams() as { clubSlug?: string; subProgramId?: string }
   const clubSlug = params.clubSlug as string

@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast'
 
 export default function NewClubPage() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const queryClient = useQueryClient()
   const { profile, loading: authLoading } = useSystemAdmin()
   const { toast: showToast } = useToast()

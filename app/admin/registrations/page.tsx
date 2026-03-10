@@ -19,7 +19,10 @@ import {
 } from '@/components/ui/table'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { useSeason } from '@/lib/hooks/use-season'
-import { useRegistrations } from '@/lib/hooks/use-registrations'
+import {
+  useRegistrations,
+  useRegistrationSummary,
+} from '@/lib/hooks/use-registrations'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
@@ -49,6 +52,7 @@ interface Registration {
 }
 
 export default function RegistrationsPage() {
+  const [supabase] = useState(() => createClient())
   const { profile, loading: authLoading } = useRequireAdmin()
   const { selectedSeason, loading: seasonLoading } = useSeason()
   const [parentEmailMap, setParentEmailMap] = useState<Map<string, string>>(new Map())
@@ -60,6 +64,13 @@ export default function RegistrationsPage() {
     error,
     refetch,
   } = useRegistrations(selectedSeason?.id)
+
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useRegistrationSummary(selectedSeason?.id, profile?.club_id || undefined)
 
   // Load parent emails when registrations change
   // Use a stable key based on registration IDs to avoid infinite loops
@@ -129,13 +140,21 @@ export default function RegistrationsPage() {
   })
 
   // Show loading state
-  if (authLoading || seasonLoading || isLoading) {
+  if (authLoading || seasonLoading || isLoading || summaryLoading) {
     return <InlineLoading message="Loading registrations…" />
   }
 
   // Show error state
-  if (error) {
-    return <ErrorState error={error} onRetry={() => refetch()} />
+  if (error || summaryError) {
+    return (
+      <ErrorState
+        error={error || summaryError}
+        onRetry={() => {
+          refetch()
+          refetchSummary()
+        }}
+      />
+    )
   }
 
   // Show message if no season exists
@@ -165,6 +184,42 @@ export default function RegistrationsPage() {
         title="Registrations"
         description={`All registrations for ${selectedSeason.name}`}
       />
+
+      {summary && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Revenue</CardDescription>
+              <CardTitle className="text-2xl">
+                ${summary.payments.paidAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Net: ${summary.netRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Registrations</CardDescription>
+              <CardTitle className="text-2xl">{summary.totals.registrations}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Confirmed {summary.status.confirmed} · Pending {summary.status.pending} · Waitlist {summary.status.waitlisted}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Payments</CardDescription>
+              <CardTitle className="text-2xl">
+                Paid {summary.payments.paidCount} · Unpaid {summary.payments.unpaidCount}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Pending amount ${summary.payments.pendingAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

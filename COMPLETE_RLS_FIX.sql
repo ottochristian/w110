@@ -257,3 +257,6 @@ LEFT JOIN coaches co ON co.club_id = c.id
 GROUP BY c.id, c.name
 ORDER BY c.name;
 
+
+
+

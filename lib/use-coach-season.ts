@@ -23,6 +23,7 @@ export type Season = {
 export function useCoachSeason() {
   const { club, loading: clubLoading } = useClub()
   const searchParams = useSearchParams()
+  const [supabase] = useState(() => createClient())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentSeason, setCurrentSeason] = useState<Season | null>(null)

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAuth } from '@/lib/api-auth'
 import { log } from '@/lib/logger'
+import { checkRateLimit, RateLimitPresets } from '@/lib/rate-limit'
+import { validateRequest, checkoutSchema, ValidationError } from '@/lib/validation'
 import Stripe from 'stripe'
 
 // Initialize Stripe only if secret key is available
@@ -16,6 +18,12 @@ const getStripe = () => {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - 10 requests per minute per user
+    const rateLimitCheck = checkRateLimit(request, RateLimitPresets.CHECKOUT)
+    if (!rateLimitCheck.allowed) {
+      return rateLimitCheck.response!
+    }
+
     // Require authentication
     const authResult = await requireAuth(request)
     if (authResult instanceof NextResponse) {
@@ -24,15 +32,19 @@ export async function POST(request: NextRequest) {
 
     const { user, supabase: userSupabase } = authResult
 
-    const { orderId, amount, clubSlug } = await request.json()
-
-    if (!orderId || !amount || amount <= 0 || !clubSlug) {
-      log.warn('Invalid checkout request', { orderId, amount, clubSlug })
-      return NextResponse.json(
-        { error: 'Invalid order information' },
-        { status: 400 }
-      )
+    // Validate input
+    let validatedData
+    try {
+      validatedData = await validateRequest(checkoutSchema, request)
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        log.warn('Checkout validation failed', { errors: error.errors })
+        return NextResponse.json(error.toJSON(), { status: 400 })
+      }
+      throw error
     }
+
+    const { orderId, amount, clubSlug } = validatedData
 
     // Use admin client to fetch order (since we need to verify ownership via household)
     const supabase = createSupabaseAdminClient()
@@ -84,7 +96,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/clubs/${clubSlug}/parent/billing?success=true&order=${orderId}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/clubs/${clubSlug}/parent/billing?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/clubs/${clubSlug}/parent/cart?canceled=true`,
       metadata: {
         order_id: orderId,

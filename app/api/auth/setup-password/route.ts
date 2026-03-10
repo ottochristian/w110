@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { uuidSchema } from '@/lib/validation'
+import { z } from 'zod'
 
 function getSupabaseAdmin() {
   return createClient(
@@ -16,22 +18,32 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, password } = body
-
-    if (!userId || !password) {
-      return NextResponse.json(
-        { error: 'Missing userId or password' },
-        { status: 400 }
-      )
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      const schema = z.object({
+        userId: uuidSchema,
+        password: z.string().min(8, 'Password must be at least 8 characters').max(100),
+      })
+      validatedData = schema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
-        { status: 400 }
-      )
-    }
+    const { userId, password } = validatedData
 
     const supabaseAdmin = getSupabaseAdmin()
 

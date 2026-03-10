@@ -34,6 +34,13 @@ export function AddAthleteForm({ householdId, clubId }: AddAthleteFormProps) {
     setIsLoading(true);
     setError(null);
 
+    // Validate required fields
+    if (!formData.gender) {
+      setError('Gender is required');
+      setIsLoading(false);
+      return;
+    }
+
     const supabase = createBrowserSupabaseClient();
 
     try {
@@ -43,7 +50,7 @@ export function AddAthleteForm({ householdId, clubId }: AddAthleteFormProps) {
         first_name: formData.firstName,
         last_name: formData.lastName,
         date_of_birth: formData.dateOfBirth,
-        gender: formData.gender || null,
+        gender: formData.gender,
         ussa_number: formData.ussaNumber || null,
         fis_license: formData.fisLicense || null,
         medical_notes: formData.medicalNotes || null,
@@ -97,15 +104,19 @@ export function AddAthleteForm({ householdId, clubId }: AddAthleteFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender</Label>
-          <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
-            <SelectTrigger id="gender">
+          <Label htmlFor="gender">Gender *</Label>
+          <Select 
+            value={formData.gender} 
+            onValueChange={(value) => setFormData({ ...formData, gender: value })}
+            required
+          >
+            <SelectTrigger id="gender" className={!formData.gender ? 'border-red-300' : ''}>
               <SelectValue placeholder="Select gender" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="Male">Male</SelectItem>
+              <SelectItem value="Female">Female</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>

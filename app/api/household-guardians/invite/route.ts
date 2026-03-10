@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { householdGuardiansService } from '@/lib/services/household-guardians-service'
 import { notificationService } from '@/lib/services/notification-service'
 import { log } from '@/lib/logger'
+import { emailSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 import crypto from 'crypto'
 
 const MAX_GUARDIANS = 3 // 1 primary + 2 secondary
@@ -20,29 +22,41 @@ export async function POST(request: NextRequest) {
       return authResult
     }
 
-    const { user, profile } = authResult
+    const { user, supabase } = authResult
     const supabaseAdmin = createSupabaseAdminClient()
 
-    // 2. Parse request body
-    const body = await request.json()
-    const { email } = body
+    // Get user's profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, email')
+      .eq('id', user.id)
+      .single()
 
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
-    }
+    // 2. Parse and validate request body
+    const inviteSchema = z.object({
+      email: emailSchema,
+    })
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const normalizedEmail = email.toLowerCase().trim()
-
-    if (!emailRegex.test(normalizedEmail)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      )
+    let normalizedEmail
+    try {
+      const body = await request.json()
+      const validated = inviteSchema.parse(body)
+      normalizedEmail = validated.email
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        log.warn('Guardian invitation validation failed', { errors: error.errors })
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
 
     // 3. Get user's household_id directly using admin client (service client may not have session in API routes)

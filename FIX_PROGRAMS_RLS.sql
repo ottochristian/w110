@@ -316,3 +316,6 @@ LEFT JOIN sub_programs sp ON sp.club_id = c.id
 GROUP BY c.id, c.name
 ORDER BY c.name;
 
+
+
+

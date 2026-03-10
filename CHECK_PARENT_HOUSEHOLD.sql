@@ -73,3 +73,6 @@ SELECT
   (SELECT COUNT(*) FROM profiles p 
    LEFT JOIN household_guardians hg ON hg.user_id = p.id 
    WHERE p.role = 'parent' AND hg.household_id IS NULL) as parents_without_household;
+
+
+

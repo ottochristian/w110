@@ -66,3 +66,6 @@ LEFT JOIN payments p ON p.order_id = o.id
 LEFT JOIN order_items oi ON oi.order_id = o.id
 LEFT JOIN registrations r ON r.id = oi.registration_id
 WHERE o.id = '25999db9';
+
+
+

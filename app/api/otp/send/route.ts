@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { otpService, OTPType } from '@/lib/services/otp-service'
 import { notificationService } from '@/lib/services/notification-service'
 import { dbRateLimiter } from '@/lib/services/rate-limiter-db'
+import { otpSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 // Helper to get client IP address
 function getClientIP(request: NextRequest): string {
@@ -13,7 +15,28 @@ function getClientIP(request: NextRequest): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = otpSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { userId, type, contact, metadata } = body
     
     console.log('[OTP SEND] Request received:', { userId, type, contact, metadata })
@@ -89,6 +112,7 @@ export async function POST(request: NextRequest) {
       }
     )
 
+
     if (!otpResult.success || !otpResult.code) {
       return NextResponse.json(
         { error: otpResult.error || 'Failed to generate OTP' },
@@ -162,7 +186,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'OTP sent successfully',
       expiresAt: otpResult.expiresAt,
-      attemptsRemaining: userRateLimit.remaining
+      attemptsRemaining: userRateLimit.maxRequests - userRateLimit.currentCount
     }
 
     if (process.env.NODE_ENV === 'development') {

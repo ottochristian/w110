@@ -58,3 +58,6 @@ SELECT
   (SELECT COUNT(*) FROM groups) as total_groups,
   (SELECT COUNT(*) FROM clubs) as total_clubs;
 
+
+
+

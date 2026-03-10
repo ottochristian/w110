@@ -110,11 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
       // Load profile
-      const { data: profileData, error: profileError } = await withTimeout(
-        supabase.from('profiles').select('*').eq('id', currentUser.id).single(),
-        10000,
-        'profile query'
-      )
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single()
 
 
       if (profileError) {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/api-auth'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { log } from '@/lib/logger'
+import { nameSchema, dateStringSchema, emailSchema, phoneSchema, uuidSchema } from '@/lib/validation'
+import { z } from 'zod'
 
 /**
  * API route for admins to create athletes
@@ -63,16 +66,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 4. Parse request body
-    const body = await request.json()
-    const { firstName, lastName, dateOfBirth, gender, householdId } = body
-
-    if (!firstName || !lastName || !householdId) {
-      return NextResponse.json(
-        { error: 'Missing required fields: firstName, lastName, householdId' },
-        { status: 400 }
-      )
+    // 4. Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      const schema = z.object({
+        firstName: nameSchema,
+        lastName: nameSchema,
+        dateOfBirth: dateStringSchema.optional(),
+        gender: z.enum(['male', 'female', 'other']).optional(),
+        householdId: uuidSchema,
+        email: emailSchema.optional(),
+        phone: phoneSchema.optional(),
+      })
+      validatedData = schema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+
+    const { firstName, lastName, dateOfBirth, gender, householdId } = validatedData
 
     // 5. Verify household exists and belongs to the same club (using admin client)
     const adminSupabase = createAdminClient()

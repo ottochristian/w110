@@ -31,3 +31,6 @@ INNER JOIN households h ON h.id = hg.household_id
 WHERE hg.user_id = 'YOUR_USER_ID'::uuid;  -- ⚠️ Replace with your user ID
 
 
+
+
+

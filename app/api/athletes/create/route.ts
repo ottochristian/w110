@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { log } from '@/lib/logger'
+import { uuidSchema, nameSchema, dateStringSchema, emailSchema, phoneSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 /**
  * API route to create athletes for parent accounts
@@ -22,24 +24,43 @@ export async function POST(request: NextRequest) {
     log.info('User authenticated for athlete creation', { userId: user.id })
     const adminSupabase = createSupabaseAdminClient()
 
-    // 2. Parse request body
-    const body = await request.json()
-    const { athlete, clubId, householdId } = body
+    // 2. Parse and validate request body
+    const athleteRequestSchema = z.object({
+      athlete: z.object({
+        first_name: nameSchema,
+        last_name: nameSchema,
+        date_of_birth: dateStringSchema,
+        email: emailSchema.optional(),
+        phone: phoneSchema.optional(),
+      }),
+      clubId: uuidSchema,
+      householdId: uuidSchema,
+    })
 
-    if (!athlete || !clubId) {
-      return NextResponse.json(
-        { error: 'Invalid athlete data or missing clubId' },
-        { status: 400 }
-      )
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = athleteRequestSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        log.warn('Athlete creation validation failed', { errors: error.errors })
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+
+    const { athlete, clubId, householdId } = validatedData
 
     // 3. Verify user is linked to the household
-    if (!householdId) {
-      return NextResponse.json(
-        { error: 'householdId is required' },
-        { status: 400 }
-      )
-    }
 
     const { data: householdGuardian } = await adminSupabase
       .from('household_guardians')
@@ -48,16 +69,8 @@ export async function POST(request: NextRequest) {
       .eq('household_id', householdId)
       .maybeSingle()
 
-    // Check legacy families table as fallback
-    const { data: family } = await adminSupabase
-      .from('families')
-      .select('id')
-      .eq('profile_id', user.id)
-      .eq('id', householdId)
-      .maybeSingle()
-
-    if (!householdGuardian && !family) {
-      log.warn('User attempted to create athlete without household or family link', {
+    if (!householdGuardian) {
+      log.warn('User attempted to create athlete without household link', {
         userId: user.id,
         householdId,
       })
@@ -91,18 +104,10 @@ export async function POST(request: NextRequest) {
     const athleteData: any = {
       ...athlete,
       club_id: athleteClubId,
+      household_id: householdId,
     }
-
-    // Set household_id or family_id based on which link exists
-    if (householdGuardian) {
-      athleteData.household_id = householdId
-      // Clear family_id if it was set
-      delete athleteData.family_id
-    } else if (family) {
-      athleteData.family_id = householdId
-      // Clear household_id if it was set
-      delete athleteData.household_id
-    }
+    
+    // Ensure family_id is not set (it's been removed from schema) - already handled above
 
     // 6. Create athlete (using admin client to bypass RLS)
     const { data: createdAthlete, error: createError } = await adminSupabase
@@ -136,5 +141,7 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+
 
 

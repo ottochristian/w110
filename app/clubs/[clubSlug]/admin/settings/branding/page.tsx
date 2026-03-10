@@ -25,6 +25,7 @@ export default function BrandingPage() {
   const router = useRouter()
   const params = useParams()
   const clubSlug = params.clubSlug as string
+  const [supabase] = useState(() => createClient())
   const { profile, loading: authLoading } = useRequireAdmin()
   const { club, loading: clubLoading, refreshClub } = useClub()
   const { toast: showToast } = useToast()

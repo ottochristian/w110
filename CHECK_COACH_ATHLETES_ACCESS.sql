@@ -58,3 +58,6 @@ LEFT JOIN profiles p ON co.profile_id = p.id
 WHERE p.email = 'ottilieotto+gtssf+coach+a@gmail.com'
   AND a.club_id = '9a372457-0bae-42a7-8af8-0bbbe8bd42a6'  -- GTSSF club_id
 LIMIT 10;
+
+
+

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getUserByEmailSchema } from '@/lib/validation'
+import { z } from 'zod'
 
 function getSupabaseAdmin() {
   return createClient(
@@ -16,15 +18,28 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { email } = body
-
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = getUserByEmailSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+
+    const { email } = validatedData
 
     const supabaseAdmin = getSupabaseAdmin()
 

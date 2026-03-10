@@ -10,13 +10,13 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, CheckCircle, XCircle, Clock, FileText } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Plus, CheckCircle, XCircle, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRequireAdmin } from '@/lib/auth-context'
-import { useAthletes } from '@/lib/hooks/use-athletes'
+import { useAthletesPaginated, useBatchWaiverCheck } from '@/lib/hooks/use-athletes'
 import { useCurrentSeason } from '@/lib/contexts/season-context'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
-import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 
 interface Registration {
@@ -44,7 +44,7 @@ interface Athlete {
   id: string
   first_name?: string
   last_name?: string
-  date_of_birth?: string
+  date_of_birth?: string | null
   parent_id?: string
   registrations?: Registration[]
 }
@@ -54,63 +54,47 @@ export default function AthletesPage() {
   const clubSlug = params.clubSlug as string
   const { profile, loading: authLoading } = useRequireAdmin()
   const basePath = `/clubs/${clubSlug}/admin`
-  const [supabase] = useState(() => createClient())
 
-  // PHASE 2: RLS handles club filtering automatically - no clubQuery needed!
+  // Pagination and search state
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 50
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setCurrentPage(1) // Reset to first page on search
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Fetch paginated athletes
   const {
-    data: athletes = [],
+    data: paginatedData,
     isLoading,
     error,
     refetch,
-  } = useAthletes()
+  } = useAthletesPaginated(currentPage, pageSize, debouncedSearch)
+
+  const athletes = paginatedData?.athletes || []
+  const totalCount = paginatedData?.totalCount || 0
+  const totalPages = paginatedData?.totalPages || 0
 
   // Get current season for waiver checks
   const currentSeason = useCurrentSeason()
 
-  // Track waiver compliance status for each athlete
-  const [waiverStatus, setWaiverStatus] = useState<Record<string, boolean>>({})
-  const [loadingWaivers, setLoadingWaivers] = useState(false)
-
-  // Check waiver status for all athletes
-  useEffect(() => {
-    async function checkWaiverCompliance() {
-      if (athletes.length === 0 || !currentSeason?.id) {
-        setWaiverStatus({})
-        return
-      }
-
-      setLoadingWaivers(true)
-      const status: Record<string, boolean> = {}
-
-      try {
-        for (const athlete of athletes) {
-          const { data, error } = await supabase.rpc('has_signed_required_waivers', {
-            p_athlete_id: athlete.id,
-            p_season_id: currentSeason.id,
-          })
-          status[athlete.id] = data === true && !error
-        }
-      } catch (err) {
-        console.error('Error checking waiver compliance:', err)
-      } finally {
-        setWaiverStatus(status)
-        setLoadingWaivers(false)
-      }
-    }
-
-    if (athletes.length > 0 && currentSeason?.id) {
-      checkWaiverCompliance()
-    }
-  }, [athletes, currentSeason?.id])
+  // Batch waiver check for current page
+  const athleteIds = athletes.map(a => a.id)
+  const { data: waiverStatus = {}, isLoading: loadingWaivers } = useBatchWaiverCheck(
+    athleteIds,
+    currentSeason?.id || null
+  )
 
   // Show loading state
-  if (authLoading || isLoading) {
-    return <InlineLoading message="Loading athletes…" />
-  }
-
-  // Show error state
-  if (error) {
-    return <ErrorState error={error} onRetry={() => refetch()} />
+  if (authLoading) {
+    return <InlineLoading message="Loading…" />
   }
 
   // Auth check ensures profile exists
@@ -118,40 +102,12 @@ export default function AthletesPage() {
     return null
   }
 
-  // Helper function to get athlete's latest season
-  const getLatestSeason = (athlete: Athlete) => {
-    if (!athlete.registrations || athlete.registrations.length === 0) return null
-    // Sort by is_current first, then by season name (descending)
-    const sorted = [...athlete.registrations].sort((a, b) => {
-      if (a.seasons?.is_current && !b.seasons?.is_current) return -1
-      if (!a.seasons?.is_current && b.seasons?.is_current) return 1
-      return (b.seasons?.name || '').localeCompare(a.seasons?.name || '')
-    })
-    return sorted[0]?.seasons
-  }
+  // Pagination controls
+  const canGoPrevious = currentPage > 1
+  const canGoNext = currentPage < totalPages
 
-  // Helper function to get unique programs
-  const getPrograms = (athlete: Athlete) => {
-    if (!athlete.registrations || athlete.registrations.length === 0) return []
-    const programs = athlete.registrations
-      .map(reg => reg.sub_programs?.programs?.name)
-      .filter((name, index, self) => name && self.indexOf(name) === index)
-    return programs as string[]
-  }
-
-  // Helper function to get payment status
-  const getPaymentStatus = (athlete: Athlete) => {
-    if (!athlete.registrations || athlete.registrations.length === 0) return null
-    const latestReg = athlete.registrations[0]
-    return latestReg?.payment_status
-  }
-
-  // Helper function to get registration status
-  const getRegistrationStatus = (athlete: Athlete) => {
-    if (!athlete.registrations || athlete.registrations.length === 0) return null
-    const latestReg = athlete.registrations[0]
-    return latestReg?.status
-  }
+  const startIndex = (currentPage - 1) * pageSize + 1
+  const endIndex = Math.min(currentPage * pageSize, totalCount)
 
   return (
     <div className="flex flex-col gap-6">
@@ -170,21 +126,34 @@ export default function AthletesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Athletes</CardTitle>
-          <CardDescription>
-            Complete list of athletes in the system
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>All Athletes</CardTitle>
+              <CardDescription>
+                {totalCount.toLocaleString()} total athletes
+              </CardDescription>
+            </div>
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search athletes..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {athletes.length > 0 ? (
-            <div className="space-y-4">
-              {athletes.map((athlete) => {
-                const latestSeason = getLatestSeason(athlete)
-                const programs = getPrograms(athlete)
-                const paymentStatus = getPaymentStatus(athlete)
-                const regStatus = getRegistrationStatus(athlete)
-
-                return (
+          {isLoading ? (
+            <InlineLoading message="Loading athletes…" />
+          ) : error ? (
+            <ErrorState error={error} onRetry={() => refetch()} />
+          ) : athletes.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {athletes.map((athlete) => (
                   <div
                     key={athlete.id}
                     className="flex items-center justify-between border-b pb-4 last:border-0"
@@ -203,61 +172,6 @@ export default function AthletesPage() {
                       
                       {/* Tags */}
                       <div className="flex flex-wrap gap-2">
-                        {/* Latest Season Tag */}
-                        {latestSeason && (
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            latestSeason.is_current 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-slate-100 text-slate-700'
-                          }`}>
-                            <CheckCircle className="h-3 w-3" />
-                            {latestSeason.name}
-                          </span>
-                        )}
-
-                        {/* Program Tags */}
-                        {programs.map((program, idx) => (
-                          <span 
-                            key={idx}
-                            className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
-                          >
-                            {program}
-                          </span>
-                        ))}
-
-                        {/* Payment Status Tag */}
-                        {paymentStatus && (
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            paymentStatus === 'paid' 
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : paymentStatus === 'pending'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {paymentStatus === 'paid' ? (
-                              <CheckCircle className="h-3 w-3" />
-                            ) : paymentStatus === 'pending' ? (
-                              <Clock className="h-3 w-3" />
-                            ) : (
-                              <XCircle className="h-3 w-3" />
-                            )}
-                            {paymentStatus}
-                          </span>
-                        )}
-
-                        {/* Registration Status Tag */}
-                        {regStatus && (
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            regStatus === 'active'
-                              ? 'bg-violet-100 text-violet-800'
-                              : regStatus === 'pending'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {regStatus}
-                          </span>
-                        )}
-
                         {/* Waiver Compliance Tag */}
                         {loadingWaivers ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
@@ -277,25 +191,52 @@ export default function AthletesPage() {
                             </span>
                           ) : null
                         ) : null}
-
-                        {/* No Registrations Message */}
-                        {(!athlete.registrations || athlete.registrations.length === 0) && (
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                            No registrations
-                          </span>
-                        )}
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
-                      View
+                    <Link href={`${basePath}/athletes/${athlete.id}`}>
+                      <Button variant="outline" size="sm">
+                        View
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {startIndex.toLocaleString()} to {endIndex.toLocaleString()} of {totalCount.toLocaleString()} athletes
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => p - 1)}
+                      disabled={!canGoPrevious}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => p + 1)}
+                      disabled={!canGoNext}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )}
+            </>
           ) : (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No athletes found
+              {searchTerm ? `No athletes found matching "${searchTerm}"` : 'No athletes found'}
             </p>
           )}
         </CardContent>
@@ -303,7 +244,3 @@ export default function AthletesPage() {
     </div>
   )
 }
-
-
-
-

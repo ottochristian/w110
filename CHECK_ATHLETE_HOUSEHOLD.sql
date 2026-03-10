@@ -80,3 +80,6 @@ WHERE a.id IN (
 AND a.household_id IS NULL;
 */
 
+
+
+

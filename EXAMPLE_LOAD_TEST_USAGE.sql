@@ -186,3 +186,6 @@ BEGIN
     RAISE NOTICE 'Created 100 parents with households in %', duration;
     RAISE NOTICE 'Average: % per parent', duration / 100;
 END $$;
+
+
+

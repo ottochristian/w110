@@ -71,3 +71,6 @@ Remove redundant manual club filtering and rely on RLS policies as the source of
 - This is a security-critical phase - test thoroughly before removing filters
 
 
+
+
+

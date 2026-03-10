@@ -25,6 +25,7 @@ import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
 export default function SeasonsPage() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const { profile, loading: authLoading } = useRequireAdmin()
   const { seasons, loading: seasonsLoading } = useSeason()
 
@@ -149,7 +150,7 @@ export default function SeasonsPage() {
     }
   }
 
-  async function handleStatusChange(seasonId: string, newStatus: string) {
+  async function handleStatusChange(seasonId: string, newStatus: 'draft' | 'active' | 'closed' | 'archived') {
     setError(null)
 
     try {

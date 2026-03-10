@@ -1,0 +1,577 @@
+[dotenv@17.3.1] injecting env (13) from .env.local -- tip: 🛡️ auth for agents: https://vestauth.com
+
+💰 Adding Revenue Data
+══════════════════════════════════════════════════
+
+✅ Found 32 clubs
+
+
+==================================================
+🏢 Beaumont Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 Cormierborough Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 Dameonborough Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 East Jazmynboro Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 East Williamside Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 Evelynside Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 Fort Hirambury Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 Fort Maymieworth Ski Club
+==================================================
+  ⚠️  No sub-programs found, skipping...
+
+==================================================
+🏢 Franciscoworth Ski Club
+==================================================
+  📚 18 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 273 households
+  ✅ Created 273 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $747,870
+
+==================================================
+🏢 Franeckimouth Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 287 households
+  ✅ Created 287 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $712,906
+
+==================================================
+🏢 GTSSF
+==================================================
+  📚 33 sub-programs available
+  👥 996 athletes need registrations
+  💰 Creating revenue for 697 athletes...
+  🏠 332 households
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+  ✅ Created 183 orders
+  ✅ Created 322 registrations
+  💵 Revenue: $310,273
+
+==================================================
+🏢 Hannahboro Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 287 households
+  ✅ Created 287 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $767,162
+
+==================================================
+🏢 Heidenreichborough Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 287 households
+  ✅ Created 287 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $702,022
+
+==================================================
+🏢 Hilllhaven Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 276 households
+  ✅ Created 276 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $792,110
+
+==================================================
+🏢 Jackson
+==================================================
+  📚 54 sub-programs available
+  👥 993 athletes need registrations
+  💰 Creating revenue for 695 athletes...
+  🏠 297 households
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+    ❌ Registration error: null value in column "season_id" of relation "registrations" violates not-null constraint
+  ✅ Created 199 orders
+  ✅ Created 407 registrations
+  💵 Revenue: $352,697
+
+==================================================
+🏢 Kochville Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 289 households
+    ❌ Order error: TypeError: fetch failed
+    ❌ Registration error: TypeError: fetch failed
+  ✅ Created 287 orders
+  ✅ Created 697 registrations
+  💵 Revenue: $707,051
+
+==================================================
+🏢 Koeppworth Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 283 households
+    ❌ Order error: TypeError: fetch failed
+  ✅ Created 282 orders
+  ✅ Created 699 registrations
+  💵 Revenue: $743,234
+
+==================================================
+🏢 Lake Abel Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 272 households
+    ❌ Registration error: TypeError: fetch failed
+  ✅ Created 271 orders
+  ✅ Created 697 registrations
+  💵 Revenue: $772,421
+
+==================================================
+🏢 Lake Gabriel Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 296 households
+    ❌ Order error: TypeError: fetch failed
+  ✅ Created 295 orders
+  ✅ Created 696 registrations
+  💵 Revenue: $710,267
+
+==================================================
+🏢 Laurenside Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 283 households
+  ✅ Created 283 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $721,694
+
+==================================================
+🏢 New Ansleyhaven Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 344 households
+  ✅ Created 344 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $801,475
+
+==================================================
+🏢 New Hectormouth Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 280 households
+  ✅ Created 280 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $687,509
+
+==================================================
+🏢 North Dariusfort Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 293 households
+  ✅ Created 293 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $690,969
+
+==================================================
+🏢 Port Don Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 296 households
+  ✅ Created 296 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $815,480
+
+==================================================
+🏢 Riceton Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 301 households
+    ❌ Order error: TypeError: fetch failed
+  ✅ Created 300 orders
+  ✅ Created 698 registrations
+  💵 Revenue: $662,433
+
+==================================================
+🏢 Robelberg Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 306 households
+    ❌ Registration error: TypeError: fetch failed
+    ❌ Order error: TypeError: fetch failed
+  ✅ Created 304 orders
+  ✅ Created 696 registrations
+  💵 Revenue: $720,099
+
+==================================================
+🏢 Sandy Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 286 households
+    ❌ Order error: TypeError: fetch failed
+  ✅ Created 285 orders
+  ✅ Created 698 registrations
+  💵 Revenue: $757,960
+
+==================================================
+🏢 South Manley Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 278 households
+  ✅ Created 278 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $785,239
+
+==================================================
+🏢 Springfield Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 276 households
+  ✅ Created 276 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $854,541
+
+==================================================
+🏢 Victoriashire Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 303 households
+  ✅ Created 303 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $816,956
+
+==================================================
+🏢 West Laurelworth Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 288 households
+  ✅ Created 288 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $767,416
+
+==================================================
+🏢 Zoiehaven Ski Club
+==================================================
+  📚 33 sub-programs available
+  👥 1000 athletes need registrations
+  💰 Creating revenue for 700 athletes...
+  🏠 290 households
+  ✅ Created 290 orders
+  ✅ Created 700 registrations
+  💵 Revenue: $770,194
+
+══════════════════════════════════════════════════
+✅ REVENUE GENERATION COMPLETE!
+══════════════════════════════════════════════════
+⏱️  Duration: 229.06 minutes
+📝 Total Orders: 6,747
+🎫 Total Registrations: 16,110
+💰 Total Revenue: $17,169,978
+══════════════════════════════════════════════════
+

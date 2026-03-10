@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -17,7 +17,7 @@ import { toast } from 'sonner'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 import { CheckCircle2, XCircle, LogIn } from 'lucide-react'
 
-export default function AcceptGuardianInvitationPage() {
+function AcceptGuardianInvitationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token')
@@ -273,5 +273,13 @@ export default function AcceptGuardianInvitationPage() {
   }
 
   return null
+}
+
+export default function AcceptGuardianInvitationPage() {
+  return (
+    <Suspense fallback={<InlineLoading message="Loading invitation..." />}>
+      <AcceptGuardianInvitationContent />
+    </Suspense>
+  )
 }
 

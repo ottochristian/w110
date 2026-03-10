@@ -64,3 +64,6 @@ LEFT JOIN clubs c ON c.id = a.club_id
 WHERE a.id = :'athlete_id';
 */
 
+
+
+

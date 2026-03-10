@@ -96,14 +96,11 @@ export default function HomePage() {
         if (profile.role === 'admin') {
           // Get club slug for club-aware route
           if (profile.club_id) {
-            const { data: club } = await supabase
-              .from('clubs')
-              .select('slug')
-              .eq('id', profile.club_id)
-              .single()
+            const resp = await fetch(`/api/clubs/public?id=${encodeURIComponent(profile.club_id)}`)
+            const json = await resp.json()
 
-            if (club?.slug) {
-              router.push(`/clubs/${club.slug}/admin`)
+            if (resp.ok && json?.club?.slug) {
+              router.push(`/clubs/${json.club.slug}/admin`)
               return
             }
           }
@@ -120,14 +117,11 @@ export default function HomePage() {
         if (profile.role === 'parent') {
           // Get club slug for parent portal
           if (profile.club_id) {
-            const { data: club } = await supabase
-              .from('clubs')
-              .select('slug')
-              .eq('id', profile.club_id)
-              .single()
+            const resp = await fetch(`/api/clubs/public?id=${encodeURIComponent(profile.club_id)}`)
+            const json = await resp.json()
 
-            if (club?.slug) {
-              router.push(`/clubs/${club.slug}/parent/dashboard`)
+            if (resp.ok && json?.club?.slug) {
+              router.push(`/clubs/${json.club.slug}/parent/dashboard`)
               return
             }
           }

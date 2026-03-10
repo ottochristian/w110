@@ -65,3 +65,6 @@ WHERE tablename = 'registrations'
   AND policyname = 'Parents can insert registrations for their athletes';
 
 
+
+
+

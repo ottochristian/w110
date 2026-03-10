@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { notificationService } from '@/lib/services/notification-service'
 import { log } from '@/lib/logger'
 import crypto from 'crypto'
+import { resendGuardianSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 /**
  * API route to resend a guardian invitation with a new token
@@ -17,11 +19,39 @@ export async function POST(request: NextRequest) {
       return authResult
     }
 
-    const { user, profile } = authResult
+    const { user, supabase } = authResult
     const supabaseAdmin = createSupabaseAdminClient()
 
+    // Get user's profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, email')
+      .eq('id', user.id)
+      .single()
+
     // 2. Parse request body
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = resendGuardianSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { invitationId } = body
 
     if (!invitationId) {

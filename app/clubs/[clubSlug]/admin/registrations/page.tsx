@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import {
   Card,
   CardContent,
@@ -18,11 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { useSelectedSeason } from '@/lib/contexts/season-context'
-import { useRegistrations } from '@/lib/hooks/use-registrations'
+import { useRegistrationSummary } from '@/lib/hooks/use-registrations'
+import { useRegistrationsPaginated } from '@/lib/hooks/use-registrations-paginated'
+import { PaginationControls } from '@/components/ui/pagination-controls'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
+import { Search } from 'lucide-react'
 
 interface Registration {
   id: string
@@ -50,82 +53,51 @@ interface Registration {
 }
 
 export default function RegistrationsPage() {
-  const [supabase] = useState(() => createClient())
   const params = useParams()
   const clubSlug = params.clubSlug as string
   const { profile, loading: authLoading } = useRequireAdmin()
   const selectedSeason = useSelectedSeason()
-  const [parentEmailMap, setParentEmailMap] = useState<Map<string, string>>(new Map())
+  
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [paymentFilter, setPaymentFilter] = useState<string>('all')
 
-  // PHASE 2: RLS handles club filtering automatically - no clubQuery needed!
+  // Fetch paginated data with search and filters
   const {
-    data: registrationsData = [],
+    data: paginatedData,
     isLoading,
     error,
     refetch,
-  } = useRegistrations(selectedSeason?.id)
+  } = useRegistrationsPaginated(selectedSeason?.id, {
+    page,
+    pageSize,
+    search,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    paymentStatus: paymentFilter === 'all' ? undefined : paymentFilter,
+  })
 
-  // Load parent emails when registrations change
-  // Use a stable key based on registration IDs to avoid infinite loops
-  const registrationsKey = registrationsData.map((r: any) => r.id).join(',')
-  
-  useEffect(() => {
-    async function loadParentEmails() {
-      if (registrationsData.length === 0) {
-        // Only update if map is not empty to avoid unnecessary re-renders
-        setParentEmailMap((prev) => {
-          if (prev.size === 0) return prev
-          return new Map()
-        })
-        return
-      }
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useRegistrationSummary(selectedSeason?.id, profile?.club_id || undefined)
 
-      // Extract unique household_ids
-      const householdIds = new Set<string>()
-      registrationsData.forEach((reg: any) => {
-        if (reg.athletes?.household_id) {
-          householdIds.add(reg.athletes.household_id)
-        }
-      })
-
-      const emailMap = new Map<string, string>()
-
-      // Fetch parent emails for households via household_guardians -> profiles
-      if (householdIds.size > 0) {
-        const { data: householdGuardians } = await supabase
-          .from('household_guardians')
-          .select('household_id, profiles:user_id(email)')
-          .in('household_id', Array.from(householdIds))
-
-        if (householdGuardians) {
-          householdGuardians.forEach((hg: any) => {
-            if (hg.household_id && hg.profiles?.email) {
-              emailMap.set(hg.household_id, hg.profiles.email)
-            }
-          })
-        }
-      }
-
-      setParentEmailMap(emailMap)
-    }
-
-    loadParentEmails()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registrationsKey, supabase])
-
-  // Transform data to match our interface and add parent emails
-  const registrations: Registration[] = registrationsData.map((reg: any) => {
-    const athlete = reg.athletes
-    const householdId = athlete?.household_id
-    const parentEmail = householdId ? parentEmailMap.get(householdId) || null : null
+  // Extract registrations from paginated data
+  const registrations: Registration[] = (paginatedData?.data || []).map((reg: any) => {
+    // Get parent email from nested household data
+    const parentEmail = reg.athletes?.households?.household_guardians?.[0]?.profiles?.email || null
 
     return {
       ...reg,
       athlete: {
-        id: athlete?.id,
-        first_name: athlete?.first_name,
-        last_name: athlete?.last_name,
-        date_of_birth: athlete?.date_of_birth,
+        id: reg.athletes?.id,
+        first_name: reg.athletes?.first_name,
+        last_name: reg.athletes?.last_name,
+        date_of_birth: reg.athletes?.date_of_birth,
       },
       program: reg.sub_programs?.programs || { name: reg.sub_programs?.name || 'Unknown' },
       parent: parentEmail ? { email: parentEmail } : null,
@@ -133,13 +105,21 @@ export default function RegistrationsPage() {
   })
 
   // Show loading state
-  if (authLoading || isLoading) {
+  if (authLoading || isLoading || summaryLoading) {
     return <InlineLoading message="Loading registrations…" />
   }
 
   // Show error state
-  if (error) {
-    return <ErrorState error={error} onRetry={() => refetch()} />
+  if (error || summaryError) {
+    return (
+      <ErrorState
+        error={error || summaryError}
+        onRetry={() => {
+          refetch()
+          refetchSummary()
+        }}
+      />
+    )
   }
 
   // Show message if no season exists
@@ -170,6 +150,42 @@ export default function RegistrationsPage() {
         description={`All registrations for ${selectedSeason.name}`}
       />
 
+      {summary && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Revenue</CardDescription>
+              <CardTitle className="text-2xl">
+                ${summary.payments.paidAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Net: ${summary.netRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Registrations</CardDescription>
+              <CardTitle className="text-2xl">{summary.totals.registrations}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Confirmed {summary.status.confirmed} · Pending {summary.status.pending} · Waitlist {summary.status.waitlisted}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Payments</CardDescription>
+              <CardTitle className="text-2xl">
+                Paid {summary.payments.paidCount} · Unpaid {summary.payments.unpaidCount}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Pending amount ${summary.payments.pendingAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>All Registrations</CardTitle>
@@ -178,6 +194,22 @@ export default function RegistrationsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Search and filters */}
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search athlete names..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setPage(1)
+                }}
+                className="pl-8"
+              />
+            </div>
+          </div>
+
           {registrations.length > 0 ? (
             <Table>
               <TableHeader>
@@ -227,10 +259,21 @@ export default function RegistrationsPage() {
               No registrations found for this season
             </p>
           )}
+
+          {/* Pagination controls */}
+          {paginatedData && paginatedData.totalPages > 1 && (
+            <PaginationControls
+              currentPage={paginatedData.page}
+              totalPages={paginatedData.totalPages}
+              pageSize={pageSize}
+              totalItems={paginatedData.total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
   )
 }
-
 

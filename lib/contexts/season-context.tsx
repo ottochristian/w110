@@ -24,7 +24,7 @@ interface Season {
   start_date: string
   end_date: string
   is_current: boolean
-  status: 'draft' | 'active' | 'archived'
+  status: 'draft' | 'active' | 'closed' | 'archived'
   club_id: string
 }
 

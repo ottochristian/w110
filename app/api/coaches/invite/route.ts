@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/api-auth'
 import { tokenService } from '@/lib/services/token-service'
 import { otpService } from '@/lib/services/otp-service'
 import { notificationService } from '@/lib/services/notification-service'
+import { inviteCoachSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 /**
  * API route to invite a coach by email
@@ -28,7 +30,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = inviteCoachSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { email, firstName, lastName, phone } = body
 
     if (!email || !firstName || !lastName) {

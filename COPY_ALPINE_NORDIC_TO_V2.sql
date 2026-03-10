@@ -135,3 +135,6 @@ LEFT JOIN sub_programs sp ON sp.program_id = p.id AND sp.status = 'ACTIVE'
 WHERE c.slug = 'gtssf' 
   AND s.name = '2025-2026 v2'
 GROUP BY s.id, s.name, s.is_current;
+
+
+

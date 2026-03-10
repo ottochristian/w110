@@ -142,3 +142,6 @@ If you want to add support for failed payments and refunds, you'd need to:
 
 But for now, **just enable `checkout.session.completed`** - that's all you need! 🎉
 
+
+
+

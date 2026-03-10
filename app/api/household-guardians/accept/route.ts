@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { log } from '@/lib/logger'
+import { acceptGuardianSchema, ValidationError } from '@/lib/validation'
+import { z } from 'zod'
 
 const MAX_GUARDIANS = 3 // 1 primary + 2 secondary
 
@@ -28,7 +30,28 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     // 2. Parse request body
-    const body = await request.json()
+    // Validate request body
+    let validatedData
+    try {
+      const body = await request.json()
+      validatedData = acceptGuardianSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            validationErrors: error.errors.map((e) => ({
+              field: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
+    
+    const body = validatedData
     const { token } = body
 
     if (!token) {

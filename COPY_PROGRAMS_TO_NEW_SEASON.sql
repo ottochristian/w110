@@ -168,3 +168,6 @@ WHERE c.slug = 'gtssf'
   AND (s.name LIKE '%2024-2025%' OR s.name LIKE '%2025-2026%')
 GROUP BY s.id, s.name
 ORDER BY s.name;
+
+
+

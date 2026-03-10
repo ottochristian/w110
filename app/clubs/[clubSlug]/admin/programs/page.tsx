@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -21,10 +22,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Plus, Pencil, Trash2, Zap, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Zap, AlertTriangle, Search } from 'lucide-react'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { useSelectedSeason } from '@/lib/contexts/season-context'
-import { usePrograms } from '@/lib/hooks/use-programs'
+import { useProgramsPaginated } from '@/lib/hooks/use-programs-paginated'
+import { PaginationControls } from '@/components/ui/pagination-controls'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
@@ -55,6 +57,11 @@ export default function ProgramsPage() {
   const clubSlug = params.clubSlug as string
   const { profile, loading: authLoading } = useRequireAdmin()
   const selectedSeason = useSelectedSeason()
+  
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+  const [search, setSearch] = useState('')
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deletingSubProgramId, setDeletingSubProgramId] = useState<string | null>(null)
@@ -72,18 +79,20 @@ export default function ProgramsPage() {
   } | null>(null)
   const [loadingCounts, setLoadingCounts] = useState(false)
 
-  // PHASE 2: RLS handles club filtering automatically - no clubQuery needed!
-  // React Query handles loading, error, and caching
+  // Fetch paginated programs with search
   const {
-    data: allPrograms = [],
+    data: paginatedData,
     isLoading,
     refetch,
     error,
-  } = usePrograms(selectedSeason?.id, true) // Include sub_programs, RLS filters by club
+  } = useProgramsPaginated(selectedSeason?.id, {
+    page,
+    pageSize,
+    search,
+  })
 
-  // Admin view: Show ALL programs and sub-programs regardless of status
-  // (Parent portal filters by status, but admins need to see everything to manage)
-  const programs = allPrograms as ProgramWithSubPrograms[]
+  // Extract programs from paginated data
+  const programs = (paginatedData?.data || []) as ProgramWithSubPrograms[]
 
   async function handleDeleteClick(programId: string) {
     const program = programs.find(p => p.id === programId)
@@ -302,6 +311,22 @@ export default function ProgramsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Search input */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search programs..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setPage(1)
+                }}
+                className="pl-8"
+              />
+            </div>
+          </div>
+
           {programs.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
               No programs yet. Click &quot;Add Program&quot; to create
@@ -309,7 +334,7 @@ export default function ProgramsPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {programs.map(program => (
+              {programs.map((program) => (
                 <div
                   key={program.id}
                   className="border rounded-lg p-4 space-y-4"
@@ -459,6 +484,20 @@ export default function ProgramsPage() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination controls */}
+          {paginatedData && paginatedData.totalPages > 1 && (
+            <div className="mt-4">
+              <PaginationControls
+                currentPage={paginatedData.page}
+                totalPages={paginatedData.totalPages}
+                pageSize={pageSize}
+                totalItems={paginatedData.total}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           )}
         </CardContent>

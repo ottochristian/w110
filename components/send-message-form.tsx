@@ -102,7 +102,7 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
           .select("user_id")
           .in("household_id", householdIds);
         
-        userIds = [...new Set(guardians?.map((g: any) => g.user_id).filter(Boolean))] || [];
+        userIds = guardians ? [...new Set(guardians.map((g: any) => g.user_id).filter(Boolean))] : [];
       }
 
       // Insert message recipients

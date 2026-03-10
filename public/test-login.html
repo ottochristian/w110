@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Supabase Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: 0 auto;">
+  <h1>🧪 Test Supabase Connection</h1>
+  
+  <div id="status" style="padding: 20px; margin: 20px 0; border-radius: 8px; background: #f0f0f0;">
+    <p>Testing connection to Supabase...</p>
+  </div>
+
+  <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0;">Test User Credentials:</h3>
+    <p><strong>Email:</strong> ottilieotto+gtssf+admin+a@gmail.com</p>
+    <p><strong>Password:</strong> test12345</p>
+  </div>
+
+  <button onclick="testConnection()" style="padding: 12px 24px; font-size: 16px; background: #3B82F6; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px;">
+    Test Connection
+  </button>
+
+  <button onclick="testLogin()" style="padding: 12px 24px; font-size: 16px; background: #10B981; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    Test Login
+  </button>
+
+  <div id="result" style="margin-top: 20px; padding: 20px; border-radius: 8px; background: #f9f9f9; display: none;">
+    <h3>Result:</h3>
+    <pre id="resultText" style="background: white; padding: 15px; border-radius: 4px; overflow: auto; max-height: 400px;"></pre>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hlclvdddefuwggwtmlzc.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsY2x2ZGRkZWZ1d2dnd3RtbHpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMjIzNjIsImV4cCI6MjA3ODc5ODM2Mn0.VKOsL5li2eSiJA_Ec1k2tzDG0HgDVfY3z6sku4rbXc0'
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    const statusEl = document.getElementById('status')
+    const resultEl = document.getElementById('result')
+    const resultTextEl = document.getElementById('resultText')
+
+    function showStatus(message, color) {
+      statusEl.innerHTML = `<p>${message}</p>`
+      statusEl.style.background = color
+    }
+
+    function showResult(data) {
+      resultEl.style.display = 'block'
+      resultTextEl.textContent = JSON.stringify(data, null, 2)
+    }
+
+    async function testConnection() {
+      showStatus('⏳ Testing connection to Supabase...', '#fff3cd')
+      
+      try {
+        // Try to fetch from the REST API
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        })
+
+        if (response.ok) {
+          showStatus('✅ Connection successful! Supabase is reachable.', '#d1f2d1')
+          showResult({ 
+            status: 'success', 
+            message: 'Supabase API is responding',
+            statusCode: response.status 
+          })
+        } else {
+          showStatus(`⚠️ Connection issue: ${response.status} ${response.statusText}`, '#ffd1d1')
+          showResult({ 
+            status: 'error', 
+            statusCode: response.status,
+            statusText: response.statusText 
+          })
+        }
+      } catch (error) {
+        showStatus(`❌ Connection failed: ${error.message}`, '#ffd1d1')
+        showResult({ 
+          status: 'error', 
+          error: error.message,
+          details: error.toString()
+        })
+      }
+    }
+
+    async function testLogin() {
+      showStatus('⏳ Attempting login with test credentials...', '#fff3cd')
+      
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: 'ottilieotto+gtssf+admin+a@gmail.com',
+          password: 'test12345'
+        })
+
+        if (error) {
+          showStatus(`❌ Login failed: ${error.message}`, '#ffd1d1')
+          showResult({ 
+            status: 'error',
+            error: error.message,
+            details: error
+          })
+        } else if (data.user) {
+          showStatus('✅ Login successful!', '#d1f2d1')
+          showResult({ 
+            status: 'success',
+            user: {
+              id: data.user.id,
+              email: data.user.email,
+              role: data.user.role
+            },
+            session: {
+              access_token: data.session.access_token.substring(0, 50) + '...',
+              expires_at: new Date(data.session.expires_at * 1000).toISOString()
+            }
+          })
+        }
+      } catch (error) {
+        showStatus(`❌ Login error: ${error.message}`, '#ffd1d1')
+        showResult({ 
+          status: 'error',
+          error: error.message,
+          details: error.toString()
+        })
+      }
+    }
+
+    // Auto-test connection on load
+    window.addEventListener('load', () => {
+      setTimeout(testConnection, 500)
+    })
+  </script>
+</body>
+</html>
