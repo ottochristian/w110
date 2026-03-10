@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS application_metrics (
 -- Indexes for fast queries
 CREATE INDEX idx_metrics_name_time ON application_metrics(metric_name, recorded_at DESC);
 CREATE INDEX idx_metrics_severity_time ON application_metrics(severity, recorded_at DESC) WHERE severity IS NOT NULL;
-CREATE INDEX idx_metrics_recent ON application_metrics(recorded_at DESC) WHERE recorded_at > NOW() - INTERVAL '24 hours';
-CREATE INDEX idx_metrics_name_recent ON application_metrics(metric_name, recorded_at DESC) WHERE recorded_at > NOW() - INTERVAL '24 hours';
+CREATE INDEX idx_metrics_recorded_at ON application_metrics(recorded_at DESC);
 
 -- Add comments for documentation
 COMMENT ON TABLE application_metrics IS 'Stores application monitoring metrics for the super admin dashboard';
