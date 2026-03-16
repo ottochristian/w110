@@ -31,10 +31,10 @@ export default function SystemAdminLayout({
   return (
     <div className="flex min-h-screen">
       <SystemAdminSidebar profile={profile} />
-      <main className="flex-1 ml-64 flex flex-col bg-slate-50">
-        <div className="fixed top-0 right-0 left-64 border-b border-slate-200 bg-white px-8 py-4 z-10">
+      <main className="flex-1 ml-64 flex flex-col bg-zinc-50">
+        <div className="fixed top-0 right-0 left-64 border-b border-zinc-200 bg-white px-8 py-3 z-10">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-slate-900">System Administration</h1>
+            <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">System Administration</h1>
             {profile && <ProfileMenu profile={profile} />}
           </div>
         </div>

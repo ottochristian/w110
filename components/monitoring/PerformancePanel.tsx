@@ -125,6 +125,9 @@ export function PerformancePanel({ performance, loading }: PerformancePanelProps
                 <p className="text-sm font-medium">
                   {performance.api.totalCalls} calls • {performance.api.avgResponseTime}ms avg
                 </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Monitoring, system-admin, and other instrumented routes
+                </p>
               </div>
               {getPerformanceBadge(performance.api.avgResponseTime)}
             </div>

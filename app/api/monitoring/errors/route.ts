@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
+import { trackApiCall } from '@/lib/metrics'
 
 /**
  * Sentry Errors Endpoint
@@ -12,6 +13,7 @@ import { requireAdmin } from '@/lib/api-auth'
  * Note: Requires SENTRY_AUTH_TOKEN environment variable
  */
 export async function GET(request: NextRequest) {
+  const start = Date.now()
   // Require admin authentication
   const authResult = await requireAdmin(request)
   if (authResult instanceof NextResponse) {
@@ -49,24 +51,24 @@ export async function GET(request: NextRequest) {
     // Fetch issues from Sentry API
     const sentryUrl = `https://sentry.io/api/0/projects/skiadmin-9z/javascript-nextjs/issues/?limit=${limit}&statsPeriod=24h`
     
-    const response = await fetch(sentryUrl, {
+    const sentryResponse = await fetch(sentryUrl, {
       headers: {
         'Authorization': `Bearer ${process.env.SENTRY_AUTH_TOKEN}`
       }
     })
 
-    if (!response.ok) {
+    if (!sentryResponse.ok) {
       return NextResponse.json({
         configured: true,
-        error: `Sentry API returned ${response.status}`,
-        message: response.status === 401 
+        error: `Sentry API returned ${sentryResponse.status}`,
+        message: sentryResponse.status === 401 
           ? 'Invalid SENTRY_AUTH_TOKEN' 
           : 'Failed to fetch from Sentry',
         errors: []
       })
     }
 
-    const sentryIssues = await response.json()
+    const sentryIssues = await sentryResponse.json()
 
     // Transform Sentry issues to our format
     const errors = sentryIssues.map((issue: any) => ({
@@ -84,12 +86,14 @@ export async function GET(request: NextRequest) {
       severity: mapSentryLevelToSeverity(issue.level)
     }))
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       configured: true,
       timestamp: new Date().toISOString(),
       count: errors.length,
       errors
     })
+    trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
+    return jsonResponse
 
   } catch (error: any) {
     console.error('[Monitoring] Failed to fetch Sentry errors:', error)

@@ -63,11 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setError(null)
 
-      // First check if we have a session (localStorage only, no network call)
+      // First check if we have a session (may trigger token refresh if expired)
       // This prevents "Auth session missing!" errors when user is not logged in
       const { data: { session } } = await withTimeout(
         supabase.auth.getSession(),
-        10000,
+        20000,
         'getSession'
       )
 
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error: userError,
       } = await withTimeout(
         supabase.auth.getUser(),
-        10000,
+        20000,
         'getUser'
       )
 
@@ -149,19 +149,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error('Auth load error:', err)
       
-      // If it's a timeout, show specific error
-      const errorMessage = err instanceof Error && err.message.includes('timeout')
-        ? 'Authentication request timed out. Please refresh the page.'
-        : 'An error occurred during authentication'
-      
-      setError(errorMessage)
-      setUser(null)
-      setProfile(null)
-      setLoading(false)
-      
-      // If timeout on non-login page, redirect to login
-      if (err instanceof Error && err.message.includes('timeout') && pathname !== '/login') {
-        router.push('/login')
+      // If it's a timeout, treat as no session (avoids blocking on slow networks)
+      const isTimeout = err instanceof Error && err.message.includes('timeout')
+      if (isTimeout) {
+        setUser(null)
+        setProfile(null)
+        setError('Authentication timed out. Please refresh the page.')
+        setLoading(false)
+        // Only redirect from protected routes; allow login page to load
+        if (pathname !== '/login' && pathname !== '/') {
+          router.push('/login')
+        }
+      } else {
+        setError('An error occurred during authentication')
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
       }
     } finally {
       // Always clear the in-progress flag

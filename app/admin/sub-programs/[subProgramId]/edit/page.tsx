@@ -236,7 +236,7 @@ export default function EditSubProgramPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-800 mb-1">
+                <label className="block text-sm font-medium text-zinc-800 mb-1">
                   Name
                 </label>
                 <input
@@ -244,25 +244,25 @@ export default function EditSubProgramPage() {
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-800 mb-1">
+                <label className="block text-sm font-medium text-zinc-800 mb-1">
                   Description
                 </label>
                 <textarea
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-1">
+                  <label className="block text-sm font-medium text-zinc-800 mb-1">
                     Registration Fee
                   </label>
                   <input
@@ -270,11 +270,11 @@ export default function EditSubProgramPage() {
                     min="0"
                     value={registrationFee}
                     onChange={e => setRegistrationFee(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-1">
+                  <label className="block text-sm font-medium text-zinc-800 mb-1">
                     Max Capacity
                   </label>
                   <input
@@ -282,7 +282,7 @@ export default function EditSubProgramPage() {
                     min="0"
                     value={maxCapacity}
                     onChange={e => setMaxCapacity(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -293,9 +293,9 @@ export default function EditSubProgramPage() {
                   type="checkbox"
                   checked={isActive}
                   onChange={e => setIsActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="isActive" className="text-sm text-slate-800">
+                <label htmlFor="isActive" className="text-sm text-zinc-800">
                   Sub-program is active
                 </label>
               </div>

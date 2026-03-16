@@ -32,11 +32,11 @@ function ParentNav({
   ]
 
   return (
-    <nav className="border-b border-slate-200 bg-white">
+    <nav className="border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         <div className="flex items-center gap-6">
           <Link href={`/clubs/${clubSlug}/parent/dashboard`}>
-            <h1 className="text-xl font-semibold text-slate-900">Parent Portal</h1>
+            <h1 className="text-xl font-semibold text-zinc-900">Parent Portal</h1>
           </Link>
           <div className="flex gap-1">
             {navItems.map(item => {
@@ -178,7 +178,7 @@ function ParentLayoutContent({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-zinc-50">
       <ParentNav clubSlug={clubSlug} profile={profile} />
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
     </div>

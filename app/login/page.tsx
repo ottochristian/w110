@@ -271,79 +271,106 @@ export default function LoginPage() {
     }
   }
 
-  // While we're checking if a session exists, show a tiny loading state
   if (checkingSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-muted-foreground text-sm">Checking your session…</p>
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <p className="text-zinc-500 text-sm">Checking your session…</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-        <h1 className="mb-4 text-xl font-semibold text-gray-900">
-          Log in
-        </h1>
-
-        {message && (
-          <div className="mb-4 rounded-lg border border-green-500/50 bg-green-50 p-3 text-sm text-green-700">
-            {message}
+    <div className="min-h-screen flex">
+      {/* Left panel — brand */}
+      <div className="hidden lg:flex lg:w-1/2 bg-zinc-950 flex-col justify-between p-12">
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded bg-blue-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold leading-none">S</span>
           </div>
-        )}
+          <span className="text-white text-sm font-semibold tracking-tight">Ski Admin</span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-700">
-              Email
+        <div>
+          <p className="text-2xl font-semibold text-white leading-snug">
+            Everything your ski club needs,<br />
+            in one place.
+          </p>
+          <p className="mt-3 text-zinc-500 text-sm leading-relaxed max-w-xs">
+            Registrations, athlete management, waivers, payments, and reporting — built for the way clubs actually operate.
+          </p>
+        </div>
+
+        <p className="text-zinc-700 text-xs">© {new Date().getFullYear()} Ski Admin</p>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center bg-white px-6 py-12">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2.5 mb-10 lg:hidden">
+            <div className="w-6 h-6 rounded bg-blue-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs font-bold leading-none">S</span>
+            </div>
+            <span className="text-zinc-900 text-sm font-semibold tracking-tight">Ski Admin</span>
+          </div>
+
+          <h1 className="text-2xl font-semibold text-zinc-900 tracking-tight">Welcome back</h1>
+          <p className="mt-1.5 text-sm text-zinc-500">Sign in to your account to continue.</p>
+
+          {message && (
+            <div className="mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-zinc-700">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                placeholder="you@example.com"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
               />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label className="block text-sm text-gray-700">
-              Password
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-zinc-700">Password</label>
+                <Link href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-700">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                placeholder="••••••••"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
               />
-            </label>
-          </div>
+            </div>
 
-          {error && (
-            <p className="text-sm text-red-600">
-              {error}
-            </p>
-          )}
+            {error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-sky-500 px-3 py-2 text-sm font-medium text-white hover:bg-sky-400 disabled:opacity-60"
-          >
-            {loading ? 'Logging in…' : 'Log in'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 transition-colors"
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
 
-        <div className="mt-4 space-y-2">
-          <p className="text-center text-sm text-gray-600">
-            <Link href="/forgot-password" className="text-sky-600 hover:text-sky-700">
-              Forgot your password?
-            </Link>
-          </p>
-          <p className="text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-zinc-500">
             Don't have an account?{' '}
-            <Link href="/signup" className="text-sky-600 hover:text-sky-700">
+            <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
               Sign up
             </Link>
           </p>

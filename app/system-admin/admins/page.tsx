@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useSystemAdmin } from '@/lib/use-system-admin'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -46,7 +45,6 @@ type Club = {
 
 export default function AdminsPage() {
   const { profile, loading: authLoading } = useSystemAdmin()
-  const [supabase] = useState(() => createClient())
 
   const [loading, setLoading] = useState(true)
   const [admins, setAdmins] = useState<ClubAdmin[]>([])
@@ -148,19 +146,23 @@ export default function AdminsPage() {
     try {
       setResettingPassword(adminId)
 
-      // Generate a reset link (this requires admin API access)
-      // For now, we'll use the Supabase admin API to send a password reset email
-      const { error } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: email,
+      const response = await fetch(`/api/system-admin/admins/${adminId}/reset-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
       })
 
-      if (error) {
-        alert(`Failed to reset password: ${error.message}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(`Failed to reset password: ${data.error}`)
         return
       }
 
-      alert(`Password reset email sent to ${email}`)
+      alert(data.message || `Password reset email sent to ${email}`)
     } catch (err) {
       console.error('Error resetting password:', err)
       alert('Failed to reset password')
@@ -172,7 +174,7 @@ export default function AdminsPage() {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading admins...</p>
+        <p className="text-zinc-400">Loading admins...</p>
       </div>
     )
   }
@@ -192,20 +194,20 @@ export default function AdminsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Club Admins</h2>
-          <p className="text-muted-foreground">Manage club administrators across all clubs</p>
+          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">Club Admins</h1>
+          <p className="text-sm text-zinc-400 mt-0.5">Manage club administrators across all clubs</p>
         </div>
         <CreateClubAdminDialog clubs={clubs} onSuccess={loadAdmins} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Club Administrators</CardTitle>
-          <CardDescription>{admins.length} administrators total</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50">
+          <h3 className="text-sm font-semibold text-zinc-900">All Club Administrators</h3>
+          <p className="text-xs text-zinc-400 mt-0.5">{admins.length} administrators</p>
+        </div>
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -220,7 +222,7 @@ export default function AdminsPage() {
             <TableBody>
               {admins.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-zinc-400">
                     No administrators found
                   </TableCell>
                 </TableRow>
@@ -279,8 +281,8 @@ export default function AdminsPage() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

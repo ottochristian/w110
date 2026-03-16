@@ -301,6 +301,7 @@ export default function CoachAthletesPage() {
         }
 
         // Fetch registrations with athlete and program details
+        // Use range to request up to 5000 rows (bypasses default 1000 limit if project allows)
         const { data: registrationsData, error: registrationsError } = await supabase
           .from('registrations')
           .select(
@@ -333,6 +334,7 @@ export default function CoachAthletesPage() {
           .eq('season_id', selectedSeason.id)
           .eq('club_id', club.id)
           .eq('status', 'confirmed')
+          .range(0, 4999)
 
         if (registrationsError) {
           console.error('Error loading registrations:', registrationsError)

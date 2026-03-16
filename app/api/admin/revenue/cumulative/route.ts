@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/server'
 
 type ProfileRole = 'parent' | 'coach' | 'admin' | 'system_admin'
 

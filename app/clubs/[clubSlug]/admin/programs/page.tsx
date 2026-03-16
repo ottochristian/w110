@@ -289,219 +289,183 @@ export default function ProgramsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <AdminPageHeader
-          title="Programs"
-          description="Manage all ski programs, including soft-deleting them."
-        />
-        <Link href={`${basePath}/programs/new`}>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Program
+      <AdminPageHeader
+        title="Programs"
+        description="Manage all ski programs for this season."
+        action={
+          <Button size="sm" asChild>
+            <Link href={`${basePath}/programs/new`}>
+              <Plus className="h-3.5 w-3.5" />
+              Add Program
+            </Link>
           </Button>
-        </Link>
-      </div>
+        }
+      />
 
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Programs</CardTitle>
-          <CardDescription>
-            All ski programs for {selectedSeason?.name || 'the selected season'} with their sub-programs
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Search input */}
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search programs..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
-                className="pl-8"
-              />
-            </div>
+      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50 flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">Programs</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              {selectedSeason?.name || 'Selected season'}
+            </p>
           </div>
+          <div className="relative w-56 flex-shrink-0">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            <Input
+              placeholder="Search programs…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              className="pl-8 h-9 text-sm"
+            />
+          </div>
+        </div>
+        {programs.length === 0 ? (
+          <div className="py-10 text-center text-sm text-zinc-400">
+            No programs yet. Click "Add Program" to create one.
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-50">
+            {programs.map((program) => (
+              <div key={program.id} className="group/program">
 
-          {programs.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No programs yet. Click &quot;Add Program&quot; to create
-              one.
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {programs.map((program) => (
-                <div
-                  key={program.id}
-                  className="border rounded-lg p-4 space-y-4"
-                >
-                  {/* Program Header */}
-                  <div className="flex items-start justify-between border-b pb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-slate-900">
-                          {program.name}
-                        </h3>
-                        {program.status === ProgramStatus.INACTIVE && (
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
-                            Inactive
-                          </span>
-                        )}
-                      </div>
-                      {program.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {program.description}
-                        </p>
+                {/* Program row */}
+                <div className="flex items-start gap-4 px-5 py-4 hover:bg-zinc-50/40 transition-colors">
+                  <div className="flex-1 min-w-0 pt-px">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-zinc-900">{program.name}</span>
+                      {program.status === ProgramStatus.INACTIVE && (
+                        <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-500 ring-1 ring-inset ring-zinc-200 uppercase tracking-wide">
+                          Inactive
+                        </span>
                       )}
                     </div>
-                    <div className="flex gap-1.5 ml-4">
-                      <Link href={`${basePath}/programs/${program.id}/edit`}>
-                        <Button variant="outline" size="icon" className="h-8 w-8">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Link
-                        href={`${basePath}/programs/${program.id}/sub-programs/new`}
-                      >
-                        <Button variant="outline" size="icon" className="h-8 w-8">
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                        onClick={() => handleActivateAll(program.id)}
-                        disabled={activatingId === program.id}
-                        title="Activate all sub-programs and groups"
-                      >
-                        <Zap className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDeleteClick(program.id)}
-                        disabled={deletingId === program.id}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {program.description && (
+                      <p className="text-xs text-zinc-400 mt-0.5 truncate">{program.description}</p>
+                    )}
                   </div>
+                  {/* Program actions — always visible */}
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <Link href={`${basePath}/programs/${program.id}/edit`}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                    <Link href={`${basePath}/programs/${program.id}/sub-programs/new`}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100" title="Add sub-program">
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50"
+                      onClick={() => handleActivateAll(program.id)}
+                      disabled={activatingId === program.id}
+                      title="Activate all sub-programs and groups"
+                    >
+                      <Zap className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-zinc-300 hover:text-red-500 hover:bg-red-50"
+                      onClick={() => handleDeleteClick(program.id)}
+                      disabled={deletingId === program.id}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
 
-                  {/* Sub-programs */}
-                  {program.sub_programs && program.sub_programs.length > 0 ? (
-                    <div className="pl-4 space-y-3">
-                      <h4 className="text-sm font-medium text-slate-700 mb-2">
-                        Sub-programs:
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* Sub-programs — indented with left accent line */}
+                <div className="px-5 pb-3">
+                  <div className="ml-4 pl-4 border-l-2 border-zinc-100">
+                    {program.sub_programs && program.sub_programs.length > 0 ? (
+                      <div className="space-y-px">
                         {program.sub_programs.map(subProgram => (
                           <div
                             key={subProgram.id}
-                            className="border rounded-md p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                            className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-zinc-50 transition-colors group/sub"
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-1">
-                                  <h5 className="font-medium text-slate-900 text-sm truncate">
-                                    {subProgram.name}
-                                  </h5>
-                                  {subProgram.status === ProgramStatus.INACTIVE && (
-                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 flex-shrink-0">
-                                      Inactive
-                                    </span>
-                                  )}
-                                </div>
-                                {subProgram.description && (
-                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                    {subProgram.description}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <Link
-                                  href={`${basePath}/sub-programs/${subProgram.id}/edit`}
-                                >
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                </Link>
-                                <Link
-                                  href={`${basePath}/sub-programs/${subProgram.id}/groups/new`}
-                                >
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    title="Add new group"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
-                                </Link>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() =>
-                                    handleDeleteSubProgram(
-                                      subProgram.id,
-                                      program.id
-                                    )
-                                  }
-                                  disabled={
-                                    deletingSubProgramId === subProgram.id
-                                  }
-                                >
-                                  <Trash2 className="h-3 w-3" />
+                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                              <span className="text-sm text-zinc-700">{subProgram.name}</span>
+                              {subProgram.status === ProgramStatus.INACTIVE && (
+                                <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-400 ring-1 ring-inset ring-zinc-200 uppercase tracking-wide flex-shrink-0">
+                                  Inactive
+                                </span>
+                              )}
+                              {subProgram.description && (
+                                <span className="text-xs text-zinc-400 truncate hidden lg:inline">{subProgram.description}</span>
+                              )}
+                            </div>
+                            {/* Sub-program actions — appear on hover */}
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover/sub:opacity-100 transition-opacity flex-shrink-0">
+                              <Link href={`${basePath}/sub-programs/${subProgram.id}/edit`}>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100">
+                                  <Pencil className="h-3 w-3" />
                                 </Button>
-                              </div>
+                              </Link>
+                              <Link href={`${basePath}/sub-programs/${subProgram.id}/groups/new`}>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100" title="Add group">
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-zinc-300 hover:text-red-500 hover:bg-red-50"
+                                onClick={() => handleDeleteSubProgram(subProgram.id, program.id)}
+                                disabled={deletingSubProgramId === subProgram.id}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="pl-4">
-                      <p className="text-sm text-muted-foreground italic">
-                        No sub-programs yet.{' '}
+                        {/* Add sub-program inline link */}
                         <Link
                           href={`${basePath}/programs/${program.id}/sub-programs/new`}
-                          className="text-blue-600 hover:underline"
+                          className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-zinc-300 hover:text-blue-500 transition-colors rounded-lg hover:bg-zinc-50"
                         >
-                          Add one
+                          <Plus className="h-3 w-3" />
+                          Add sub-program
                         </Link>
-                      </p>
-                    </div>
-                  )}
+                      </div>
+                    ) : (
+                      <Link
+                        href={`${basePath}/programs/${program.id}/sub-programs/new`}
+                        className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-zinc-300 hover:text-blue-500 transition-colors rounded-lg hover:bg-zinc-50"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add sub-program
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* Pagination controls */}
-          {paginatedData && paginatedData.totalPages > 1 && (
-            <div className="mt-4">
-              <PaginationControls
-                currentPage={paginatedData.page}
-                totalPages={paginatedData.totalPages}
-                pageSize={pageSize}
-                totalItems={paginatedData.total}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {paginatedData && paginatedData.totalPages > 1 && (
+          <div className="px-5 py-4 border-t border-zinc-50">
+            <PaginationControls
+              currentPage={paginatedData.page}
+              totalPages={paginatedData.totalPages}
+              pageSize={pageSize}
+              totalItems={paginatedData.total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -519,7 +483,7 @@ export default function ProgramsPage() {
           <div className="space-y-4 py-4 overflow-y-auto flex-1">
             {loadingCounts ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin h-6 w-6 border-2 border-slate-300 border-t-slate-600 rounded-full" />
+                <div className="animate-spin h-6 w-6 border-2 border-zinc-300 border-t-zinc-600 rounded-full" />
               </div>
             ) : deleteCounts && (
               <>
@@ -547,13 +511,13 @@ export default function ProgramsPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Type <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm:
+                    Type <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm:
                   </label>
                   <input
                     type="text"
                     value={deleteConfirmText}
                     onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="Type DELETE"
                     autoFocus
                   />

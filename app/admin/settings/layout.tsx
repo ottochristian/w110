@@ -27,7 +27,7 @@ export default function SettingsLayout({
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-slate-200">
+      <div className="border-b border-zinc-200">
         <nav className="-mb-px flex space-x-8">
           {settingsTabs.map((tab) => {
             const Icon = tab.icon
@@ -39,8 +39,8 @@ export default function SettingsLayout({
                 className={cn(
                   'flex items-center gap-2 border-b-2 px-1 py-4 text-sm font-medium transition-colors',
                   isActive
-                    ? 'border-slate-900 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                    ? 'border-zinc-900 text-zinc-900'
+                    : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
                 )}
               >
                 <Icon className="h-4 w-4" />

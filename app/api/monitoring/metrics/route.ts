@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/api-auth'
+import { trackApiCall } from '@/lib/metrics'
 
 /**
  * Business Metrics Endpoint
@@ -11,6 +12,7 @@ import { requireAdmin } from '@/lib/api-auth'
  * Requires: System admin authentication
  */
 export async function GET(request: NextRequest) {
+  const start = Date.now()
   // Require admin authentication
   const authResult = await requireAdmin(request)
   if (authResult instanceof NextResponse) {
@@ -209,11 +211,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       timestamp: new Date().toISOString(),
       period,
       metrics
     })
+    trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
+    return response
 
   } catch (error: any) {
     console.error('[Monitoring] Failed to fetch metrics:', error)

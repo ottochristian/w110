@@ -108,7 +108,7 @@ function AcceptGuardianInvitationContent() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Checking Authentication</CardTitle>
@@ -124,7 +124,7 @@ function AcceptGuardianInvitationContent() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Invalid Invitation</CardTitle>
@@ -159,7 +159,7 @@ function AcceptGuardianInvitationContent() {
     const signupUrl = `/signup?${signupParams.toString()}`
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ function AcceptGuardianInvitationContent() {
 
   if (hasAccepted && redirectTo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-2 text-green-600">
@@ -216,7 +216,7 @@ function AcceptGuardianInvitationContent() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Accepting Invitation</CardTitle>
@@ -232,7 +232,7 @@ function AcceptGuardianInvitationContent() {
 
   if (isError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-2 text-red-600">

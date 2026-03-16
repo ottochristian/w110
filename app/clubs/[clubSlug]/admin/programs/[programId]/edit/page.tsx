@@ -163,7 +163,7 @@ export default function EditProgramPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
+              <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Program Name
               </label>
               <input
@@ -171,37 +171,37 @@ export default function EditProgramPage() {
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Alpine, Freeride, Nordic, Snowboard..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
+              <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Description
               </label>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Short description of this program..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
+              <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Status
               </label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value as ProgramStatus)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value={ProgramStatus.ACTIVE}>Active - Visible to parents</option>
                 <option value={ProgramStatus.INACTIVE}>Inactive - Hidden from parents</option>
               </select>
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-zinc-600 mt-1">
                 Active programs are visible in the parent portal when the season is active.
               </p>
             </div>

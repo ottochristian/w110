@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     return authResult
   }
 
-  const { user, supabase, profile } = authResult
+  const { profile } = authResult
   const role = profile.role as ProfileRole
   const isSystemAdmin = role === 'system_admin'
   const clubIdToUse = isSystemAdmin ? requestedClubId : profile.club_id
@@ -56,90 +56,26 @@ export async function GET(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Build base query for registrations in this season/club
-  let registrationsQuery = admin
-    .from('registrations')
-    .select(`
-      id,
-      athlete_id,
-      athletes!inner(
-        id,
-        household_id,
-        gender
-      ),
-      sub_programs!inner(
-        id,
-        program_id
-      )
-    `)
-    .eq('season_id', seasonId)
-    .eq('club_id', clubIdToUse)
+  const { data, error } = await admin.rpc('get_athlete_summary', {
+    p_season_id: seasonId,
+    p_club_id: clubIdToUse,
+    p_program_id: programId && programId !== 'all' ? programId : null,
+    p_gender: gender && gender !== 'all' ? gender : null
+  })
 
-  // Apply program filter
-  if (programId && programId !== 'all') {
-    registrationsQuery = registrationsQuery.eq('sub_programs.program_id', programId)
-  }
-
-  // Apply gender filter
-  if (gender && gender !== 'all') {
-    registrationsQuery = registrationsQuery.eq('athletes.gender', gender)
-  }
-
-  const { data: registrations, error: registrationsError } = await registrationsQuery
-
-  if (registrationsError) {
-    console.error('Athletes summary error:', registrationsError)
+  if (error) {
+    console.error('Athletes summary error:', error)
     return NextResponse.json(
-      { error: registrationsError.message || 'Failed to load athlete summary' },
+      { error: error.message || 'Failed to load athlete summary' },
       { status: 500 }
     )
   }
 
-  // Calculate metrics
-  const uniqueAthleteIds = new Set((registrations || []).map((r: any) => r.athlete_id))
-  const uniqueHouseholdIds = new Set(
-    (registrations || [])
-      .map((r: any) => r.athletes?.household_id)
-      .filter(Boolean)
-  )
-
-  const totalAthletes = uniqueAthleteIds.size
-  const uniqueHouseholds = uniqueHouseholdIds.size
-
-  // Get previous season's athletes to calculate new vs returning
-  const { data: previousSeasons } = await admin
-    .from('seasons')
-    .select('id, name, start_date')
-    .eq('club_id', clubIdToUse)
-    .neq('id', seasonId)
-    .order('start_date', { ascending: false })
-    .limit(1)
-
-  let returningAthletes = 0
-  
-  if (previousSeasons && previousSeasons.length > 0) {
-    const previousSeasonId = previousSeasons[0].id
-    
-    const { data: previousRegistrations } = await admin
-      .from('registrations')
-      .select('athlete_id')
-      .eq('season_id', previousSeasonId)
-      .eq('club_id', clubIdToUse)
-      .in('athlete_id', Array.from(uniqueAthleteIds))
-
-    const previousAthleteIds = new Set(
-      (previousRegistrations || []).map((r: any) => r.athlete_id)
-    )
-    
-    returningAthletes = previousAthleteIds.size
-  }
-
-  const newAthletes = totalAthletes - returningAthletes
-
+  const row = data?.[0]
   return NextResponse.json({
-    totalAthletes,
-    newAthletes,
-    returningAthletes,
-    uniqueHouseholds,
+    totalAthletes: Number(row?.total_athletes || 0),
+    newAthletes: Number(row?.new_athletes || 0),
+    returningAthletes: Number(row?.returning_athletes || 0),
+    uniqueHouseholds: Number(row?.unique_households || 0),
   })
 }

@@ -145,7 +145,7 @@ export function ProfileMenu({ profile }: ProfileMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full p-1 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <button className="flex items-center gap-2 rounded-full p-1 hover:bg-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring">
           <Avatar className="h-10 w-10">
             <AvatarImage 
               src={avatarUrl || undefined} 
@@ -156,7 +156,7 @@ export function ProfileMenu({ profile }: ProfileMenuProps) {
                 setAvatarUrl(null)
               }}
             />
-            <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-medium">
+            <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -165,8 +165,8 @@ export function ProfileMenu({ profile }: ProfileMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-0.5">
-            <p className="text-sm font-semibold leading-tight text-slate-900">{displayName}</p>
-            <p className="text-xs leading-tight text-slate-500">
+            <p className="text-sm font-semibold leading-tight text-zinc-900">{displayName}</p>
+            <p className="text-xs leading-tight text-zinc-500">
               {profile.email}
             </p>
           </div>

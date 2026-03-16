@@ -127,7 +127,7 @@ export default function NewProgramPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
+              <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Program Name
               </label>
               <input
@@ -135,20 +135,20 @@ export default function NewProgramPage() {
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Alpine, Freeride, Nordic, Snowboard..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
+              <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Description
               </label>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Short description of this program..."
               />
             </div>
@@ -159,9 +159,9 @@ export default function NewProgramPage() {
                 type="checkbox"
                 checked={isActive}
                 onChange={e => setIsActive(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
               />
-              <label htmlFor="isActive" className="text-sm text-slate-800">
+              <label htmlFor="isActive" className="text-sm text-zinc-800">
                 Program is active
               </label>
             </div>

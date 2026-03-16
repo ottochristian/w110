@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     return authResult
   }
 
-  const { user, supabase, profile } = authResult
+  const { profile } = authResult
   const role = profile.role as ProfileRole
   const isSystemAdmin = role === 'system_admin'
   const clubIdToUse = isSystemAdmin ? requestedClubId : profile.club_id
@@ -57,70 +57,26 @@ export async function GET(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Build base query
-  let registrationsQuery = admin
-    .from('registrations')
-    .select(`
-      athlete_id,
-      athletes!inner(
-        id,
-        gender
-      ),
-      sub_programs!inner(
-        id,
-        program_id,
-        programs!inner(
-          id,
-          name
-        )
-      )
-    `)
-    .eq('season_id', seasonId)
-    .eq('club_id', clubIdToUse)
+  const { data: programsData, error } = await admin.rpc('get_athletes_by_program', {
+    p_season_id: seasonId,
+    p_club_id: clubIdToUse,
+    p_program_id: programId && programId !== 'all' ? programId : null,
+    p_gender: gender && gender !== 'all' ? gender : null
+  })
 
-  // Apply program filter
-  if (programId && programId !== 'all') {
-    registrationsQuery = registrationsQuery.eq('sub_programs.program_id', programId)
-  }
-
-  // Apply gender filter
-  if (gender && gender !== 'all') {
-    registrationsQuery = registrationsQuery.eq('athletes.gender', gender)
-  }
-
-  const { data: registrations, error: registrationsError } = await registrationsQuery
-
-  if (registrationsError) {
-    console.error('Athletes by program error:', registrationsError)
+  if (error) {
+    console.error('Athletes by program error:', error)
     return NextResponse.json(
-      { error: registrationsError.message || 'Failed to load athletes by program' },
+      { error: error.message || 'Failed to load athletes by program' },
       { status: 500 }
     )
   }
 
-  // Group by program and count unique athletes
-  const programMap = new Map<string, { name: string; athletes: Set<string> }>()
-
-  ;(registrations || []).forEach((reg: any) => {
-    const progId = reg.sub_programs?.programs?.id
-    const progName = reg.sub_programs?.programs?.name
-    const athleteId = reg.athlete_id
-
-    if (progId && progName && athleteId) {
-      if (!programMap.has(progId)) {
-        programMap.set(progId, { name: progName, athletes: new Set() })
-      }
-      programMap.get(progId)!.athletes.add(athleteId)
-    }
-  })
-
-  const programs: ProgramAthletes[] = Array.from(programMap.entries())
-    .map(([programId, data]) => ({
-      programId,
-      programName: data.name,
-      athleteCount: data.athletes.size,
-    }))
-    .sort((a, b) => b.athleteCount - a.athleteCount)
+  const programs: ProgramAthletes[] = (programsData || []).map((row: any) => ({
+    programId: row.program_id,
+    programName: row.program_name,
+    athleteCount: Number(row.athlete_count) || 0
+  }))
 
   return NextResponse.json({ programs })
 }

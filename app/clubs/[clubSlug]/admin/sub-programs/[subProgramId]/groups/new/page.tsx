@@ -188,7 +188,7 @@ export default function NewGroupPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
+              <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Group Name
               </label>
               <input
@@ -196,10 +196,10 @@ export default function NewGroupPage() {
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., Group A, Morning Group, Beginners..."
               />
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-zinc-600 mt-1">
                 Groups help organize athletes within a sub-program.
               </p>
             </div>

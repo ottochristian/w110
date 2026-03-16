@@ -170,7 +170,7 @@ export default function ProgramsPage() {
                   {/* Program Header */}
                   <div className="flex items-start justify-between border-b pb-3">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-slate-900">
+                      <h3 className="text-lg font-semibold text-zinc-900">
                         {program.name}
                       </h3>
                       {program.description && (
@@ -209,18 +209,18 @@ export default function ProgramsPage() {
                   {/* Sub-programs */}
                   {program.sub_programs && program.sub_programs.length > 0 ? (
                     <div className="pl-4 space-y-3">
-                      <h4 className="text-sm font-medium text-slate-700 mb-2">
+                      <h4 className="text-sm font-medium text-zinc-700 mb-2">
                         Sub-programs:
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {program.sub_programs.map(subProgram => (
                           <div
                             key={subProgram.id}
-                            className="border rounded-md p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                            className="border rounded-md p-3 bg-zinc-50 hover:bg-zinc-100 transition-colors"
                           >
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div className="flex-1 min-w-0">
-                                <h5 className="font-medium text-slate-900 text-sm truncate">
+                                <h5 className="font-medium text-zinc-900 text-sm truncate">
                                   {subProgram.name}
                                 </h5>
                                 {subProgram.description && (

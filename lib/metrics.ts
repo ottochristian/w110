@@ -6,7 +6,7 @@
  * Critical errors are also sent to Sentry for real-time alerting.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import * as Sentry from '@sentry/nextjs'
 
 export type MetricSeverity = 'info' | 'warning' | 'error' | 'critical'
@@ -35,8 +35,9 @@ export async function recordMetric(
   severity: MetricSeverity = 'info'
 ): Promise<void> {
   try {
-    const supabase = createClient()
-    
+    // Use admin client - RLS only allows service_role to INSERT
+    const supabase = createAdminClient()
+
     await supabase.from('application_metrics').insert({
       metric_name: name,
       metric_value: value,
@@ -75,18 +76,21 @@ export async function recordMetric(
 }
 
 /**
- * Track API call performance
- * Automatically records response time and flags slow endpoints
+ * Track API call performance (fire-and-forget, non-blocking)
+ * Records to application_metrics for monitoring dashboard
  * 
- * @param endpoint - API endpoint path
+ * @param endpoint - API endpoint path (e.g. request.nextUrl.pathname)
  * @param duration - Duration in milliseconds
  * @param statusCode - HTTP status code
  * @param metadata - Additional context
  * 
  * @example
- * await trackApiCall('/api/registrations', 1200, 200)
+ * const start = Date.now()
+ * // ... handler logic ...
+ * trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
+ * return response
  */
-export async function trackApiCall(
+export function trackApiCall(
   endpoint: string,
   duration: number,
   statusCode: number,
@@ -97,7 +101,8 @@ export async function trackApiCall(
     duration > 2000 ? 'warning' :
     'info'
 
-  await recordMetric(
+  // Fire-and-forget - don't block the response
+  recordMetric(
     'api.response_time',
     duration,
     {
@@ -106,7 +111,7 @@ export async function trackApiCall(
       ...metadata
     },
     severity
-  )
+  ).catch(() => {})
 }
 
 /**

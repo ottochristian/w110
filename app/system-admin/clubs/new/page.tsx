@@ -148,7 +148,7 @@ export default function NewClubPage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Create New Club</h2>
+          <h2 className="text-2xl font-bold text-zinc-900">Create New Club</h2>
           <p className="text-muted-foreground">Add a new club to the system</p>
         </div>
       </div>

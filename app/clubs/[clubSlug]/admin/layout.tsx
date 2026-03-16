@@ -49,11 +49,11 @@ export default function AdminLayout({
     <SeasonProvider>
       <div className="flex min-h-screen">
         {profile && <AdminSidebar profile={profile} clubSlug={clubSlug} />}
-        <main className={`flex-1 ${profile ? 'ml-64' : ''} flex flex-col bg-slate-50`}>
-          <div className={`fixed top-0 right-0 ${profile ? 'left-64' : 'left-0'} border-b border-slate-200 bg-white px-8 py-4 z-10`}>
+        <main className={`flex-1 ${profile ? 'ml-64' : ''} flex flex-col bg-zinc-50`}>
+          <div className={`fixed top-0 right-0 ${profile ? 'left-64' : 'left-0'} border-b border-zinc-200 bg-white px-8 py-3 z-10`}>
             <div className="flex items-center justify-end gap-4">
               {(authLoading || clubLoading) ? (
-                <div className="h-10 w-48 bg-slate-200 animate-pulse rounded" />
+                <div className="h-10 w-48 bg-zinc-200 animate-pulse rounded" />
               ) : (
                 <>
                   <UnifiedSeasonSelector />

@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { useSeason } from '@/lib/contexts/season-context'
@@ -18,13 +19,15 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Archive, CheckCircle2, Calendar, Copy, Edit2, Lock, Unlock } from 'lucide-react'
+import { Plus, Archive, CheckCircle2, Calendar, Copy, Edit2, Lock, Unlock, ListChecks } from 'lucide-react'
 import { ProgramStatus } from '@/lib/programStatus'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
 export default function SeasonsPage() {
   const router = useRouter()
+  const params = useParams()
+  const clubSlug = params.clubSlug as string
   const [supabase] = useState(() => createClient())
   const { profile, loading: authLoading } = useRequireAdmin()
   const { seasons, loading: seasonsLoading } = useSeason()
@@ -528,7 +531,7 @@ export default function SeasonsPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Season Name
                 </label>
                 <input
@@ -537,13 +540,13 @@ export default function SeasonsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="2025-2026"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     Start Date
                   </label>
                   <input
@@ -551,11 +554,11 @@ export default function SeasonsPage() {
                     required
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     End Date
                   </label>
                   <input
@@ -563,37 +566,37 @@ export default function SeasonsPage() {
                     required
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 mb-2">
                     Season Flags
                   </label>
-                  <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-3">
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-md p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <input
                         id="isCurrent"
                         type="checkbox"
                         checked={isCurrent}
                         onChange={(e) => setIsCurrent(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 mt-0.5"
+                        className="h-4 w-4 rounded border-zinc-300 mt-0.5"
                       />
                       <div>
-                        <label htmlFor="isCurrent" className="text-sm font-medium text-slate-900">
+                        <label htmlFor="isCurrent" className="text-sm font-medium text-zinc-900">
                           Current Season
                         </label>
-                        <p className="text-xs text-slate-600 mt-0.5">
+                        <p className="text-xs text-zinc-600 mt-0.5">
                           The season displayed by default in the UI. Only one per club.
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-zinc-900 mb-1.5">
                         Status
                       </label>
                       <select
@@ -603,7 +606,7 @@ export default function SeasonsPage() {
                             e.target.value as 'draft' | 'active' | 'closed' | 'archived'
                           )
                         }
-                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                       >
                         <option value="draft">Draft - Setting up, not visible to parents</option>
                         <option value="active">Active - Open for registrations</option>
@@ -655,10 +658,10 @@ export default function SeasonsPage() {
                   className="flex items-center justify-between border rounded-lg p-4"
                 >
                   <div className="flex items-center gap-4">
-                    <Calendar className="h-5 w-5 text-slate-400" />
+                    <Calendar className="h-5 w-5 text-zinc-400" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">
+                        <h3 className="font-semibold text-zinc-900">
                           {season.name}
                         </h3>
                         {season.is_current && (
@@ -674,7 +677,7 @@ export default function SeasonsPage() {
                               : season.status === 'closed'
                               ? 'bg-orange-100 text-orange-800'
                               : season.status === 'draft'
-                              ? 'bg-slate-100 text-slate-800'
+                              ? 'bg-zinc-100 text-zinc-800'
                               : 'bg-purple-100 text-purple-800'
                           }`}
                         >
@@ -688,6 +691,14 @@ export default function SeasonsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {season.status === 'draft' && (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/clubs/${clubSlug}/admin/settings/seasons/${season.id}/setup`}>
+                          <ListChecks className="h-4 w-4 mr-1" />
+                          Setup
+                        </Link>
+                      </Button>
+                    )}
                     {!season.is_current && (
                       <Button
                         variant="outline"
@@ -782,9 +793,9 @@ export default function SeasonsPage() {
                   className="flex items-center justify-between border rounded-lg p-4 opacity-60"
                 >
                   <div className="flex items-center gap-4">
-                    <Calendar className="h-5 w-5 text-slate-400" />
+                    <Calendar className="h-5 w-5 text-zinc-400" />
                     <div>
-                      <h3 className="font-semibold text-slate-900">
+                      <h3 className="font-semibold text-zinc-900">
                         {season.name}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">

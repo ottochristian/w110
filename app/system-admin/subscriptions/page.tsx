@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useSystemAdmin } from '@/lib/use-system-admin'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -55,7 +54,6 @@ const TIERS: SubscriptionTier[] = [
 ]
 
 export default function SubscriptionsPage() {
-  const [supabase] = useState(() => createClient())
   const { profile, loading: authLoading } = useSystemAdmin()
   const [loading, setLoading] = useState(true)
   const [clubSubscriptions, setClubSubscriptions] = useState<ClubSubscription[]>([])
@@ -69,37 +67,39 @@ export default function SubscriptionsPage() {
         setLoading(true)
         setError(null)
 
-        // Load all clubs
-        const { data: clubsData, error: clubsError } = await supabase
-          .from('clubs')
-          .select('id, name')
-          .order('name', { ascending: true })
+        const response = await fetch('/api/system-admin/clubs', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
 
-        if (clubsError) {
-          setError(clubsError.message)
-          setLoading(false)
-          return
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || `Failed to fetch: ${response.status}`)
         }
 
+        const data = await response.json()
+
         // For now, assign default tier (you'll need to create a subscriptions table)
-        const subscriptions: ClubSubscription[] = (clubsData || []).map((club) => ({
+        const subscriptions: ClubSubscription[] = (data.clubs || []).map((club: any) => ({
           club_id: club.id,
           club_name: club.name,
-          tier: 'basic', // Default tier
+          tier: 'basic',
           features: TIERS.find((t) => t.id === 'basic')?.features || [],
         }))
 
         setClubSubscriptions(subscriptions)
       } catch (err) {
         console.error('Error loading subscriptions:', err)
-        setError('Failed to load subscriptions')
+        setError(err instanceof Error ? err.message : 'Failed to load subscriptions')
       } finally {
         setLoading(false)
       }
     }
 
     loadSubscriptions()
-  }, [authLoading, supabase])
+  }, [authLoading])
 
   if (authLoading || loading) {
     return (
@@ -125,7 +125,7 @@ export default function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">Subscriptions</h2>
+        <h2 className="text-xl font-semibold text-zinc-900 tracking-tight">Subscriptions</h2>
         <p className="text-muted-foreground">Manage subscription tiers and feature flags</p>
       </div>
 

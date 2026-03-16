@@ -561,14 +561,14 @@ export default function SignupPage() {
           
           {/* Legacy code - keeping for reference but should not render */}
           {false && showClubSelection && (
-            <div className="space-y-4 border-b border-slate-700 pb-4">
-              <h2 className="text-sm font-semibold text-slate-200">Club Selection</h2>
+            <div className="space-y-4 border-b border-zinc-700 pb-4">
+              <h2 className="text-sm font-semibold text-zinc-200">Club Selection</h2>
               
               {loadingClubs ? (
-                <p className="text-sm text-slate-400">Loading clubs...</p>
+                <p className="text-sm text-zinc-400">Loading clubs...</p>
               ) : (
                 <div>
-                  <Label htmlFor="club" className="text-slate-300">
+                  <Label htmlFor="club" className="text-zinc-300">
                     Select Club *
                   </Label>
                   <Select
@@ -576,15 +576,15 @@ export default function SignupPage() {
                     onValueChange={setSelectedClubId}
                     required
                   >
-                    <SelectTrigger className="mt-1 bg-slate-800 text-slate-100 border-slate-700">
+                    <SelectTrigger className="mt-1 bg-zinc-800 text-zinc-100 border-zinc-700">
                       <SelectValue placeholder="Select a club" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
                       {clubs.map(clubOption => (
                         <SelectItem 
                           key={clubOption.id} 
                           value={clubOption.id}
-                          className="text-slate-100 focus:bg-slate-700 focus:text-slate-50"
+                          className="text-zinc-100 focus:bg-zinc-700 focus:text-zinc-50"
                         >
                           {clubOption.name}
                         </SelectItem>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/api-auth'
+import { trackApiCall } from '@/lib/metrics'
 
 /**
  * Enhanced Health Check Endpoint
@@ -11,6 +12,7 @@ import { requireAdmin } from '@/lib/api-auth'
  * Requires: System admin authentication
  */
 export async function GET(request: NextRequest) {
+  const start = Date.now()
   // Require admin authentication
   const authResult = await requireAdmin(request)
   if (authResult instanceof NextResponse) {
@@ -276,5 +278,7 @@ export async function GET(request: NextRequest) {
 
   health.responseTime = Date.now() - startTime
 
-  return NextResponse.json(health)
+  const response = NextResponse.json(health)
+  trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
+  return response
 }

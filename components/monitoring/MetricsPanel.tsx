@@ -80,7 +80,7 @@ export function MetricsPanel({ metrics, loading }: MetricsPanelProps) {
           return (
             <div
               key={i}
-              className="flex-1 bg-blue-500 rounded-sm opacity-70"
+              className="flex-1 bg-primary rounded-sm opacity-70"
               style={{ height: `${Math.max(height, 5)}%` }}
               title={`${value}`}
             />

@@ -2,13 +2,7 @@
 
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { DollarSign, FileText, CreditCard } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -26,6 +20,16 @@ import { PaginationControls } from '@/components/ui/pagination-controls'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 import { Search } from 'lucide-react'
+
+function statusStyle(status: string) {
+  switch (status?.toLowerCase()) {
+    case 'confirmed': case 'paid':    return 'bg-emerald-50 text-emerald-700 ring-emerald-100'
+    case 'pending': case 'unpaid':    return 'bg-amber-50 text-amber-700 ring-amber-100'
+    case 'waitlisted':                return 'bg-zinc-100 text-zinc-600 ring-zinc-200'
+    case 'cancelled': case 'failed':  return 'bg-red-50 text-red-600 ring-red-100'
+    default:                          return 'bg-zinc-100 text-zinc-600 ring-zinc-200'
+  }
+}
 
 interface Registration {
   id: string
@@ -126,14 +130,10 @@ export default function RegistrationsPage() {
   if (!selectedSeason) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>No Season Selected</CardTitle>
-            <CardDescription>
-              Please select a season to view registrations.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="text-center">
+          <p className="text-sm font-medium text-zinc-900 mb-1">No Season Selected</p>
+          <p className="text-sm text-zinc-400">Please select a season to view registrations.</p>
+        </div>
       </div>
     )
   }
@@ -151,65 +151,67 @@ export default function RegistrationsPage() {
       />
 
       {summary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Revenue</CardDescription>
-              <CardTitle className="text-2xl">
-                ${summary.payments.paidAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 text-sm text-muted-foreground">
-              Net: ${summary.netRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Registrations</CardDescription>
-              <CardTitle className="text-2xl">{summary.totals.registrations}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 text-sm text-muted-foreground">
-              Confirmed {summary.status.confirmed} · Pending {summary.status.pending} · Waitlist {summary.status.waitlisted}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Payments</CardDescription>
-              <CardTitle className="text-2xl">
-                Paid {summary.payments.paidCount} · Unpaid {summary.payments.unpaidCount}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 text-sm text-muted-foreground">
-              Pending amount ${summary.payments.pendingAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">
+          <div className="bg-white px-5 py-5">
+            <div className="flex items-start justify-between mb-4">
+              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Revenue</span>
+              <DollarSign className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+            </div>
+            <p className="text-3xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+              ${summary.payments.paidAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-xs text-zinc-400 mt-2">
+              Net ${summary.netRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+          <div className="bg-white px-5 py-5">
+            <div className="flex items-start justify-between mb-4">
+              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Registrations</span>
+              <FileText className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+            </div>
+            <p className="text-3xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+              {summary.totals.registrations}
+            </p>
+            <p className="text-xs text-zinc-400 mt-2">
+              {summary.status.confirmed} confirmed · {summary.status.pending} pending · {summary.status.waitlisted} waitlist
+            </p>
+          </div>
+          <div className="bg-white px-5 py-5">
+            <div className="flex items-start justify-between mb-4">
+              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Payments</span>
+              <CreditCard className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+            </div>
+            <p className="text-3xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+              {summary.payments.paidCount}
+            </p>
+            <p className="text-xs text-zinc-400 mt-2">
+              paid · {summary.payments.unpaidCount} unpaid · ${summary.payments.pendingAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} pending
+            </p>
+          </div>
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Registrations</CardTitle>
-          <CardDescription>
-            Complete list of registrations for the selected season
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Search and filters */}
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search athlete names..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
-                className="pl-8"
-              />
-            </div>
+      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50 flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">All Registrations</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">{selectedSeason.name}</p>
           </div>
+          <div className="relative w-56 flex-shrink-0">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            <Input
+              placeholder="Search athletes…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              className="pl-8 h-9 text-sm"
+            />
+          </div>
+        </div>
 
+        <div className="overflow-x-auto">
           {registrations.length > 0 ? (
             <Table>
               <TableHeader>
@@ -229,7 +231,7 @@ export default function RegistrationsPage() {
                     <TableCell>
                       {reg.athlete?.first_name} {reg.athlete?.last_name}
                       {reg.athlete?.date_of_birth && (
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-zinc-400">
                           DOB: {new Date(reg.athlete.date_of_birth).toLocaleDateString()}
                         </div>
                       )}
@@ -237,12 +239,12 @@ export default function RegistrationsPage() {
                     <TableCell>{reg.program?.name || 'Unknown'}</TableCell>
                     <TableCell>{reg.parent?.email || 'N/A'}</TableCell>
                     <TableCell>
-                      <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium capitalize text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.status)}`}>
                         {reg.status}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium capitalize text-green-800 dark:bg-green-900 dark:text-green-200">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.payment_status)}`}>
                         {reg.payment_status}
                       </span>
                     </TableCell>
@@ -255,13 +257,15 @@ export default function RegistrationsPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">
+            <p className="py-10 text-center text-sm text-zinc-400">
               No registrations found for this season
             </p>
           )}
+        </div>
 
-          {/* Pagination controls */}
-          {paginatedData && paginatedData.totalPages > 1 && (
+        {/* Pagination controls */}
+        {paginatedData && paginatedData.totalPages > 1 && (
+          <div className="px-5 py-4 border-t border-zinc-50">
             <PaginationControls
               currentPage={paginatedData.page}
               totalPages={paginatedData.totalPages}
@@ -270,9 +274,9 @@ export default function RegistrationsPage() {
               onPageChange={setPage}
               onPageSizeChange={setPageSize}
             />
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

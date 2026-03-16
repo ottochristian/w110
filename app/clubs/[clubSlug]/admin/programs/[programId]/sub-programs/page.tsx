@@ -176,7 +176,7 @@ export default function SubProgramsPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{subProgram.name}</h3>
                       {subProgram.status === ProgramStatus.INACTIVE && (
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 ring-1 ring-inset ring-zinc-500/10">
                           Inactive
                         </span>
                       )}

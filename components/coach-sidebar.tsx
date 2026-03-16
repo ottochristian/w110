@@ -1,15 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
-import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  MessageSquare,
-} from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, MessageSquare } from 'lucide-react'
 import { useClub } from '@/lib/club-context'
 
 interface CoachSidebarProps {
@@ -19,62 +14,59 @@ interface CoachSidebarProps {
 export function CoachSidebar({ profile }: CoachSidebarProps) {
   const pathname = usePathname()
   const { club, loading: clubLoading } = useClub()
+  const [logoError, setLogoError] = useState(false)
 
   const menuItems = [
-    {
-      label: 'Dashboard',
-      href: '/coach',
-      icon: LayoutDashboard,
-    },
-    {
-      label: 'Athletes',
-      href: '/coach/athletes',
-      icon: Users,
-    },
-    {
-      label: 'Races',
-      href: '/coach/races',
-      icon: Calendar,
-    },
-    {
-      label: 'Messages',
-      href: '/coach/messages',
-      icon: MessageSquare,
-    },
+    { label: 'Dashboard', href: '/coach', icon: LayoutDashboard },
+    { label: 'Athletes', href: '/coach/athletes', icon: Users },
+    { label: 'Races', href: '/coach/races', icon: Calendar },
+    { label: 'Messages', href: '/coach/messages', icon: MessageSquare },
   ]
 
-  // Get primary color for personalization, default to blue
-  const primaryColor = club?.primary_color || '#3B82F6'
+  const initial = club?.name?.charAt(0).toUpperCase() || 'C'
 
   return (
-    <aside className="w-64 border-r border-slate-200 bg-white flex flex-col h-screen fixed left-0 top-0">
-      <div className="p-4 flex-shrink-0 border-b border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900">Coach Portal</h2>
+    <aside className="w-64 bg-zinc-950 flex flex-col h-screen fixed left-0 top-0">
+      {/* Header — club identity */}
+      <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
+        {/* Ski Admin brand */}
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold leading-none">S</span>
+          </div>
+          <span className="text-zinc-500 text-xs font-medium tracking-wide uppercase">Ski Admin</span>
+        </div>
+
+        {/* Club logo + name */}
         {club && !clubLoading ? (
-          <>
-            <p
-              className="text-sm font-medium mt-1"
-              style={{ color: primaryColor }}
-            >
-              {club.name}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {profile.email}
-            </p>
-          </>
+          <div className="flex items-center gap-3">
+            {club.logo_url && !logoError ? (
+              <img
+                src={club.logo_url}
+                alt={club.name}
+                className="w-9 h-9 rounded-lg object-cover flex-shrink-0 ring-1 ring-zinc-700"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ring-1 ring-zinc-700 text-sm font-semibold text-white"
+                style={{ backgroundColor: club.primary_color || '#3B82F6' }}
+              >
+                {initial}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-white text-sm font-semibold truncate">{club.name}</p>
+              <p className="text-zinc-500 text-xs truncate">{profile.email}</p>
+            </div>
+          </div>
         ) : (
-          <p className="text-sm text-muted-foreground">{profile.email}</p>
-        )}
-        {/* Color accent bar */}
-        {club && !clubLoading && (
-          <div
-            className="h-1 w-full mt-2 rounded"
-            style={{ backgroundColor: primaryColor }}
-          />
+          <p className="text-zinc-500 text-xs truncate">{profile.email}</p>
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {menuItems.map((item) => {
           const Icon = item.icon
           const isActive =
@@ -84,31 +76,23 @@ export function CoachSidebar({ profile }: CoachSidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? 'font-medium'
-                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-zinc-800 text-white font-medium'
+                  : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100'
               }`}
-              style={
-                isActive && club
-                  ? {
-                      backgroundColor: `${primaryColor}15`,
-                      color: primaryColor,
-                    }
-                  : undefined
-              }
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 shrink-0" />
               {item.label}
             </Link>
           )
         })}
       </nav>
+
+      {/* Footer */}
+      <div className="px-5 py-4 border-t border-zinc-800">
+        <p className="text-zinc-600 text-xs">Coach Portal</p>
+      </div>
     </aside>
   )
 }
-
-
-
-
-

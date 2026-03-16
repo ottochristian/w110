@@ -374,7 +374,7 @@ export default function SeasonsPage() {
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Season Name
                 </label>
                 <input
@@ -383,13 +383,13 @@ export default function SeasonsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="2025-2026"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     Start Date
                   </label>
                   <input
@@ -397,11 +397,11 @@ export default function SeasonsPage() {
                     required
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     End Date
                   </label>
                   <input
@@ -409,7 +409,7 @@ export default function SeasonsPage() {
                     required
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -421,15 +421,15 @@ export default function SeasonsPage() {
                     type="checkbox"
                     checked={isCurrent}
                     onChange={(e) => setIsCurrent(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300"
+                    className="h-4 w-4 rounded border-zinc-300"
                   />
-                  <label htmlFor="isCurrent" className="text-sm text-slate-700">
+                  <label htmlFor="isCurrent" className="text-sm text-zinc-700">
                     Set as current season
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     Status
                   </label>
                   <select
@@ -439,7 +439,7 @@ export default function SeasonsPage() {
                         e.target.value as 'draft' | 'active' | 'archived'
                       )
                     }
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
                   >
                     <option value="draft">Draft</option>
                     <option value="active">Active</option>
@@ -485,10 +485,10 @@ export default function SeasonsPage() {
                   className="flex items-center justify-between border rounded-lg p-4"
                 >
                   <div className="flex items-center gap-4">
-                    <Calendar className="h-5 w-5 text-slate-400" />
+                    <Calendar className="h-5 w-5 text-zinc-400" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">
+                        <h3 className="font-semibold text-zinc-900">
                           {season.name}
                         </h3>
                         {season.is_current && (
@@ -501,7 +501,7 @@ export default function SeasonsPage() {
                           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                             season.status === 'active'
                               ? 'bg-blue-100 text-blue-800'
-                              : 'bg-slate-100 text-slate-800'
+                              : 'bg-zinc-100 text-zinc-800'
                           }`}
                         >
                           {season.status}
@@ -569,9 +569,9 @@ export default function SeasonsPage() {
                   className="flex items-center justify-between border rounded-lg p-4 opacity-60"
                 >
                   <div className="flex items-center gap-4">
-                    <Calendar className="h-5 w-5 text-slate-400" />
+                    <Calendar className="h-5 w-5 text-zinc-400" />
                     <div>
-                      <h3 className="font-semibold text-slate-900">
+                      <h3 className="font-semibold text-zinc-900">
                         {season.name}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">

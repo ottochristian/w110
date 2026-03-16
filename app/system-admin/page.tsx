@@ -1,23 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ElementType } from 'react'
 import { useSystemAdmin } from '@/lib/use-system-admin'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  Building2, 
-  Users, 
-  UserCheck, 
-  TrendingUp, 
-  DollarSign, 
-  FileText, 
+import {
+  Building2,
+  Users,
+  UserCheck,
+  DollarSign,
+  FileText,
   Activity,
   AlertCircle,
   CheckCircle,
   Clock,
   Percent,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -70,6 +67,33 @@ interface OverviewStats {
   }
 }
 
+function MetricCell({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  valueColor,
+}: {
+  label: string
+  value: string | number
+  sub?: string
+  icon: ElementType
+  valueColor?: string
+}) {
+  return (
+    <div className="bg-white px-5 py-5">
+      <div className="flex items-start justify-between mb-4">
+        <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">{label}</span>
+        <Icon className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+      </div>
+      <p className={`text-3xl font-semibold tracking-tight tabular-nums ${valueColor || 'text-zinc-900'}`}>
+        {value}
+      </p>
+      {sub && <p className="text-xs text-zinc-400 mt-2">{sub}</p>}
+    </div>
+  )
+}
+
 export default function SystemAdminDashboard() {
   const { profile, loading: authLoading } = useSystemAdmin()
   const [loading, setLoading] = useState(true)
@@ -80,18 +104,22 @@ export default function SystemAdminDashboard() {
   const loadStats = async () => {
     setRefreshing(true)
     setError(null)
-    
+
     try {
-      const response = await fetch('/api/system-admin/overview')
-      
+      const response = await fetch('/api/system-admin/overview', {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status}`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(`Failed to fetch: ${response.status} - ${errorData.error || 'Unknown'}`)
       }
 
       const data = await response.json()
+      if (!data.stats) throw new Error('Invalid response format: missing stats')
       setStats(data.stats)
     } catch (err) {
-      console.error('Error loading stats:', err)
       setError(err instanceof Error ? err.message : 'Failed to load statistics')
     } finally {
       setLoading(false)
@@ -106,10 +134,10 @@ export default function SystemAdminDashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-16">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-400" />
+          <p className="text-sm text-zinc-400">Loading dashboard…</p>
         </div>
       </div>
     )
@@ -117,295 +145,222 @@ export default function SystemAdminDashboard() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">System Overview</h2>
-            <p className="text-muted-foreground">System-wide metrics and statistics</p>
-          </div>
+          <p className="text-xl font-semibold text-zinc-900 tracking-tight">System Overview</p>
         </div>
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              <p>Failed to load dashboard: {error}</p>
-            </div>
-            <Button onClick={loadStats} variant="outline" size="sm" className="mt-4">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4">
+          <div className="flex items-center gap-2 text-red-600 mb-3">
+            <AlertCircle className="w-4 h-4" />
+            <p className="text-sm font-medium">Failed to load dashboard</p>
+          </div>
+          <p className="text-sm text-red-500 mb-4">{error}</p>
+          <Button onClick={loadStats} variant="outline" size="sm">
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            Retry
+          </Button>
+        </div>
       </div>
     )
   }
 
   if (!stats) return null
 
+  const healthOk = stats.systemHealth.errors24h === 0
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">System Overview</h2>
-          <p className="text-muted-foreground">System-wide metrics and statistics</p>
+          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">System Overview</h1>
+          <p className="text-sm text-zinc-400 mt-0.5">Platform-wide metrics and health</p>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/system-admin/monitoring">
-            <Button variant="outline" size="sm">
-              <Activity className="w-4 h-4 mr-2" />
-              View Monitoring
-            </Button>
-          </Link>
-          <Button 
-            onClick={loadStats} 
-            variant="outline" 
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/system-admin/monitoring">
+              <Activity className="w-3.5 h-3.5 mr-1.5" />
+              Monitoring
+            </Link>
+          </Button>
+          <Button
+            onClick={loadStats}
+            variant="outline"
             size="sm"
             disabled={refreshing}
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
         </div>
       </div>
 
-      {/* Top Row: Clubs & Users */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clubs</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.clubs.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.clubs.withAdmins} with admins • {stats.clubs.inactive} inactive
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.users.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.users.activeToday} active today
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Athletes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.athletes.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.athletes.male}M • {stats.athletes.female}F
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue (30d)</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.revenue.formatted}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.revenue.paidCount} paid registrations
-            </p>
-          </CardContent>
-        </Card>
+      {/* Primary Metric Strip — Clubs · Users · Athletes · Revenue */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">
+        <MetricCell
+          label="Clubs"
+          value={stats.clubs.total}
+          sub={`${stats.clubs.withAdmins} with admins · ${stats.clubs.inactive} inactive`}
+          icon={Building2}
+        />
+        <MetricCell
+          label="Users"
+          value={stats.users.total}
+          sub={`${stats.users.activeToday} active today`}
+          icon={Users}
+        />
+        <MetricCell
+          label="Athletes"
+          value={stats.athletes.total.toLocaleString()}
+          sub={`${stats.athletes.male.toLocaleString()} M · ${stats.athletes.female.toLocaleString()} F`}
+          icon={Users}
+        />
+        <MetricCell
+          label="Revenue (30d)"
+          value={stats.revenue.formatted}
+          sub={`${stats.revenue.paidCount} paid registrations`}
+          icon={DollarSign}
+        />
       </div>
 
-      {/* Second Row: Programs & Registrations */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Programs</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.programs.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.programs.active} active • {stats.programs.draft} draft
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Registrations</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.registrations.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.registrations.last30Days} in last 30 days
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Payment Success</CardTitle>
-            <Percent className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.payments.successRate}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.payments.failed} failed in 30d
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.systemHealth.errors24h === 0 ? '✓' : stats.systemHealth.errors24h}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.systemHealth.errors24h === 0 ? 'No errors today' : `${stats.systemHealth.errors24h} errors (24h)`}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Secondary Metric Strip — Programs · Registrations · Payments · Health */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">
+        <MetricCell
+          label="Programs"
+          value={stats.programs.total}
+          sub={`${stats.programs.active} active · ${stats.programs.draft} draft`}
+          icon={FileText}
+        />
+        <MetricCell
+          label="Registrations"
+          value={stats.registrations.total.toLocaleString()}
+          sub={`${stats.registrations.last30Days} in last 30 days`}
+          icon={CheckCircle}
+        />
+        <MetricCell
+          label="Payment rate"
+          value={`${stats.payments.successRate}%`}
+          sub={`${stats.payments.failed} failed · ${stats.payments.pending} pending`}
+          icon={Percent}
+        />
+        <MetricCell
+          label="System health"
+          value={healthOk ? 'OK' : stats.systemHealth.errors24h}
+          sub={healthOk ? 'No errors in 24h' : `errors in last 24h`}
+          icon={Activity}
+          valueColor={healthOk ? 'text-emerald-600' : 'text-red-600'}
+        />
       </div>
 
-      {/* User Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>User Breakdown</CardTitle>
-          <CardDescription>Distribution of users by role</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Admins</p>
-              <p className="text-2xl font-bold">{stats.users.admins}</p>
+      {/* Second Row — User Breakdown + Payments + Programs */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        {/* User Breakdown */}
+        <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-50">
+            <h3 className="text-sm font-semibold text-zinc-900">Users by Role</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-px bg-zinc-50 p-px">
+            {[
+              { label: 'Admins', value: stats.users.admins },
+              { label: 'Coaches', value: stats.users.coaches },
+              { label: 'Parents', value: stats.users.parents },
+              { label: 'Active Today', value: stats.users.activeToday, highlight: true },
+            ].map(({ label, value, highlight }) => (
+              <div key={label} className="bg-white px-4 py-4">
+                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-2">{label}</p>
+                <p className={`text-2xl font-semibold tracking-tight tabular-nums ${highlight ? 'text-emerald-600' : 'text-zinc-900'}`}>
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Payment Status */}
+        <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-50">
+            <h3 className="text-sm font-semibold text-zinc-900">Payment Status</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">Last 30 days</p>
+          </div>
+          <div className="divide-y divide-zinc-50">
+            <div className="flex items-center justify-between px-5 py-3.5">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="text-sm text-zinc-700">Paid</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-zinc-900 tabular-nums">{stats.payments.paid}</span>
+                <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100">
+                  {stats.payments.successRate}%
+                </span>
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Coaches</p>
-              <p className="text-2xl font-bold">{stats.users.coaches}</p>
+            <div className="flex items-center justify-between px-5 py-3.5">
+              <div className="flex items-center gap-2.5">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-sm text-zinc-700">Pending</span>
+              </div>
+              <span className="text-sm font-semibold text-zinc-900 tabular-nums">{stats.payments.pending}</span>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Parents</p>
-              <p className="text-2xl font-bold">{stats.users.parents}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Active Today</p>
-              <p className="text-2xl font-bold text-green-600">{stats.users.activeToday}</p>
+            <div className="flex items-center justify-between px-5 py-3.5">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+                <span className="text-sm text-zinc-700">Failed</span>
+              </div>
+              <span className="text-sm font-semibold text-red-600 tabular-nums">{stats.payments.failed}</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Payment Status & Programs */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Payment Status (Last 30 Days)</CardTitle>
-            <CardDescription>Payment success and failure rates</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">Paid</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold">{stats.payments.paid}</span>
-                  <Badge className="bg-green-600">{stats.payments.successRate}%</Badge>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-yellow-600" />
-                  <span className="text-sm">Pending</span>
-                </div>
-                <span className="text-xl font-bold">{stats.payments.pending}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
-                  <span className="text-sm">Failed</span>
-                </div>
-                <span className="text-xl font-bold text-red-600">{stats.payments.failed}</span>
-              </div>
+        {/* Programs by Sport */}
+        <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-50">
+            <h3 className="text-sm font-semibold text-zinc-900">Programs by Sport</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">Distribution across sports</p>
+          </div>
+          {Object.keys(stats.programs.bySport).length > 0 ? (
+            <div className="divide-y divide-zinc-50">
+              {Object.entries(stats.programs.bySport)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5)
+                .map(([sport, count]) => (
+                  <div key={sport} className="flex items-center justify-between px-5 py-3.5">
+                    <span className="text-sm text-zinc-700 capitalize">{sport}</span>
+                    <span className="text-sm font-semibold text-zinc-900 tabular-nums">{count}</span>
+                  </div>
+                ))}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Programs by Sport</CardTitle>
-            <CardDescription>Distribution across sports</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {Object.keys(stats.programs.bySport).length > 0 ? (
-              <div className="space-y-2">
-                {Object.entries(stats.programs.bySport)
-                  .sort(([, a], [, b]) => b - a)
-                  .slice(0, 5)
-                  .map(([sport, count]) => (
-                    <div key={sport} className="flex items-center justify-between">
-                      <span className="text-sm capitalize">{sport}</span>
-                      <span className="font-medium">{count}</span>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No programs yet</p>
-            )}
-          </CardContent>
-        </Card>
+          ) : (
+            <p className="px-5 py-8 text-sm text-zinc-400">No programs yet</p>
+          )}
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common system administration tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Link href="/system-admin/clubs">
-              <Button variant="outline" className="w-full">
-                <Building2 className="w-4 h-4 mr-2" />
-                Manage Clubs
-              </Button>
+      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50">
+          <h3 className="text-sm font-semibold text-zinc-900">Quick Actions</h3>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-50 p-px">
+          {[
+            { href: '/system-admin/clubs', icon: Building2, label: 'Manage Clubs' },
+            { href: '/system-admin/monitoring', icon: Activity, label: 'Monitoring' },
+            { href: '/system-admin/clubs/new', icon: Building2, label: 'Create Club' },
+            { href: '/system-admin/admins', icon: UserCheck, label: 'View Admins' },
+          ].map(({ href, icon: Icon, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="bg-white flex items-center gap-3 px-5 py-4 hover:bg-zinc-50/80 transition-colors group"
+            >
+              <div className="w-7 h-7 rounded-lg bg-zinc-50 flex items-center justify-center flex-shrink-0 group-hover:bg-zinc-100 transition-colors">
+                <Icon className="w-3.5 h-3.5 text-zinc-400" />
+              </div>
+              <span className="text-sm font-medium text-zinc-700">{label}</span>
             </Link>
-            <Link href="/system-admin/monitoring">
-              <Button variant="outline" className="w-full">
-                <Activity className="w-4 h-4 mr-2" />
-                View Monitoring
-              </Button>
-            </Link>
-            <Link href="/system-admin/clubs/new">
-              <Button variant="outline" className="w-full">
-                <Building2 className="w-4 h-4 mr-2" />
-                Create Club
-              </Button>
-            </Link>
-            <Link href="/system-admin/admins">
-              <Button variant="outline" className="w-full">
-                <UserCheck className="w-4 h-4 mr-2" />
-                View Admins
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

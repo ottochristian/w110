@@ -56,7 +56,7 @@ export default function SettingsPage() {
           const Icon = option.icon
           return (
             <Link key={option.href} href={option.href}>
-              <Card className="hover:bg-slate-50 transition-colors cursor-pointer">
+              <Card className="hover:bg-zinc-50 transition-colors cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-blue-100">

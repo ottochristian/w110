@@ -245,7 +245,7 @@ export default function EditClubPage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Edit Club</h2>
+          <h2 className="text-2xl font-bold text-zinc-900">Edit Club</h2>
           <p className="text-muted-foreground">Update club information</p>
         </div>
       </div>
