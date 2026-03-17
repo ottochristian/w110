@@ -1,5 +1,5 @@
 import twilio from 'twilio'
-import sgMail from '@sendgrid/mail'
+import { Resend } from 'resend'
 
 // Notification types
 export type NotificationMethod = 'email' | 'sms' | 'both'
@@ -24,24 +24,25 @@ export interface NotificationResult {
 
 class NotificationService {
   private twilioClient?: ReturnType<typeof twilio>
+  private resend?: Resend
   private smsEnabled: boolean
   private emailEnabled: boolean
 
   constructor() {
-    // Initialize SendGrid for email
-    const sendgridApiKey = process.env.SENDGRID_API_KEY
-    if (sendgridApiKey) {
+    // Initialize Resend for email
+    const resendApiKey = process.env.RESEND_API_KEY
+    if (resendApiKey) {
       try {
-        sgMail.setApiKey(sendgridApiKey)
+        this.resend = new Resend(resendApiKey)
         this.emailEnabled = true
-        console.log('✅ SendGrid email service initialized')
+        console.log('✅ Resend email service initialized')
       } catch (error) {
-        console.error('❌ SendGrid initialization failed:', error)
+        console.error('❌ Resend initialization failed:', error)
         this.emailEnabled = false
       }
     } else {
       this.emailEnabled = false
-      console.log('⚠️ SendGrid not configured - Email logging to console only')
+      console.log('⚠️ Resend not configured - Email logging to console only')
     }
 
     // Initialize Twilio only if credentials are provided
@@ -187,6 +188,53 @@ class NotificationService {
   }
 
   /**
+   * Send registration confirmation email after successful payment
+   */
+  async sendRegistrationConfirmation(
+    email: string,
+    options: {
+      firstName?: string
+      clubName: string
+      orderId: string
+      totalAmount: number
+      registrations: { athleteName: string; programName: string; subProgramName?: string }[]
+    }
+  ): Promise<NotificationResult> {
+    const greeting = options.firstName ? `Hi ${options.firstName},` : 'Hello,'
+    const athleteLines = options.registrations
+      .map(r => `  • ${r.athleteName} — ${r.programName}${r.subProgramName ? ` (${r.subProgramName})` : ''}`)
+      .join('\n')
+    const total = (options.totalAmount / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+
+    const message = `
+${greeting}
+
+Your registration is confirmed! Here's a summary of what you've enrolled in:
+
+${athleteLines}
+
+Total paid: ${total}
+Order ID: ${options.orderId}
+
+You'll receive further details from ${options.clubName} as the season approaches.
+
+If you have any questions, please contact your club directly.
+
+Thanks,
+The ${options.clubName} Team
+    `.trim()
+
+    return this.send({
+      method: 'email',
+      recipient: email,
+      subject: `Registration Confirmed — ${options.clubName}`,
+      message,
+      template: 'confirmation',
+      link: undefined,
+    })
+  }
+
+  /**
    * Send guardian invitation email
    */
   async sendGuardianInvitation(
@@ -212,57 +260,46 @@ class NotificationService {
   }
 
   /**
-   * Send email via SendGrid (Twilio's email service)
+   * Send email via Resend
    */
   private async sendEmail(options: NotificationOptions): Promise<void> {
     const isDev = process.env.NODE_ENV === 'development'
-    
-    // Always log in development
+
     if (isDev) {
       console.log('📧 Email details:')
       console.log('  To:', options.recipient)
       console.log('  Subject:', options.subject)
-      console.log('  Message:', options.message)
-      if (options.code) {
-        console.log('  OTP Code:', options.code)
-      }
-      if (options.link) {
-        console.log('  Link:', options.link)
-      }
+      if (options.code) console.log('  OTP Code:', options.code)
+      if (options.link) console.log('  Link:', options.link)
     }
 
-    // If SendGrid is not configured, only log (dev mode)
-    if (!this.emailEnabled) {
-      if (isDev) {
-        console.log('⚠️ SendGrid not configured - email logged above')
-      }
+    if (!this.emailEnabled || !this.resend) {
+      if (isDev) console.log('⚠️ Resend not configured - email logged above')
       return
     }
 
-    // Send email via SendGrid
-    try {
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@skiclub.com'
-      const fromName = process.env.SENDGRID_FROM_NAME || 'Ski Club Admin'
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@skioutfitters.com'
+    const fromName = process.env.RESEND_FROM_NAME || 'Ski Admin'
 
-      const msg = {
-        to: options.recipient,
-        from: {
-          email: fromEmail,
-          name: fromName
-        },
+    try {
+      const { error } = await this.resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [options.recipient],
         subject: options.subject || 'Notification',
         text: options.message,
-        html: this.buildEmailHTML(options)
+        html: this.buildEmailHTML(options),
+      })
+
+      if (error) {
+        console.error('❌ Resend email error:', error)
+        throw new Error(`Failed to send email: ${error.message}`)
       }
 
-      await sgMail.send(msg)
       console.log(`✅ Email sent successfully to ${options.recipient}`)
-    } catch (error: any) {
-      console.error('❌ SendGrid email error:', error)
-      if (error.response) {
-        console.error('SendGrid error details:', error.response.body)
-      }
-      throw new Error(`Failed to send email: ${error.message}`)
+    } catch (error: unknown) {
+      console.error('❌ Resend email error:', error)
+      const message = error instanceof Error ? error.message : String(error)
+      throw new Error(`Failed to send email: ${message}`)
     }
   }
 
@@ -447,35 +484,64 @@ The ${options.clubName} Team
   }
 
   /**
-   * Build HTML email (for future Resend integration)
+   * Build HTML email
    */
   private buildEmailHTML(options: NotificationOptions): string {
-    const { code, message, subject } = options
-    
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${subject || 'Notification'}</title>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .code { font-size: 32px; font-weight: bold; color: #3B82F6; letter-spacing: 4px; margin: 20px 0; }
-    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div style="white-space: pre-line;">${message}</div>
-    ${code ? `<div class="code">${code}</div>` : ''}
-    <div class="footer">
-      <p>This is an automated message. Please do not reply to this email.</p>
+    const { code, message, subject, template } = options
+
+    const baseStyle = `
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f5; margin: 0; padding: 0; }
+      .wrapper { padding: 40px 20px; }
+      .container { max-width: 560px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      .header { background: #18181b; padding: 24px 32px; }
+      .header-title { color: #fff; font-size: 16px; font-weight: 600; margin: 0; }
+      .body { padding: 32px; }
+      .code-box { background: #f4f4f5; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0; }
+      .code { font-size: 36px; font-weight: 700; color: #3B82F6; letter-spacing: 8px; }
+      .reg-list { background: #f9fafb; border-radius: 8px; padding: 16px 20px; margin: 20px 0; }
+      .reg-item { padding: 6px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+      .reg-item:last-child { border-bottom: none; }
+      .total { font-size: 18px; font-weight: 700; color: #18181b; margin: 16px 0 4px; }
+      .footer { padding: 20px 32px; border-top: 1px solid #f0f0f0; font-size: 12px; color: #9ca3af; }
+      p { margin: 0 0 12px; }
+      a { color: #3B82F6; }
+    `
+
+    if (template === 'confirmation') {
+      // Parse registrations and total out of plain-text message for rich rendering
+      const lines = message.split('\n').filter(l => l.trim())
+      const greeting = lines[0] || ''
+      const regLines = lines.filter(l => l.trim().startsWith('•'))
+      const totalLine = lines.find(l => l.startsWith('Total paid:')) || ''
+      const orderLine = lines.find(l => l.startsWith('Order ID:')) || ''
+      const closing = lines.find(l => l.startsWith('You\'ll receive')) || ''
+
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${subject}</title><style>${baseStyle}</style></head>
+<body><div class="wrapper"><div class="container">
+  <div class="header"><p class="header-title">Registration Confirmed ✓</p></div>
+  <div class="body">
+    <p>${greeting}</p>
+    <p>Your registration is confirmed. Here's what you've enrolled in:</p>
+    <div class="reg-list">
+      ${regLines.map(l => `<div class="reg-item">${l.replace('•', '').trim()}</div>`).join('')}
     </div>
+    <p class="total">${totalLine.replace('Total paid: ', '')}</p>
+    <p style="font-size:12px;color:#9ca3af;">${orderLine}</p>
+    <p>${closing}</p>
   </div>
-</body>
-</html>
-    `.trim()
+  <div class="footer"><p>This is an automated message. Please do not reply to this email.</p></div>
+</div></div></body></html>`
+    }
+
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${subject || 'Notification'}</title><style>${baseStyle}</style></head>
+<body><div class="wrapper"><div class="container">
+  <div class="header"><p class="header-title">${subject || 'Notification'}</p></div>
+  <div class="body">
+    <div style="white-space: pre-line;">${message}</div>
+    ${code ? `<div class="code-box"><div class="code">${code}</div></div>` : ''}
+  </div>
+  <div class="footer"><p>This is an automated message. Please do not reply to this email.</p></div>
+</div></div></body></html>`.trim()
   }
 }
 

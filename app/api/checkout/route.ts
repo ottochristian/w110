@@ -16,6 +16,8 @@ const getStripe = () => {
   })
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting - 10 requests per minute per user
@@ -62,7 +64,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user has access to this order's household
-    // Get user's household_id from their profile/household_guardians
     const { data: guardian } = await supabase
       .from('household_guardians')
       .select('household_id')
@@ -78,53 +79,84 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Create Stripe checkout session
+    // Load club for Stripe Connect details
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('id, stripe_account_id, stripe_connect_status, stripe_application_fee_percent')
+      .eq('id', order.club_id)
+      .single()
+
+    // Load order items for line-by-line Stripe display
+    const { data: orderItems } = await supabase
+      .from('order_items')
+      .select('description, amount')
+      .eq('order_id', orderId)
+
+    // Build Stripe session params
     const stripe = getStripe()
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
+
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems && orderItems.length > 0
+      ? orderItems.map((item) => ({
           price_data: {
             currency: 'usd',
-            product_data: {
-              name: `Registration Order #${orderId.slice(0, 8)}`,
-              description: `Ski program registrations for ${clubSlug}`,
-            },
-            unit_amount: Math.round(amount * 100), // Convert to cents
+            product_data: { name: item.description },
+            unit_amount: Math.round(Number(item.amount) * 100),
           },
           quantity: 1,
-        },
-      ],
+        }))
+      : [{
+          price_data: {
+            currency: 'usd',
+            product_data: { name: `Registration Order #${orderId.slice(0, 8)}` },
+            unit_amount: Math.round(amount * 100),
+          },
+          quantity: 1,
+        }]
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/clubs/${clubSlug}/parent/billing?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/clubs/${clubSlug}/parent/cart?canceled=true`,
+      ui_mode: 'embedded',
+      return_url: `${BASE_URL}/clubs/${clubSlug}/parent/checkout/complete?order=${orderId}&session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         order_id: orderId,
         club_slug: clubSlug,
+        club_id: order.club_id,
       },
       customer_email: (order.households as any)?.primary_email || undefined,
-    })
+      invoice_creation: { enabled: true },
+    }
 
-    // Update order with checkout session ID
+    // Add Stripe Connect params if club has active connected account
+    if (club?.stripe_account_id && club.stripe_connect_status === 'active') {
+      sessionParams.on_behalf_of = club.stripe_account_id
+      sessionParams.transfer_data = { destination: club.stripe_account_id }
+
+      const feePercent = club.stripe_application_fee_percent
+      if (feePercent && feePercent > 0) {
+        sessionParams.application_fee_amount = Math.round(amount * 100 * feePercent / 100)
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
+
+    // Save session ID to order
     await supabase
       .from('orders')
-      .update({ 
-        // Store checkout session ID temporarily (we'll update with payment intent in webhook)
-      })
+      .update({ stripe_session_id: session.id })
       .eq('id', orderId)
 
-    log.info('Checkout session created', {
+    log.info('Embedded checkout session created', {
       orderId,
       sessionId: session.id,
       userId: user.id,
+      useConnect: !!(club?.stripe_account_id && club.stripe_connect_status === 'active'),
     })
 
-    return NextResponse.json({ checkoutUrl: session.url })
+    return NextResponse.json({ clientSecret: session.client_secret })
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create checkout session'
     log.error('Checkout error', error)
-    return NextResponse.json(
-      { error: 'Failed to create checkout session' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

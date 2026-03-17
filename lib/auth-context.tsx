@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initialLoadRef = useRef(true)
   const loadAuthInProgressRef = useRef(false) // Prevent concurrent auth loads
   const lastAuthEventRef = useRef<{ event: string; timestamp: number } | null>(null) // Track events
+  const pathnameRef = useRef(pathname)
 
   // Load user and profile
   // showLoader: set to false when refreshing token (user already authenticated)
@@ -172,23 +173,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Initial load
+  // Keep pathnameRef current on every render so the subscription callback
+  // always sees the latest pathname without being a dependency of the effect.
+  pathnameRef.current = pathname
+
+  // Initial load — runs once on mount only.
+  // pathname is accessed via pathnameRef inside callbacks to avoid re-subscribing
+  // on every navigation (which caused concurrent loadAuth() calls and the 20s timeout).
   useEffect(() => {
     loadAuth().then(() => {
-      // Mark initial load as complete after first auth load
       initialLoadRef.current = false
     })
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const now = Date.now()
-      
 
       // Debounce duplicate events within 5 seconds
-      if (lastAuthEventRef.current && 
-          lastAuthEventRef.current.event === event && 
+      if (lastAuthEventRef.current &&
+          lastAuthEventRef.current.event === event &&
           now - lastAuthEventRef.current.timestamp < 5000) {
         return
       }
@@ -198,27 +202,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null)
         setProfile(null)
-        
-        // Only redirect to login if on a protected route
-        // Public routes like '/', '/login', '/signup' should not auto-redirect
+
         const publicRoutes = ['/', '/login', '/signup', '/setup-password']
-        const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
-        
+        const isPublicRoute = publicRoutes.some(
+          (route) => pathnameRef.current === route || pathnameRef.current.startsWith(route)
+        )
+
         if (!isPublicRoute) {
           router.push('/login')
         }
       } else if (event === 'SIGNED_IN') {
-        // If this is the initial load, show the loader (first time sign in)
-        // After initial load, this is a tab switch - silent refresh (no loader)
-        
-        // Only reload auth on SIGNED_IN if this is the initial load
-        // Subsequent SIGNED_IN events (which shouldn't happen) will be ignored
         if (initialLoadRef.current) {
           await loadAuth(true)
-        } else {
         }
       } else if (event === 'TOKEN_REFRESHED') {
-        // Silent refresh on token refresh (no loader, user already authenticated)
         await loadAuth(false)
       }
     })
@@ -226,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [router, pathname])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Refresh profile (useful after profile updates)
   const refreshProfile = async () => {
@@ -346,10 +343,8 @@ export function useRequireParent() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && profile) {
-      if (profile.role !== 'parent') {
-        router.replace('/login')
-      }
+    if (!loading && profile && profile.role !== 'parent') {
+      router.replace('/login')
     }
   }, [profile, loading, router])
 

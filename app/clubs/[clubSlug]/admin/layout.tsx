@@ -10,6 +10,7 @@ import { ProfileMenu } from '@/components/profile-menu'
 import { useClub } from '@/lib/club-context'
 import { SeasonProvider } from '@/lib/contexts/season-context'
 import { InlineLoading } from '@/components/ui/loading-states'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function AdminLayout({
   children,
@@ -66,7 +67,9 @@ export default function AdminLayout({
           </div>
           <div className="flex-1 overflow-auto pt-16">
             <div className="p-8">
-              {clubLoading ? <InlineLoading message="Loading..." /> : children}
+              <ErrorBoundary>
+                {clubLoading ? <InlineLoading message="Loading..." /> : children}
+              </ErrorBoundary>
             </div>
           </div>
         </main>

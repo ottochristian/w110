@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { log } from '@/lib/logger'
 import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit'
+import { notificationService } from '@/lib/services/notification-service'
 import Stripe from 'stripe'
 import { headers } from 'next/headers'
 
@@ -32,6 +33,8 @@ export async function POST(request: NextRequest) {
   const body = await request.text()
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')
+  // For Stripe Connect webhooks, Stripe sets stripe-account header with the connected account ID
+  const connectedAccountId = headersList.get('stripe-account')
 
   if (!signature) {
     log.warn('Webhook received without signature')
@@ -46,6 +49,10 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     log.error('Webhook signature verification failed', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  if (connectedAccountId) {
+    log.info('Connect webhook received', { eventType: event.type, connectedAccountId })
   }
 
   const supabase = createSupabaseAdminClient()
@@ -89,6 +96,15 @@ export async function POST(request: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const orderId = session.metadata?.order_id
+
+    // Log connected account context if present
+    if (connectedAccountId) {
+      log.info('Processing Connect checkout.session.completed', {
+        sessionId: session.id,
+        connectedAccountId,
+        orderId,
+      })
+    }
 
     if (!orderId) {
       log.warn('No order_id in session metadata', {
@@ -239,7 +255,7 @@ export async function POST(request: NextRequest) {
             })
 
             const results = await Promise.all(updatePromises)
-            
+
             // Check for errors
             const errors = results.filter((result) => result.error)
             if (errors.length > 0) {
@@ -253,6 +269,53 @@ export async function POST(request: NextRequest) {
                 orderId,
                 registrationCount: registrationIds.length,
               })
+
+              // Send confirmation email — fire-and-forget, never fail the webhook
+              try {
+                const { data: orderDetails } = await supabase
+                  .from('orders')
+                  .select(`
+                    id, total_amount,
+                    clubs(name),
+                    households(
+                      household_guardians(
+                        is_primary,
+                        profiles(email, first_name)
+                      )
+                    )
+                  `)
+                  .eq('id', orderId)
+                  .single()
+
+                const { data: regDetails } = await supabase
+                  .from('registrations')
+                  .select('athletes(first_name, last_name), sub_programs(name, programs(name))')
+                  .in('id', registrationIds)
+
+                if (orderDetails && regDetails) {
+                  const guardians = (orderDetails as any).households?.household_guardians ?? []
+                  const primary = guardians.find((g: any) => g.is_primary) ?? guardians[0]
+                  const guardianEmail = primary?.profiles?.email
+                  const clubName = (orderDetails as any).clubs?.name ?? 'Your Ski Club'
+
+                  if (guardianEmail) {
+                    await notificationService.sendRegistrationConfirmation(guardianEmail, {
+                      firstName: primary?.profiles?.first_name,
+                      clubName,
+                      orderId,
+                      totalAmount: orderDetails.total_amount,
+                      registrations: regDetails.map((r: any) => ({
+                        athleteName: `${r.athletes?.first_name ?? ''} ${r.athletes?.last_name ?? ''}`.trim(),
+                        programName: r.sub_programs?.programs?.name ?? r.sub_programs?.name ?? 'Program',
+                        subProgramName: r.sub_programs?.name,
+                      })),
+                    })
+                    log.info('Confirmation email sent', { orderId, to: guardianEmail })
+                  }
+                }
+              } catch (emailErr) {
+                log.warn('Failed to send confirmation email', { orderId, error: emailErr })
+              }
             }
           }
       }
