@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Users, Calendar, MessageSquare, ArrowRight } from 'lucide-react'
+import { Users, Calendar, MessageSquare, ArrowRight, Clock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { AdminPageHeader } from '@/components/admin-page-header'
 
@@ -13,6 +13,7 @@ type Profile = {
   email: string
   first_name?: string | null
   role: string
+  club_id?: string | null
 }
 
 type Coach = {
@@ -26,6 +27,28 @@ type CoachAssignment = {
   programs?: { name?: string | null } | null
   sub_programs?: { name?: string | null } | null
   groups?: { name?: string | null } | null
+}
+
+type TodayEvent = {
+  id: string
+  title: string
+  event_type: string
+  start_at: string
+  end_at: string | null
+  location: string | null
+  sub_programs: { name: string } | null
+}
+
+const EVENT_TYPE_DOT: Record<string, string> = {
+  training: 'bg-blue-500',
+  race:     'bg-red-500',
+  camp:     'bg-purple-500',
+  meeting:  'bg-yellow-500',
+  other:    'bg-zinc-400',
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
 
 const getRoleLabel = (role?: string | null): string => {
@@ -47,6 +70,7 @@ export default function CoachDashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [assignments, setAssignments] = useState<CoachAssignment[]>([])
+  const [todayEvents, setTodayEvents] = useState<TodayEvent[]>([])
 
   useEffect(() => {
     async function load() {
@@ -76,6 +100,24 @@ export default function CoachDashboardPage() {
         if (!assignmentsError) {
           setAssignments((assignmentsData || []) as CoachAssignment[])
         }
+      }
+
+      // Today's schedule
+      if (profileData.club_id) {
+        const todayStart = new Date()
+        todayStart.setHours(0, 0, 0, 0)
+        const todayEnd = new Date()
+        todayEnd.setHours(23, 59, 59, 999)
+
+        const { data: eventsData } = await supabase
+          .from('events')
+          .select('id, title, event_type, start_at, end_at, location, sub_programs(name)')
+          .eq('club_id', profileData.club_id)
+          .gte('start_at', todayStart.toISOString())
+          .lte('start_at', todayEnd.toISOString())
+          .order('start_at', { ascending: true })
+
+        setTodayEvents((eventsData as TodayEvent[]) ?? [])
       }
 
       setLoading(false)
@@ -109,6 +151,61 @@ export default function CoachDashboardPage() {
         title="Coach Dashboard"
         description={`Welcome, ${profile.first_name || profile.email}`}
       />
+
+      {/* Today's schedule */}
+      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">Today's Schedule</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          <Link href="/coach/schedule" className="text-xs text-blue-600 hover:underline">
+            Full schedule →
+          </Link>
+        </div>
+
+        {todayEvents.length === 0 ? (
+          <div className="px-5 py-8 text-center">
+            <Calendar className="h-7 w-7 text-zinc-200 mx-auto mb-2" />
+            <p className="text-sm text-zinc-400">No sessions scheduled for today</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-50">
+            {todayEvents.map((ev) => (
+              <div key={ev.id} className="flex items-start gap-3 px-5 py-3.5">
+                <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${EVENT_TYPE_DOT[ev.event_type] ?? 'bg-zinc-400'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-900 truncate">{ev.title}</p>
+                  {ev.sub_programs?.name && (
+                    <p className="text-xs text-zinc-400 truncate">{ev.sub_programs.name}</p>
+                  )}
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1 text-xs text-zinc-500">
+                      <Clock className="h-3 w-3" />
+                      {formatTime(ev.start_at)}{ev.end_at ? ` – ${formatTime(ev.end_at)}` : ''}
+                    </span>
+                    {ev.location && (
+                      <span className="flex items-center gap-1 text-xs text-zinc-500 truncate">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        {ev.location}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded capitalize flex-shrink-0
+                  ${ev.event_type === 'race' ? 'bg-red-50 text-red-600' :
+                    ev.event_type === 'camp' ? 'bg-purple-50 text-purple-600' :
+                    ev.event_type === 'meeting' ? 'bg-yellow-50 text-yellow-700' :
+                    'bg-blue-50 text-blue-600'}`}>
+                  {ev.event_type}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid gap-5 md:grid-cols-3">
         {/* Navigation */}

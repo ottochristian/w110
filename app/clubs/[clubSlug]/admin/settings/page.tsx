@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, Palette, FileText } from 'lucide-react'
+import { Calendar, CreditCard, Palette, FileText, Users, Sparkles } from 'lucide-react'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { InlineLoading } from '@/components/ui/loading-states'
 
@@ -39,6 +39,24 @@ export default function SettingsPage() {
       description: 'Manage season waivers and legal documents',
       href: `${basePath}/settings/waivers`,
       icon: FileText,
+    },
+    {
+      title: 'Payments',
+      description: 'Connect your Stripe account to accept registrations',
+      href: `${basePath}/settings/payments`,
+      icon: CreditCard,
+    },
+    {
+      title: 'Age Categories',
+      description: 'Configure FIS/USSA competition age calculation and categories',
+      href: `${basePath}/settings/age-categories`,
+      icon: Users,
+    },
+    {
+      title: 'AI & Intelligence',
+      description: 'Enable AI training plans and coaching tools for your club',
+      href: `${basePath}/settings/ai`,
+      icon: Sparkles,
     },
   ]
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Card,
@@ -19,6 +20,8 @@ import {
   AlertCircle,
   Circle,
   Lock,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { useSelectedSeason } from '@/lib/contexts/season-context'
@@ -32,6 +35,180 @@ import {
 import { useSeasonReadiness } from '@/lib/hooks/use-season-readiness'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading } from '@/components/ui/loading-states'
+import { cn } from '@/lib/utils'
+
+function todayISO() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Module-level guard: prevents double-generation within the same page session
+// (handles React StrictMode double-invocation in dev)
+let _briefingFiredDate = ''
+
+function BriefingWidget({ clubSlug }: { clubSlug: string }) {
+  const [generating, setGenerating] = useState(false)
+  const [text, setText] = useState('')
+  const [noEvents, setNoEvents] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [fromCache, setFromCache] = useState(false)
+
+  useEffect(() => {
+    const today = todayISO()
+    const cacheKey = `admin_briefing_${today}`
+
+    // 1. Check localStorage — covers page refreshes
+    try {
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        setText(cached)
+        setFromCache(true)
+        return
+      }
+    } catch {}
+
+    // 2. Module-level guard — blocks StrictMode double-fire before stream finishes
+    if (_briefingFiredDate === today) return
+    _briefingFiredDate = today
+
+    generate()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function generate() {
+    setGenerating(true)
+    setText('')
+    setNoEvents(false)
+    setExpanded(false)
+    setFromCache(false)
+    try {
+      const res = await fetch('/api/admin/ai/daily-briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: todayISO() }),
+      })
+      if (res.status === 404) { setNoEvents(true); return }
+      if (!res.ok) return
+
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let accumulated = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        accumulated += decoder.decode(value, { stream: true })
+        setText(accumulated)
+      }
+      // Cache for the rest of the day — keyed by date so stale entries auto-expire
+      try {
+        localStorage.setItem(`admin_briefing_${todayISO()}`, accumulated)
+      } catch {}
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const dateLabel = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  })
+
+  // Split text into lines for rendering; truncate to ~100 words when collapsed
+  const lines = text.split('\n')
+  const wordCount = (str: string) => str.split(/\s+/).filter(Boolean).length
+  let collapsedLines: string[] = []
+  let words = 0
+  for (const line of lines) {
+    collapsedLines.push(line)
+    words += wordCount(line)
+    if (words >= 100) break
+  }
+  const isTruncated = !expanded && !generating && collapsedLines.length < lines.length
+  const visibleLines = (expanded || generating) ? lines : collapsedLines
+
+  function renderBold(str: string) {
+    const parts = str.split(/\*\*(.+?)\*\*/)
+    return parts.map((p, i) => i % 2 === 1 ? <strong key={i}>{p}</strong> : p)
+  }
+
+  function renderLines(ls: string[]) {
+    return ls.map((line, i) => {
+      if (!line.trim()) return <div key={i} className="h-2" />
+      if (/^#{1,2} /.test(line)) return <p key={i} className="font-semibold text-zinc-900 mt-3 first:mt-0">{line.replace(/^#{1,2} /, '')}</p>
+      if (/^### /.test(line)) return <p key={i} className="font-medium text-zinc-800 mt-2">{line.replace(/^### /, '')}</p>
+      if (/^---+$/.test(line.trim())) return <hr key={i} className="border-zinc-100 my-2" />
+      if (/^[*-] /.test(line)) return (
+        <div key={i} className="flex gap-1.5">
+          <span className="text-purple-400 shrink-0 mt-0.5">•</span>
+          <span>{renderBold(line.replace(/^[*-] /, ''))}</span>
+        </div>
+      )
+      return <p key={i}>{renderBold(line)}</p>
+    })
+  }
+
+  return (
+    <div className="rounded-xl border border-purple-100 bg-white overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-50">
+        <div className="flex items-center gap-2">
+          <Sparkles className={cn('h-4 w-4', generating ? 'text-purple-400 animate-pulse' : 'text-purple-500')} />
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">
+              {generating ? 'Generating briefing…' : `Today's Briefing`}
+            </h3>
+            <p className="text-xs text-zinc-400">
+              {dateLabel}{fromCache && <span className="ml-1.5 text-zinc-300">· cached</span>}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {!generating && (
+            <button
+              onClick={generate}
+              className="p-1.5 rounded-md hover:bg-zinc-100 transition-colors"
+              title="Regenerate"
+            >
+              <RefreshCw className="h-3.5 w-3.5 text-zinc-400" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="px-5 py-4 text-sm text-zinc-700">
+        {generating && !text && (
+          <p className="text-muted-foreground animate-pulse text-xs">Analysing today's schedule…</p>
+        )}
+        {noEvents && (
+          <p className="text-muted-foreground text-xs">No sessions scheduled for today.</p>
+        )}
+        {text && (
+          <>
+            <div className="prose prose-sm max-w-none text-zinc-700 space-y-1">
+              {renderLines(visibleLines)}
+              {generating && (
+                <span className="inline-block w-1.5 h-3.5 bg-purple-400 animate-pulse ml-0.5 align-middle" />
+              )}
+            </div>
+            {isTruncated && (
+              <button
+                onClick={() => setExpanded(true)}
+                className="mt-3 text-xs text-purple-600 hover:text-purple-700 font-medium"
+              >
+                Show more ↓
+              </button>
+            )}
+            {expanded && lines.length > collapsedLines.length && (
+              <button
+                onClick={() => setExpanded(false)}
+                className="mt-3 text-xs text-zinc-400 hover:text-zinc-600 font-medium"
+              >
+                Show less ↑
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function statusStyle(status: string) {
   switch (status?.toLowerCase()) {
@@ -48,6 +225,15 @@ export default function AdminDashboard() {
   const clubSlug = params.clubSlug as string
   const { profile, loading: authLoading } = useRequireAdmin()
   const selectedSeason = useSelectedSeason()
+  const [autoBriefing, setAutoBriefing] = useState(false)
+
+  useEffect(() => {
+    if (!profile) return
+    fetch('/api/admin/ai/toggle')
+      .then(r => r.json())
+      .then(data => setAutoBriefing(data.ai_enabled && data.ai_auto_briefing))
+      .catch(() => {})
+  }, [profile])
 
   const { data: totalAthletes = 0, isLoading: athletesLoading } = useAthletesCount(
     profile?.club_id || null,
@@ -180,6 +366,9 @@ export default function AdminDashboard() {
           </span>
         </Link>
       )}
+
+      {/* AI Daily Briefing Widget — only when ai_auto_briefing is on */}
+      {autoBriefing && <BriefingWidget clubSlug={clubSlug} />}
 
       {/* Metric Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">

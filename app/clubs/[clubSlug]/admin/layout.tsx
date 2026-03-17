@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { AdminSidebar } from '@/components/admin-sidebar'
@@ -35,12 +35,14 @@ export default function AdminLayout({
     }
   }, [club, clubSlug, authLoading, clubLoading, router, profile])
 
-  // Non-blocking approach: Show layout structure immediately with conditional content
-  // This prevents the entire app from being stuck on a loading screen
-  if (!authLoading && !profile) {
+  // While auth is resolving (or briefly after a race before the auth listener fires),
+  // show a full-screen loader rather than "Access denied".
+  // useRequireAdmin already redirects non-admins to /login, so we never need to
+  // display an access-denied message — the redirect handles it.
+  if (authLoading || !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-destructive">Access denied</p>
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
       </div>
     )
   }
@@ -48,27 +50,23 @@ export default function AdminLayout({
   return (
     <SeasonProvider>
       <div className="flex min-h-screen">
-        {profile && <AdminSidebar profile={profile} clubSlug={clubSlug} />}
-        <main className={`flex-1 ${profile ? 'ml-64' : ''} flex flex-col bg-zinc-50`}>
-          <div className={`fixed top-0 right-0 ${profile ? 'left-64' : 'left-0'} border-b border-zinc-200 bg-white px-8 py-3 z-10`}>
+        <AdminSidebar profile={profile} clubSlug={clubSlug} />
+        <main className="flex-1 ml-64 flex flex-col bg-zinc-50">
+          <div className="fixed top-0 right-0 left-64 border-b border-zinc-200 bg-white px-8 py-3 z-10">
             <div className="flex items-center justify-end gap-4">
-              {(authLoading || clubLoading) ? (
+              {clubLoading ? (
                 <div className="h-10 w-48 bg-zinc-200 animate-pulse rounded" />
               ) : (
                 <>
                   <UnifiedSeasonSelector />
-                  {profile && <ProfileMenu profile={profile} />}
+                  <ProfileMenu profile={profile} />
                 </>
               )}
             </div>
           </div>
           <div className="flex-1 overflow-auto pt-16">
             <div className="p-8">
-              {(authLoading || clubLoading) ? (
-                <InlineLoading message="Loading..." />
-              ) : (
-                children
-              )}
+              {clubLoading ? <InlineLoading message="Loading..." /> : children}
             </div>
           </div>
         </main>
