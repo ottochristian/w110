@@ -472,17 +472,22 @@ export default function AdminDashboard() {
     const supabase = createClient()
     void (async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('waiver_signatures')
-          .select('athlete_id, waivers!inner(club_id, season_id, is_required)', { count: 'exact', head: false })
+          .select('athlete_id, waivers!inner(club_id, season_id, is_required)')
           .eq('waivers.club_id', profile.club_id)
           .eq('waivers.season_id', selectedSeason.id)
-          .eq('waivers.is_required', true)
-        if (!data) return
-        const unique = new Set((data as Array<{ athlete_id: string }>).map((r) => r.athlete_id))
+          .eq('waivers.required', true)
+        if (error) {
+          console.error('[WaiverStats] query error:', error.message)
+          setWaiverStats({ signed: 0 })
+          return
+        }
+        const unique = new Set((data ?? []).map((r: { athlete_id: string }) => r.athlete_id))
         setWaiverStats({ signed: unique.size })
-      } catch {
-        // ignore
+      } catch (err) {
+        console.error('[WaiverStats] unexpected error:', err)
+        setWaiverStats({ signed: 0 })
       }
     })()
   }, [profile?.club_id, selectedSeason?.id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -734,7 +739,7 @@ export default function AdminDashboard() {
                 'flex items-center gap-3 rounded-xl border px-4 py-3',
                 item.level === 'red'
                   ? 'border-red-800/60 bg-red-950/50 text-red-200'
-                  : 'border-amber-700/50 bg-amber-950/50 text-amber-200'
+                  : 'border-orange-800/50 bg-orange-950/30 text-orange-200'
               )}
             >
               {item.level === 'red'
@@ -748,7 +753,7 @@ export default function AdminDashboard() {
                   'flex-shrink-0 text-xs font-medium flex items-center gap-1',
                   item.level === 'red'
                     ? 'text-red-300 hover:text-red-200'
-                    : 'text-amber-300 hover:text-amber-200'
+                    : 'text-orange-300 hover:text-orange-200'
                 )}
               >
                 → View

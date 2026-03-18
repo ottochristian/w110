@@ -319,7 +319,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative">
-          <img src="/w110-logo-dark.svg" alt="W110" className="h-8 w-auto" />
+          <Link href="/"><img src="/w110-logo-dark.svg" alt="W110" className="h-8 w-auto" /></Link>
         </div>
 
         <div className="relative">
@@ -340,7 +340,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="mb-10 lg:hidden">
-            <img src="/w110-logo-dark.svg" alt="W110" className="h-8 w-auto" />
+            <Link href="/"><img src="/w110-logo-dark.svg" alt="W110" className="h-8 w-auto" /></Link>
           </div>
 
           <h1 className="page-title text-foreground">Welcome back</h1>

@@ -108,7 +108,7 @@ export function ParentSidebar({ profile, clubSlug }: ParentSidebarProps) {
 
       {/* Footer */}
       <div className="px-5 py-4 border-t border-zinc-800 flex flex-col gap-2">
-        <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto" />
+        <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto self-start" />
         <p className="text-zinc-600 text-xs">Parent Portal</p>
       </div>
     </aside>

@@ -269,7 +269,7 @@ export default function SignupPage() {
       {/* ── Left panel ── */}
       <div className="hidden lg:flex lg:w-[360px] flex-shrink-0 bg-zinc-950 flex-col justify-between p-12">
         <div className="flex items-center gap-2.5">
-          <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto" />
+          <Link href="/"><img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto" /></Link>
         </div>
 
         <div>
