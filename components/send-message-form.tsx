@@ -10,9 +10,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+interface Group {
+  id: string;
+  name: string;
+}
+
+interface SubProgram {
+  id: string;
+  name: string;
+  groups?: Group[];
+}
+
+interface Program {
+  id: string;
+  name: string;
+  sub_programs?: SubProgram[];
+}
+
 interface SendMessageFormProps {
   userId: string;
-  programs: any[];
+  programs: Program[];
 }
 
 export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
@@ -29,9 +46,9 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
 
   // Get sub-programs for selected program
   const subPrograms = programs.find(p => p.id === selectedProgram)?.sub_programs || [];
-  
+
   // Get groups for selected sub-program
-  const groups = subPrograms.find((sp: any) => sp.id === selectedSubProgram)?.groups || [];
+  const groups = subPrograms.find((sp: SubProgram) => sp.id === selectedSubProgram)?.groups || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,30 +85,30 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
           .select("athletes(household_id)")
           .eq("group_id", selectedGroup);
         
-        householdIds = [...new Set(registrations?.map((r: any) => r.athletes?.household_id).filter(Boolean))];
+        householdIds = [...new Set(registrations?.map((r: { athletes?: { household_id?: string } | { household_id?: string }[] }) => { const a = Array.isArray(r.athletes) ? r.athletes[0] : r.athletes; return a?.household_id; }).filter(Boolean) as string[])];
       } else if (targetType === "sub_program") {
         // Get household_ids for athletes in this sub-program
         const { data: registrations } = await supabase
           .from("registrations")
           .select("athletes(household_id)")
           .eq("sub_program_id", selectedSubProgram);
-        
-        householdIds = [...new Set(registrations?.map((r: any) => r.athletes?.household_id).filter(Boolean))];
+
+        householdIds = [...new Set(registrations?.map((r: { athletes?: { household_id?: string } | { household_id?: string }[] }) => { const a = Array.isArray(r.athletes) ? r.athletes[0] : r.athletes; return a?.household_id; }).filter(Boolean) as string[])];
       } else if (targetType === "program") {
         // Get household_ids for athletes in any sub-program of this program
         const { data: subPrograms } = await supabase
           .from("sub_programs")
           .select("id")
           .eq("program_id", selectedProgram);
-        
+
         const subProgramIds = subPrograms?.map(sp => sp.id) || [];
-        
+
         const { data: registrations } = await supabase
           .from("registrations")
           .select("athletes(household_id)")
           .in("sub_program_id", subProgramIds);
-        
-        householdIds = [...new Set(registrations?.map((r: any) => r.athletes?.household_id).filter(Boolean))];
+
+        householdIds = [...new Set(registrations?.map((r: { athletes?: { household_id?: string } | { household_id?: string }[] }) => { const a = Array.isArray(r.athletes) ? r.athletes[0] : r.athletes; return a?.household_id; }).filter(Boolean) as string[])];
       }
 
       // Get user_ids from household_guardians for these households
@@ -102,7 +119,7 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
           .select("user_id")
           .in("household_id", householdIds);
         
-        userIds = guardians ? [...new Set(guardians.map((g: any) => g.user_id).filter(Boolean))] : [];
+        userIds = guardians ? [...new Set(guardians.map((g: { user_id?: string }) => g.user_id).filter(Boolean) as string[])] : [];
       }
 
       // Insert message recipients
@@ -132,7 +149,7 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <Label>Send to</Label>
-        <RadioGroup value={targetType} onValueChange={(value: any) => setTargetType(value)}>
+        <RadioGroup value={targetType} onValueChange={(value) => setTargetType(value as "program" | "sub_program" | "group")}>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="program" id="program" />
             <Label htmlFor="program" className="font-normal cursor-pointer">
@@ -178,7 +195,7 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
               <SelectValue placeholder="Select sub-program" />
             </SelectTrigger>
             <SelectContent>
-              {subPrograms.map((sp: any) => (
+              {subPrograms.map((sp: SubProgram) => (
                 <SelectItem key={sp.id} value={sp.id}>
                   {sp.name}
                 </SelectItem>
@@ -196,7 +213,7 @@ export function SendMessageForm({ userId, programs }: SendMessageFormProps) {
               <SelectValue placeholder="Select group" />
             </SelectTrigger>
             <SelectContent>
-              {groups.map((g: any) => (
+              {groups.map((g: Group) => (
                 <SelectItem key={g.id} value={g.id}>
                   {g.name}
                 </SelectItem>

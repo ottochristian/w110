@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
 import { LayoutDashboard, BookOpen, FileText, Users, Settings, BarChart3 } from 'lucide-react'
 import { useClub } from '@/lib/club-context'
+import { colors } from '@/lib/colors'
 
 interface AdminSidebarProps {
   profile: Profile
@@ -35,14 +36,6 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
     <aside className="w-64 bg-zinc-950 flex flex-col h-screen fixed left-0 top-0">
       {/* Header — club identity */}
       <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
-        {/* Ski Admin brand */}
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold leading-none">S</span>
-          </div>
-          <span className="text-zinc-500 text-xs font-medium tracking-wide uppercase">Ski Admin</span>
-        </div>
-
         {/* Club logo + name */}
         {club && !clubLoading ? (
           <div className="flex items-center gap-3">
@@ -55,14 +48,14 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ring-1 ring-zinc-700 text-sm font-semibold text-white"
-                style={{ backgroundColor: club.primary_color || '#3B82F6' }}
+                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ring-1 ring-zinc-700 text-sm font-semibold text-foreground"
+                style={{ backgroundColor: club.primary_color || colors.primary }}
               >
                 {initial}
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-white text-sm font-semibold truncate">{club.name}</p>
+              <p className="text-foreground text-sm font-semibold truncate">{club.name}</p>
               <p className="text-zinc-500 text-xs truncate">{profile.email}</p>
             </div>
           </div>
@@ -84,7 +77,7 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? 'bg-zinc-800 text-white font-medium'
+                  ? 'bg-zinc-800 text-foreground font-medium'
                   : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100'
               }`}
             >
@@ -96,7 +89,8 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-5 py-4 border-t border-zinc-800">
+      <div className="px-5 py-4 border-t border-zinc-800 flex flex-col gap-2">
+        <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto" />
         <p className="text-zinc-600 text-xs">Admin Portal</p>
       </div>
     </aside>

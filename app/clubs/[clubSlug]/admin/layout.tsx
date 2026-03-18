@@ -42,8 +42,8 @@ export default function AdminLayout({
   // display an access-denied message — the redirect handles it.
   if (authLoading || !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
       </div>
     )
   }
@@ -52,11 +52,11 @@ export default function AdminLayout({
     <SeasonProvider>
       <div className="flex min-h-screen">
         <AdminSidebar profile={profile} clubSlug={clubSlug} />
-        <main className="flex-1 ml-64 flex flex-col bg-zinc-50">
-          <div className="fixed top-0 right-0 left-64 border-b border-zinc-200 bg-white px-8 py-3 z-10">
+        <main className="flex-1 ml-64 flex flex-col">
+          <div className="fixed top-0 right-0 left-64 border-b border-orange-800/40 bg-background/80 backdrop-blur-sm px-8 py-3 z-10">
             <div className="flex items-center justify-end gap-4">
               {clubLoading ? (
-                <div className="h-10 w-48 bg-zinc-200 animate-pulse rounded" />
+                <div className="h-10 w-48 bg-zinc-800 animate-pulse rounded" />
               ) : (
                 <>
                   <UnifiedSeasonSelector />

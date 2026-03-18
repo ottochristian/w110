@@ -14,8 +14,7 @@ import {
   useAthletesMissingWaivers,
 } from '@/lib/hooks/use-waiver-analytics'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+import { CHART_COLORS, GRID_PROPS, AXIS_STYLE, TOOLTIP_STYLE } from '@/lib/chart-theme'
 
 export default function WaiversPage() {
   const searchParams = useSearchParams()
@@ -57,16 +56,16 @@ export default function WaiversPage() {
   }
 
   const getComplianceBgColor = (rate: number) => {
-    if (rate >= 90) return 'bg-green-50'
-    if (rate >= 70) return 'bg-yellow-50'
-    return 'bg-red-50'
+    if (rate >= 90) return 'bg-green-950/30'
+    if (rate >= 70) return 'bg-yellow-950/30'
+    return 'bg-red-950/30'
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Waivers</h1>
+        <h1 className="page-title">Waivers</h1>
         <p className="text-muted-foreground mt-2">
           Waiver compliance and signature tracking
         </p>
@@ -93,12 +92,12 @@ export default function WaiversPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="metric-value text-blue-600">
                   {summary?.totalRequired || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -119,12 +118,12 @@ export default function WaiversPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-32 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className={`text-2xl font-bold ${getComplianceColor(summary?.complianceRate || 0)}`}>
+                <div className={`metric-value ${getComplianceColor(summary?.complianceRate || 0)}`}>
                   {summary?.complianceRate || 0}%
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -145,12 +144,12 @@ export default function WaiversPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="metric-value text-red-600">
                   {summary?.athletesMissing || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -171,12 +170,12 @@ export default function WaiversPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-32 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="metric-value text-purple-600">
                   {summary?.totalSignatures || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -197,12 +196,12 @@ export default function WaiversPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-24 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="metric-value text-green-600">
                   {summary?.recentSignatures || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -234,20 +233,21 @@ export default function WaiversPage() {
           ) : (
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={byProgram}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid {...GRID_PROPS} />
                 <XAxis
+                  {...AXIS_STYLE}
                   dataKey="programName"
                   angle={-45}
                   textAnchor="end"
                   height={100}
-                  style={{ fontSize: '12px' }}
                 />
-                <YAxis 
-                  label={{ value: 'Compliance %', angle: -90, position: 'insideLeft' }}
+                <YAxis
+                  {...AXIS_STYLE}
+                  label={{ value: 'Compliance %', angle: -90, position: 'insideLeft', fill: CHART_COLORS.axis }}
                   domain={[0, 100]}
                 />
-                <Tooltip />
-                <Bar dataKey="complianceRate" fill="#3b82f6" />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Bar dataKey="complianceRate" fill={CHART_COLORS.primary} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -267,7 +267,7 @@ export default function WaiversPage() {
             {detailsLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 rounded animate-pulse" />
+                  <div key={i} className="h-16 bg-secondary rounded animate-pulse" />
                 ))}
               </div>
             ) : !waiverDetails || waiverDetails.length === 0 ? (
@@ -295,7 +295,7 @@ export default function WaiversPage() {
                         {waiver.signedPercentage}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-secondary rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all ${
                           waiver.signedPercentage >= 90
@@ -329,7 +329,7 @@ export default function WaiversPage() {
             {missingLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-gray-200 rounded animate-pulse" />
+                  <div key={i} className="h-20 bg-secondary rounded animate-pulse" />
                 ))}
               </div>
             ) : !missingWaivers || missingWaivers.length === 0 ? (
@@ -337,41 +337,43 @@ export default function WaiversPage() {
                 ✓ All athletes are compliant!
               </div>
             ) : (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {missingWaivers.map((athlete) => (
                   <div
                     key={athlete.athleteId}
-                    className="border rounded-lg p-4 space-y-2 bg-red-50"
+                    className="border border-border rounded-lg p-4 space-y-2 bg-card border-l-2 border-l-red-500"
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium">{athlete.athleteName}</div>
+                        <div className="font-medium text-foreground">{athlete.athleteName}</div>
                         <div className="text-sm text-muted-foreground">
                           {athlete.programName}
                         </div>
                       </div>
-                      <Badge variant="destructive">
+                      <span className="inline-flex items-center rounded-md border border-red-800 bg-red-950/40 px-2 py-0.5 text-xs font-medium text-red-400">
                         {athlete.missingWaivers.length} missing
-                      </Badge>
+                      </span>
                     </div>
                     <div className="text-sm space-y-1">
-                      <div className="font-medium text-muted-foreground">
-                        Missing waivers:
-                      </div>
-                      <ul className="list-disc list-inside space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Missing waivers</div>
+                      <ul className="space-y-0.5">
                         {athlete.missingWaivers.map((waiver) => (
-                          <li key={waiver.id} className="text-sm">
+                          <li key={waiver.id} className="flex items-center gap-1.5 text-sm text-foreground">
+                            <span className="w-1 h-1 rounded-full bg-red-500 shrink-0" />
                             {waiver.title}
                           </li>
                         ))}
                       </ul>
                     </div>
-                    <div className="text-sm pt-2 border-t">
-                      <div className="text-muted-foreground">Guardian:</div>
-                      <div>{athlete.guardianName}</div>
+                    <div className="text-sm pt-2 border-t border-border">
+                      <span className="text-muted-foreground">Guardian: </span>
+                      <span>{athlete.guardianName}</span>
                       {athlete.guardianEmail && (
-                        <div className="text-blue-600 hover:underline">
-                          <a href={`mailto:${athlete.guardianEmail}`}>
+                        <div>
+                          <a
+                            href={`mailto:${athlete.guardianEmail}`}
+                            className="text-orange-500 hover:text-orange-400"
+                          >
                             {athlete.guardianEmail}
                           </a>
                         </div>

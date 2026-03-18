@@ -125,6 +125,11 @@ export const checkoutSchema = z.object({
   cancelUrl: urlSchema.optional(),
 })
 
+/** Stripe Connect account request */
+export const connectStripeSchema = z.object({
+  clubId: z.string().uuid(),
+})
+
 /** Order creation */
 export const createOrderSchema = z.object({
   householdId: uuidSchema,
@@ -165,12 +170,20 @@ export const inviteAdminSchema = z.object({
 // REGISTRATION SCHEMAS
 // ============================================================================
 
-/** Create registration */
-export const createRegistrationSchema = z.object({
-  athleteId: uuidSchema,
-  subProgramId: uuidSchema,
-  seasonId: uuidSchema.optional(),
+/** Single registration item (used inside bulk create) */
+const registrationItemSchema = z.object({
+  athlete_id: uuidSchema,
+  sub_program_id: uuidSchema,
+  season_id: uuidSchema.optional(),
+  status: z.string().max(50).optional(),
+  club_id: uuidSchema.optional(),
   notes: z.string().max(500).optional(),
+}).passthrough()
+
+/** Bulk create registrations (parent checkout) */
+export const createRegistrationSchema = z.object({
+  registrations: z.array(registrationItemSchema).min(1).max(50),
+  clubId: uuidSchema,
 })
 
 /** Invite coach */
@@ -272,6 +285,15 @@ export const otpSchema = z.object({
   code: z.string().length(6).regex(/^\d{6}$/, 'OTP must be 6 digits'),
   userId: uuidSchema,
   type: z.enum(['email_verification', 'phone_verification', 'admin_invitation', 'password_reset', '2fa_login']),
+  contact: z.string().min(1).optional(),
+})
+
+/** OTP send request */
+export const sendOtpSchema = z.object({
+  userId: uuidSchema,
+  type: z.enum(['email_verification', 'phone_verification', 'admin_invitation', 'password_reset', '2fa_login']),
+  contact: z.string().min(1),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 // ============================================================================
@@ -293,7 +315,7 @@ export async function validateRequest<T>(
     if (error instanceof z.ZodError) {
       throw new ValidationError(
         'Validation failed',
-        error.errors.map((e: z.ZodIssue) => ({
+        error.issues.map((e: z.ZodIssue) => ({
           field: e.path.join('.'),
           message: e.message,
         }))
@@ -401,3 +423,4 @@ export type InviteCoachInput = z.infer<typeof inviteCoachSchema>
 export type AcceptGuardianInput = z.infer<typeof acceptGuardianSchema>
 export type ResendGuardianInput = z.infer<typeof resendGuardianSchema>
 export type SystemAdminInviteInput = z.infer<typeof systemAdminInviteSchema>
+export type ConnectStripeInput = z.infer<typeof connectStripeSchema>

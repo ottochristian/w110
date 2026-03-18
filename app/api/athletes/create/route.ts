@@ -43,11 +43,11 @@ export async function POST(request: NextRequest) {
       validatedData = athleteRequestSchema.parse(body)
     } catch (error) {
       if (error instanceof z.ZodError) {
-        log.warn('Athlete creation validation failed', { errors: error.errors })
+        log.warn('Athlete creation validation failed', { errors: error.issues })
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Verify club_id matches user's club (or athlete's club matches)
-    const athleteClubId = athlete.club_id || clubId
+    const athleteClubId = clubId
     const { data: profile } = await adminSupabase
       .from('profiles')
       .select('club_id')

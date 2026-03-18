@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
-interface Metric {
+export interface Metric {
   count?: number
   amount?: number
   formatted?: string
@@ -16,7 +16,7 @@ interface Metric {
   period?: string
 }
 
-interface MetricsData {
+export interface MetricsData {
   registrations?: Metric
   revenue?: Metric
   failedPayments?: Metric

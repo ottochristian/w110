@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await admin
     .from('clubs')
-    .select('id, name, ai_enabled, ai_auto_briefing')
+    .select('id, name, ai_enabled, ai_auto_briefing, ai_insights_enabled')
     .eq('id', clubId)
     .single()
 
@@ -38,13 +38,14 @@ export async function GET(request: NextRequest) {
 
   const totalRequests = usage?.length ?? 0
   const totalTokens = usage?.reduce(
-    (sum, u) => sum + u.prompt_tokens + u.completion_tokens,
+    (sum: number, u: { prompt_tokens: number; completion_tokens: number }) => sum + u.prompt_tokens + u.completion_tokens,
     0
   ) ?? 0
 
   return NextResponse.json({
     ai_enabled: data.ai_enabled,
     ai_auto_briefing: data.ai_auto_briefing ?? false,
+    ai_insights_enabled: data.ai_insights_enabled ?? false,
     usage_this_month: { requests: totalRequests, tokens: totalTokens },
   })
 }
@@ -96,33 +97,47 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ ai_enabled: data.ai_enabled })
 }
 
-// PATCH — toggle ai_auto_briefing for the club
+// PATCH — toggle ai_auto_briefing and/or ai_insights_enabled for the club
 export async function PATCH(request: NextRequest) {
   const authResult = await requireAdmin(request)
   if (authResult instanceof NextResponse) return authResult
   const { profile } = authResult
 
-  let body: { ai_auto_briefing?: boolean } = {}
+  let body: { ai_auto_briefing?: boolean; ai_insights_enabled?: boolean } = {}
   try { body = await request.json() } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  if (typeof body.ai_auto_briefing !== 'boolean') {
-    return NextResponse.json({ error: '`ai_auto_briefing` (boolean) is required' }, { status: 400 })
+  const hasAutoBriefing = typeof body.ai_auto_briefing === 'boolean'
+  const hasInsights = typeof body.ai_insights_enabled === 'boolean'
+
+  if (!hasAutoBriefing && !hasInsights) {
+    return NextResponse.json(
+      { error: 'At least one of `ai_auto_briefing` or `ai_insights_enabled` (boolean) is required' },
+      { status: 400 }
+    )
   }
 
   const clubId = profile.club_id
   if (!clubId) return NextResponse.json({ error: 'No club' }, { status: 403 })
 
+  const updateObj: { ai_auto_briefing?: boolean; ai_insights_enabled?: boolean } = {}
+  if (hasAutoBriefing) updateObj.ai_auto_briefing = body.ai_auto_briefing
+  if (hasInsights) updateObj.ai_insights_enabled = body.ai_insights_enabled
+
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('clubs')
-    .update({ ai_auto_briefing: body.ai_auto_briefing })
+    .update(updateObj)
     .eq('id', clubId)
-    .select('ai_auto_briefing')
+    .select('ai_enabled, ai_auto_briefing, ai_insights_enabled')
     .single()
 
   if (error || !data) return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
 
-  return NextResponse.json({ ai_auto_briefing: data.ai_auto_briefing })
+  return NextResponse.json({
+    ai_enabled: data.ai_enabled,
+    ai_auto_briefing: data.ai_auto_briefing ?? false,
+    ai_insights_enabled: data.ai_insights_enabled ?? false,
+  })
 }

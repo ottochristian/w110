@@ -14,15 +14,15 @@ import {
 } from '@/lib/hooks/use-events'
 import { Button } from '@/components/ui/button'
 import { InlineLoading } from '@/components/ui/loading-states'
-import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, Save, Upload, Download, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, Save, Upload, Download, CheckCircle2, AlertCircle, Clock, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  training: 'bg-blue-100 text-blue-800 border-blue-200',
-  race:     'bg-red-100 text-red-800 border-red-200',
-  camp:     'bg-purple-100 text-purple-800 border-purple-200',
-  meeting:  'bg-yellow-100 text-yellow-800 border-yellow-200',
-  other:    'bg-zinc-100 text-zinc-700 border-zinc-200',
+  training: 'bg-blue-900/30 text-blue-400 border-blue-800',
+  race:     'bg-red-900/30 text-red-400 border-red-800',
+  camp:     'bg-purple-900/30 text-purple-400 border-purple-800',
+  meeting:  'bg-yellow-900/30 text-yellow-400 border-yellow-800',
+  other:    'bg-secondary text-muted-foreground border-border',
 }
 
 const EVENT_TYPE_DOT: Record<string, string> = {
@@ -127,13 +127,13 @@ const DAY_LETTER = ['S','M','T','W','T','F','S']
 
 // Per-program colour palette — borders + pill accents
 const PROGRAM_PALETTE = [
-  { border: 'border-l-blue-500',    pill: 'bg-blue-100 text-blue-800 ring-blue-300',    dot: 'bg-blue-500'    },
-  { border: 'border-l-emerald-500', pill: 'bg-emerald-100 text-emerald-800 ring-emerald-300', dot: 'bg-emerald-500' },
-  { border: 'border-l-orange-500',  pill: 'bg-orange-100 text-orange-800 ring-orange-300',  dot: 'bg-orange-500'  },
-  { border: 'border-l-violet-500',  pill: 'bg-violet-100 text-violet-800 ring-violet-300',  dot: 'bg-violet-500'  },
-  { border: 'border-l-pink-500',    pill: 'bg-pink-100 text-pink-800 ring-pink-300',    dot: 'bg-pink-500'    },
-  { border: 'border-l-teal-500',    pill: 'bg-teal-100 text-teal-800 ring-teal-300',    dot: 'bg-teal-500'    },
-  { border: 'border-l-amber-500',   pill: 'bg-amber-100 text-amber-800 ring-amber-300',   dot: 'bg-amber-500'   },
+  { border: 'border-l-blue-500',    pill: 'bg-blue-900/30 text-blue-400 ring-blue-700',    dot: 'bg-blue-500'    },
+  { border: 'border-l-emerald-500', pill: 'bg-emerald-900/30 text-emerald-400 ring-emerald-700', dot: 'bg-emerald-500' },
+  { border: 'border-l-orange-500',  pill: 'bg-orange-900/30 text-orange-400 ring-orange-700',  dot: 'bg-orange-500'  },
+  { border: 'border-l-violet-500',  pill: 'bg-violet-900/30 text-violet-400 ring-violet-700',  dot: 'bg-violet-500'  },
+  { border: 'border-l-pink-500',    pill: 'bg-pink-900/30 text-pink-400 ring-pink-700',    dot: 'bg-pink-500'    },
+  { border: 'border-l-teal-500',    pill: 'bg-teal-900/30 text-teal-400 ring-teal-700',    dot: 'bg-teal-500'    },
+  { border: 'border-l-amber-500',   pill: 'bg-amber-900/30 text-amber-400 ring-amber-700',   dot: 'bg-amber-500'   },
 ]
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -175,7 +175,7 @@ function MiniCalendar({
         <button type="button" onClick={onPrev} className="p-1 rounded hover:bg-zinc-800 transition-colors">
           <ChevronLeft className="h-4 w-4 text-zinc-400" />
         </button>
-        <span className="text-sm font-semibold text-white">{MONTHS[month]} {year}</span>
+        <span className="text-sm font-semibold text-foreground">{MONTHS[month]} {year}</span>
         <button type="button" onClick={onNext} className="p-1 rounded hover:bg-zinc-800 transition-colors">
           <ChevronRight className="h-4 w-4 text-zinc-400" />
         </button>
@@ -272,6 +272,9 @@ export default function CoachSchedulePage() {
   const [assignedSpIds, setAssignedSpIds] = useState<Set<string>>(new Set())
   const [groups, setGroups] = useState<Group[]>([])
 
+  // Detail panel (click to view)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+
   // Add/edit dialog
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -295,7 +298,7 @@ export default function CoachSchedulePage() {
         .select('id, name, programs!inner(name, season_id)')
         .eq('programs.season_id', currentSeason!.id)
         .order('name')
-      setSubPrograms((allSPs as SubProgram[]) ?? [])
+      setSubPrograms((allSPs as unknown as SubProgram[]) ?? [])
 
       // Assignments for visual markers
       const { data: { user } } = await supabase.auth.getUser()
@@ -450,7 +453,7 @@ export default function CoachSchedulePage() {
           <h1 className="text-3xl font-bold">Schedule</h1>
           <p className="text-muted-foreground mt-1">
             {activeFilter
-              ? <><span className="font-medium text-zinc-800">{activeFilter.programs?.name ?? ''}</span> — {activeFilter.name}</>
+              ? <><span className="font-medium">{activeFilter.programs?.name ?? ''}</span> — {activeFilter.name}</>
               : 'All programs'}
           </p>
         </div>
@@ -474,8 +477,8 @@ export default function CoachSchedulePage() {
             onClick={() => setFilterSpId(null)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ring-1
               ${filterSpId === null
-                ? 'bg-zinc-900 text-white ring-zinc-900'
-                : 'bg-white text-zinc-600 ring-zinc-200 hover:bg-zinc-50'}`}
+                ? 'bg-zinc-900 text-foreground ring-zinc-900'
+                : 'bg-card text-muted-foreground ring-border hover:bg-secondary/50'}`}
           >
             All programs
           </button>
@@ -494,7 +497,7 @@ export default function CoachSchedulePage() {
                     type="button"
                     onClick={() => setFilterSpId(isActive ? null : sp.id)}
                     className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ring-1
-                      ${isActive ? `${colors.pill} ring-current` : 'bg-white text-zinc-600 ring-zinc-200 hover:bg-zinc-50'}`}
+                      ${isActive ? `${colors.pill} ring-current` : 'bg-card text-muted-foreground ring-border hover:bg-secondary/50'}`}
                   >
                     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${colors.dot}`} />
                     {sp.name}
@@ -549,12 +552,12 @@ export default function CoachSchedulePage() {
         <div className="flex-1 min-w-0 flex flex-col gap-4">
           {/* Week nav */}
           <div className="flex items-center gap-2">
-            <button type="button" onClick={prevWeek} className="p-1.5 rounded-md border bg-white hover:bg-zinc-50 transition-colors shadow-sm">
-              <ChevronLeft className="h-4 w-4 text-zinc-500" />
+            <button type="button" onClick={prevWeek} className="p-1.5 rounded-md border border-border bg-card hover:bg-secondary/50 transition-colors shadow-sm">
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </button>
-            <span className="text-sm font-semibold text-zinc-800 min-w-[180px] text-center">{weekLabel}</span>
-            <button type="button" onClick={nextWeek} className="p-1.5 rounded-md border bg-white hover:bg-zinc-50 transition-colors shadow-sm">
-              <ChevronRight className="h-4 w-4 text-zinc-500" />
+            <span className="text-sm font-semibold min-w-[180px] text-center">{weekLabel}</span>
+            <button type="button" onClick={nextWeek} className="p-1.5 rounded-md border border-border bg-card hover:bg-secondary/50 transition-colors shadow-sm">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
 
@@ -566,9 +569,9 @@ export default function CoachSchedulePage() {
             return (
               <div key={day.toISOString()} className="flex flex-col gap-1.5 min-h-[140px]">
                 {/* Day header */}
-                <div className="text-center pb-1 border-b border-zinc-100">
+                <div className="text-center pb-1 border-b border-border">
                   <p className="text-xs text-muted-foreground">{DAYS[day.getDay()]}</p>
-                  <div className={`mx-auto w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold mt-0.5 ${isToday ? 'bg-blue-600 text-white' : 'text-zinc-800'}`}>
+                  <div className={`mx-auto w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold mt-0.5 ${isToday ? 'bg-blue-600 text-white' : ''}`}>
                     {day.getDate()}
                   </div>
                 </div>
@@ -577,33 +580,36 @@ export default function CoachSchedulePage() {
                 <div className="flex flex-col gap-1 flex-1">
                   {dayEvents.map((ev) => {
                     const spColors = ev.sub_program_id ? spColorMap.get(ev.sub_program_id) : undefined
+                    const isSelected = selectedEvent?.id === ev.id
                     return (
                       <div
                         key={ev.id}
-                        className={`group relative rounded-md border-l-[3px] border border-l-current pl-2 pr-2 py-1.5 text-xs cursor-pointer hover:shadow-sm transition-shadow bg-white
-                          ${spColors ? spColors.border : 'border-l-zinc-300'}`}
+                        onClick={() => setSelectedEvent(isSelected ? null : ev)}
+                        className={`group relative rounded-md border-l-[3px] border pl-2 pr-2 py-1.5 text-xs cursor-pointer transition-all bg-card
+                          ${spColors ? spColors.border : 'border-l-zinc-600'}
+                          ${isSelected ? 'ring-1 ring-blue-500/60 shadow-md' : 'hover:shadow-sm hover:brightness-110'}`}
                       >
                         {/* Program label */}
                         {ev.sub_programs && (
-                          <p className={`text-[9px] font-semibold uppercase tracking-wide truncate mb-0.5 opacity-60`}>
+                          <p className="text-[9px] font-semibold uppercase tracking-wide truncate mb-0.5 opacity-60">
                             {ev.sub_programs.name}
                           </p>
                         )}
                         <p className="font-medium truncate pr-6">{ev.title}</p>
                         <p className="text-[10px] opacity-50 mt-0.5">{formatTime(ev.start_at)}</p>
-                        {/* Actions */}
+                        {/* Actions — stop propagation so they don't trigger detail panel */}
                         <div className="absolute top-1 right-1 hidden group-hover:flex gap-0.5">
                           <button
                             type="button"
-                            onClick={() => openEdit(ev)}
-                            className="p-0.5 rounded hover:bg-zinc-100"
+                            onClick={(e) => { e.stopPropagation(); openEdit(ev) }}
+                            className="p-0.5 rounded hover:bg-secondary"
                           >
-                            <Pencil className="h-2.5 w-2.5 text-zinc-500" />
+                            <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(ev.id)}
-                            className="p-0.5 rounded hover:bg-zinc-100"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(ev.id) }}
+                            className="p-0.5 rounded hover:bg-secondary"
                           >
                             <Trash2 className="h-2.5 w-2.5 text-zinc-500" />
                           </button>
@@ -617,7 +623,7 @@ export default function CoachSchedulePage() {
                 <button
                   type="button"
                   onClick={() => openAdd(day)}
-                  className="text-[10px] text-zinc-400 hover:text-zinc-600 text-center py-1 rounded hover:bg-zinc-50 transition-colors"
+                  className="text-[10px] text-muted-foreground hover:text-foreground text-center py-1 rounded hover:bg-secondary/50 transition-colors"
                 >
                   + add
                 </button>
@@ -627,10 +633,87 @@ export default function CoachSchedulePage() {
         </div>
       )}
 
+      {/* Detail popup */}
+      {selectedEvent && !dialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[70vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
+              <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded capitalize shrink-0 border ${EVENT_TYPE_COLORS[selectedEvent.event_type] ?? EVENT_TYPE_COLORS.other}`}>
+                    {selectedEvent.event_type}
+                  </span>
+                  {selectedEvent.sub_programs?.name && (
+                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide truncate">{selectedEvent.sub_programs.name}</span>
+                  )}
+                </div>
+                <h3 className="text-sm font-semibold text-foreground leading-snug">{selectedEvent.title}</h3>
+              </div>
+              <div className="flex items-center gap-1 shrink-0 ml-3">
+                <button
+                  type="button"
+                  onClick={() => { openEdit(selectedEvent); setSelectedEvent(null) }}
+                  className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 transition-colors"
+                  title="Edit"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { handleDelete(selectedEvent.id); setSelectedEvent(null) }}
+                  className="p-1.5 rounded hover:bg-zinc-800 text-red-500/70 hover:text-red-400 transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedEvent(null)}
+                  className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 transition-colors"
+                  title="Close"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body — scrollable */}
+            <div className="px-4 py-3 flex flex-col gap-2.5 overflow-y-auto text-sm text-zinc-300">
+              <div className="flex flex-col gap-1.5">
+                <span className="flex items-center gap-2">
+                  <Clock className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                  {new Date(selectedEvent.start_at).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  {' · '}
+                  {formatTime(selectedEvent.start_at)}
+                  {selectedEvent.end_at ? ` – ${formatTime(selectedEvent.end_at)}` : ''}
+                </span>
+                {selectedEvent.location && (
+                  <span className="flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                    {selectedEvent.location}
+                  </span>
+                )}
+              </div>
+              {selectedEvent.notes && (
+                <p className="text-xs text-zinc-300 whitespace-pre-line border-t border-zinc-800 pt-2.5 leading-relaxed">{selectedEvent.notes}</p>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Add/Edit dialog */}
       {dialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 flex flex-col gap-4">
+          <div className="bg-card rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-lg">{editingId ? 'Edit Event' : 'New Event'}</h2>
               <button type="button" onClick={() => setDialogOpen(false)}>
@@ -649,7 +732,7 @@ export default function CoachSchedulePage() {
 
               {/* Type */}
               <select
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={form.event_type}
                 onChange={(e) => setForm(f => ({ ...f, event_type: e.target.value as Event['event_type'] }))}
               >
@@ -669,7 +752,7 @@ export default function CoachSchedulePage() {
                   )}
                 </label>
                 <select
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.sub_program_id ?? ''}
                   onChange={(e) => setForm(f => ({ ...f, sub_program_id: e.target.value || null, group_id: null }))}
                 >
@@ -685,7 +768,7 @@ export default function CoachSchedulePage() {
 
               {groups.length > 0 && (
                 <select
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.group_id ?? ''}
                   onChange={(e) => setForm(f => ({ ...f, group_id: e.target.value || null }))}
                 >
@@ -752,7 +835,7 @@ export default function CoachSchedulePage() {
       {/* ── CSV Import modal ── */}
       {importOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl flex flex-col gap-4 max-h-[90vh] overflow-hidden">
+          <div className="bg-card rounded-2xl shadow-xl w-full max-w-2xl flex flex-col gap-4 max-h-[90vh] overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6">
               <h2 className="font-semibold text-lg">Import Schedule from CSV</h2>
@@ -763,15 +846,15 @@ export default function CoachSchedulePage() {
 
             <div className="flex flex-col gap-4 px-6 pb-6 overflow-y-auto">
               {/* Step 1: Download template */}
-              <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 flex items-start gap-3">
-                <Download className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="rounded-lg border border-blue-800 bg-blue-950/30 p-4 flex items-start gap-3">
+                <Download className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-900">Step 1 — Download the template</p>
-                  <p className="text-xs text-blue-700 mt-0.5">Fill in your schedule using the CSV template, then upload it below.</p>
+                  <p className="text-sm font-medium text-blue-300">Step 1 — Download the template</p>
+                  <p className="text-xs text-blue-400 mt-0.5">Fill in your schedule using the CSV template, then upload it below.</p>
                   <button
                     type="button"
                     onClick={downloadTemplate}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 hover:text-blue-900 underline underline-offset-2"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 underline underline-offset-2"
                   >
                     <Download className="h-3 w-3" />
                     Download schedule-template.csv
@@ -781,10 +864,10 @@ export default function CoachSchedulePage() {
 
               {/* Step 2: Upload */}
               <div>
-                <p className="text-sm font-medium text-zinc-800 mb-2">Step 2 — Upload your filled CSV</p>
-                <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 py-8 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                  <Upload className="h-6 w-6 text-zinc-400" />
-                  <span className="text-sm text-zinc-500">Click to select a CSV file</span>
+                <p className="text-sm font-medium mb-2">Step 2 — Upload your filled CSV</p>
+                <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-secondary py-8 cursor-pointer hover:border-blue-600 hover:bg-blue-950/20 transition-colors">
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Click to select a CSV file</span>
                   <input
                     type="file"
                     accept=".csv,text/csv"
@@ -837,12 +920,12 @@ export default function CoachSchedulePage() {
               {/* Preview */}
               {importRows.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-zinc-800 mb-2">
+                  <p className="text-sm font-medium mb-2">
                     Preview — {importRows.filter(r => r.valid).length} valid, {importRows.filter(r => !r.valid).length} with errors
                   </p>
                   <div className="rounded-lg border overflow-auto max-h-48">
                     <table className="w-full text-xs">
-                      <thead className="bg-zinc-50 border-b sticky top-0">
+                      <thead className="bg-secondary border-b sticky top-0">
                         <tr>
                           <th className="text-left px-3 py-2 font-medium text-zinc-500 w-6"></th>
                           <th className="text-left px-3 py-2 font-medium text-zinc-500">Title</th>
@@ -852,21 +935,21 @@ export default function CoachSchedulePage() {
                           <th className="text-left px-3 py-2 font-medium text-zinc-500">Time</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-100">
+                      <tbody className="divide-y divide-border">
                         {importRows.map((row, i) => (
-                          <tr key={i} className={row.valid ? '' : 'bg-red-50'}>
+                          <tr key={i} className={row.valid ? '' : 'bg-red-950/20'}>
                             <td className="px-3 py-1.5">
                               {row.valid
                                 ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                                 : <AlertCircle className="h-3.5 w-3.5 text-red-500" />}
                             </td>
-                            <td className="px-3 py-1.5 font-medium text-zinc-800 max-w-[140px] truncate">{row.title}</td>
-                            <td className="px-3 py-1.5 capitalize text-zinc-600">{row.event_type}</td>
-                            <td className="px-3 py-1.5 text-zinc-600 max-w-[120px] truncate">
-                              {row.sub_program_name || <span className="text-zinc-300">Club-wide</span>}
+                            <td className="px-3 py-1.5 font-medium text-foreground max-w-[140px] truncate">{row.title}</td>
+                            <td className="px-3 py-1.5 capitalize text-muted-foreground">{row.event_type}</td>
+                            <td className="px-3 py-1.5 text-muted-foreground max-w-[120px] truncate">
+                              {row.sub_program_name || <span className="text-zinc-400">Club-wide</span>}
                             </td>
-                            <td className="px-3 py-1.5 text-zinc-600">{row.date}</td>
-                            <td className="px-3 py-1.5 text-zinc-600">
+                            <td className="px-3 py-1.5 text-muted-foreground">{row.date}</td>
+                            <td className="px-3 py-1.5 text-muted-foreground">
                               {row.start_time}{row.end_time ? ` – ${row.end_time}` : ''}
                             </td>
                           </tr>

@@ -89,14 +89,17 @@ function AcceptGuardianInvitationContent() {
     acceptInvitation(token, {
       onSuccess: (data) => {
         setHasAccepted(true)
-        if (data.redirectTo) {
-          setRedirectTo(data.redirectTo)
+        // Only redirect to relative paths within our own app (prevent open redirect)
+        const safeTarget = data.redirectTo?.startsWith('/clubs/') || data.redirectTo?.startsWith('/parent/')
+          ? data.redirectTo
+          : null
+        if (safeTarget) {
+          setRedirectTo(safeTarget)
           toast.success('Invitation accepted!', {
             description: data.message || 'You are now a guardian for this household.',
           })
-          // Redirect after a short delay
           setTimeout(() => {
-            router.push(data.redirectTo)
+            router.push(safeTarget)
           }, 2000)
         }
       },
@@ -108,7 +111,7 @@ function AcceptGuardianInvitationContent() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Checking Authentication</CardTitle>
@@ -124,7 +127,7 @@ function AcceptGuardianInvitationContent() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Invalid Invitation</CardTitle>
@@ -159,7 +162,7 @@ function AcceptGuardianInvitationContent() {
     const signupUrl = `/signup?${signupParams.toString()}`
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -193,7 +196,7 @@ function AcceptGuardianInvitationContent() {
 
   if (hasAccepted && redirectTo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-2 text-green-600">
@@ -216,7 +219,7 @@ function AcceptGuardianInvitationContent() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Accepting Invitation</CardTitle>
@@ -232,7 +235,7 @@ function AcceptGuardianInvitationContent() {
 
   if (isError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-2 text-red-600">

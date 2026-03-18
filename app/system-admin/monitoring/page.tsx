@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Activity, Database, CreditCard, Mail, MessageSquare, Webhook, AlertTriangle } from 'lucide-react'
-import { MetricsPanel } from '@/components/monitoring/MetricsPanel'
-import { ErrorFeed } from '@/components/monitoring/ErrorFeed'
-import { PerformancePanel } from '@/components/monitoring/PerformancePanel'
+import { MetricsPanel, MetricsData } from '@/components/monitoring/MetricsPanel'
+import { ErrorFeed, SentryError } from '@/components/monitoring/ErrorFeed'
+import { PerformancePanel, PerformanceData } from '@/components/monitoring/PerformancePanel'
 
 interface HealthCheck {
   status: string
@@ -30,9 +30,9 @@ interface HealthData {
 
 export default function MonitoringDashboard() {
   const [health, setHealth] = useState<HealthData | null>(null)
-  const [metrics, setMetrics] = useState<any>(null)
-  const [errors, setErrors] = useState<any[]>([])
-  const [performance, setPerformance] = useState<any>(null)
+  const [metrics, setMetrics] = useState<MetricsData | null>(null)
+  const [errors, setErrors] = useState<SentryError[]>([])
+  const [performance, setPerformance] = useState<PerformanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
@@ -44,8 +44,6 @@ export default function MonitoringDashboard() {
     setRefreshing(true)
     
     try {
-      console.log('[Monitoring] Starting refresh...')
-      
       // Fetch health, metrics, errors, and performance in parallel
       const [healthRes, metricsRes, errorsRes, perfRes] = await Promise.all([
         fetch('/api/monitoring/health').catch(() => null),
@@ -80,7 +78,6 @@ export default function MonitoringDashboard() {
       // Force state update with new Date
       const now = new Date()
       setLastUpdate(now)
-      console.log(`[Monitoring] Refresh complete in ${Date.now() - startTime}ms`)
     } catch (error) {
       console.error('Failed to fetch monitoring data:', error)
     } finally {
@@ -97,7 +94,6 @@ export default function MonitoringDashboard() {
     if (!autoRefresh) return
 
     const interval = setInterval(() => {
-      console.log('[Monitoring] Auto-refresh triggered')
       fetchAllData()
     }, 30000) // Refresh every 30 seconds
 
@@ -111,7 +107,7 @@ export default function MonitoringDashboard() {
       case 'active':
         return 'bg-green-500'
       case 'ready':
-        return 'bg-blue-500'
+        return 'bg-orange-500'
       case 'degraded':
       case 'warning':
         return 'bg-yellow-500'
@@ -121,9 +117,9 @@ export default function MonitoringDashboard() {
       case 'down':
         return 'bg-red-500'
       case 'not_configured':
-        return 'bg-gray-400'
+        return 'bg-zinc-500'
       default:
-        return 'bg-gray-500'
+        return 'bg-zinc-600'
     }
   }
 
@@ -176,7 +172,7 @@ export default function MonitoringDashboard() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading monitoring data...</p>
+          <p className="text-zinc-400">Loading monitoring data...</p>
         </div>
       </div>
     )
@@ -187,18 +183,17 @@ export default function MonitoringDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">System Monitoring</h1>
-          <p className="text-gray-600">
+          <h1 className="page-title mb-2">System Monitoring</h1>
+          <p className="text-zinc-400">
             Real-time health and performance metrics
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-zinc-400">
             Last updated: {formatTimestamp(lastUpdate)}
           </div>
           <Button
             onClick={() => {
-              console.log('[Monitoring] Manual refresh clicked')
               fetchAllData()
             }}
             variant="outline"
@@ -219,8 +214,8 @@ export default function MonitoringDashboard() {
               <div className="flex items-center gap-4">
                 <div className={`w-4 h-4 rounded-full ${getStatusColor(health.overall)}`} />
                 <div>
-                  <h3 className="text-lg font-semibold capitalize">{health.overall}</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="metric-value-sm capitalize">{health.overall}</h3>
+                  <p className="text-sm text-zinc-400">
                     All systems {health.overall === 'healthy' ? 'operational' : 'status'}
                   </p>
                 </div>
@@ -252,25 +247,25 @@ export default function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-zinc-400">Status</span>
                   <Badge className={getStatusColor(health.checks.database.status)}>
                     {getStatusLabel(health.checks.database.status)}
                   </Badge>
                 </div>
                 {health.checks.database.responseTime && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Response Time</span>
+                    <span className="text-zinc-400">Response Time</span>
                     <span className="font-medium">{health.checks.database.responseTime}ms</span>
                   </div>
                 )}
                 {health.checks.database.rlsActive !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">RLS</span>
+                    <span className="text-zinc-400">RLS</span>
                     <span className="font-medium">{health.checks.database.rlsActive ? 'Active' : 'Inactive'}</span>
                   </div>
                 )}
                 {health.checks.database.message && (
-                  <div className="text-xs text-gray-600 mt-2">
+                  <div className="text-xs text-zinc-400 mt-2">
                     {health.checks.database.message}
                   </div>
                 )}
@@ -299,25 +294,25 @@ export default function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-zinc-400">Status</span>
                   <Badge className={getStatusColor(health.checks.stripe.status)}>
                     {getStatusLabel(health.checks.stripe.status)}
                   </Badge>
                 </div>
                 {health.checks.stripe.mode && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Mode</span>
+                    <span className="text-zinc-400">Mode</span>
                     <span className="font-medium capitalize">{health.checks.stripe.mode}</span>
                   </div>
                 )}
                 {health.checks.stripe.responseTime && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Response Time</span>
+                    <span className="text-zinc-400">Response Time</span>
                     <span className="font-medium">{health.checks.stripe.responseTime}ms</span>
                   </div>
                 )}
                 {health.checks.stripe.message && (
-                  <div className="text-xs text-gray-600 mt-2">
+                  <div className="text-xs text-zinc-400 mt-2">
                     {health.checks.stripe.message}
                   </div>
                 )}
@@ -346,25 +341,25 @@ export default function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-zinc-400">Status</span>
                   <Badge className={getStatusColor(health.checks.email.status)}>
                     {getStatusLabel(health.checks.email.status)}
                   </Badge>
                 </div>
                 {health.checks.email.message && (
-                  <div className="text-xs text-gray-600 mt-2 italic">
+                  <div className="text-xs text-zinc-400 mt-2 italic">
                     {health.checks.email.message}
                   </div>
                 )}
                 {health.checks.email.successRate !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Success Rate</span>
+                    <span className="text-zinc-400">Success Rate</span>
                     <span className="font-medium">{health.checks.email.successRate}%</span>
                   </div>
                 )}
                 {health.checks.email.sent24h !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Sent (24h)</span>
+                    <span className="text-zinc-400">Sent (24h)</span>
                     <span className="font-medium">{health.checks.email.sent24h}</span>
                   </div>
                 )}
@@ -394,19 +389,19 @@ export default function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-zinc-400">Status</span>
                   <Badge className={getStatusColor(health.checks.sms.status)}>
                     {getStatusLabel(health.checks.sms.status)}
                   </Badge>
                 </div>
                 {health.checks.sms.message && (
-                  <div className="text-xs text-gray-600 mt-2 italic">
+                  <div className="text-xs text-zinc-400 mt-2 italic">
                     {health.checks.sms.message}
                   </div>
                 )}
                 {health.checks.sms.sent24h !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Sent (24h)</span>
+                    <span className="text-zinc-400">Sent (24h)</span>
                     <span className="font-medium">{health.checks.sms.sent24h}</span>
                   </div>
                 )}
@@ -436,25 +431,25 @@ export default function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-zinc-400">Status</span>
                   <Badge className={getStatusColor(health.checks.webhooks.status)}>
                     {getStatusLabel(health.checks.webhooks.status)}
                   </Badge>
                 </div>
                 {health.checks.webhooks.message && (
-                  <div className="text-xs text-gray-600 mt-2 italic">
+                  <div className="text-xs text-zinc-400 mt-2 italic">
                     {health.checks.webhooks.message}
                   </div>
                 )}
                 {health.checks.webhooks.successRate !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Success Rate</span>
+                    <span className="text-zinc-400">Success Rate</span>
                     <span className="font-medium">{health.checks.webhooks.successRate}%</span>
                   </div>
                 )}
                 {health.checks.webhooks.total24h !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total (24h)</span>
+                    <span className="text-zinc-400">Total (24h)</span>
                     <span className="font-medium">{health.checks.webhooks.total24h}</span>
                   </div>
                 )}
@@ -484,25 +479,25 @@ export default function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-zinc-400">Status</span>
                   <Badge className={getStatusColor(health.checks.errors.status)}>
                     {getStatusLabel(health.checks.errors.status)}
                   </Badge>
                 </div>
                 {health.checks.errors.message && (
-                  <div className="text-xs text-gray-600 mt-2 italic">
+                  <div className="text-xs text-zinc-400 mt-2 italic">
                     {health.checks.errors.message}
                   </div>
                 )}
                 {health.checks.errors.lastHour !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Last Hour</span>
+                    <span className="text-zinc-400">Last Hour</span>
                     <span className="font-medium">{health.checks.errors.lastHour}</span>
                   </div>
                 )}
                 {health.checks.errors.rate && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Rate</span>
+                    <span className="text-zinc-400">Rate</span>
                     <span className="font-medium">{health.checks.errors.rate}</span>
                   </div>
                 )}

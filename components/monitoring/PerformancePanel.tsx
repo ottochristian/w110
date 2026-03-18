@@ -4,21 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Zap, Database } from 'lucide-react'
 
-interface EndpointPerformance {
+export interface EndpointPerformance {
   endpoint: string
   avgTime: number
   count: number
   maxTime: number
 }
 
-interface DatabasePerformance {
+export interface DatabasePerformance {
   avgQueryTime: number
   p95QueryTime: number
   slowQueries: number
   totalQueries: number
 }
 
-interface PerformanceData {
+export interface PerformanceData {
   slowestEndpoints?: EndpointPerformance[]
   database?: DatabasePerformance
   api?: {

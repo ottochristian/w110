@@ -145,7 +145,7 @@ export function ProfileMenu({ profile }: ProfileMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full p-1 hover:bg-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring">
+        <button className="flex items-center gap-2 rounded-full p-1 hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900 focus:ring-orange-500">
           <Avatar className="h-10 w-10">
             <AvatarImage 
               src={avatarUrl || undefined} 
@@ -165,16 +165,16 @@ export function ProfileMenu({ profile }: ProfileMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-0.5">
-            <p className="text-sm font-semibold leading-tight text-zinc-900">{displayName}</p>
-            <p className="text-xs leading-tight text-zinc-500">
+            <p className="text-sm font-semibold leading-tight text-foreground">{displayName}</p>
+            <p className="text-xs leading-tight text-zinc-400">
               {profile.email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={getProfileEditRoute()} className="cursor-pointer text-slate-700">
-            <User className="h-4 w-4 text-slate-500" />
+          <Link href={getProfileEditRoute()} className="cursor-pointer text-zinc-300">
+            <User className="h-4 w-4 text-zinc-400" />
             Edit Profile
           </Link>
         </DropdownMenuItem>
@@ -182,7 +182,7 @@ export function ProfileMenu({ profile }: ProfileMenuProps) {
         <DropdownMenuItem
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+          className="text-red-400 hover:text-red-300 hover:bg-red-950/50 cursor-pointer"
         >
           <LogOut className="h-4 w-4 text-red-600" />
           {isSigningOut ? 'Signing out...' : 'Sign Out'}

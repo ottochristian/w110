@@ -170,7 +170,7 @@ export default function ProgramsPage() {
                   {/* Program Header */}
                   <div className="flex items-start justify-between border-b pb-3">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-zinc-900">
+                      <h3 className="card-title text-zinc-900">
                         {program.name}
                       </h3>
                       {program.description && (

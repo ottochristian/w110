@@ -28,7 +28,10 @@ class DatabaseRateLimiter {
     failedOTP: { maxRequests: 5, windowMinutes: 1440 }, // 24 hours
     loginPerIP: { maxRequests: 10, windowMinutes: 15 },
     loginPerEmail: { maxRequests: 5, windowMinutes: 15 },
-    signupPerIP: { maxRequests: 3, windowMinutes: 60 }
+    signupPerIP: { maxRequests: 3, windowMinutes: 60 },
+    setupPasswordPerIP: { maxRequests: 5, windowMinutes: 15 },
+    verifySetupTokenPerIP: { maxRequests: 10, windowMinutes: 15 },
+    getUserByEmailPerIP: { maxRequests: 20, windowMinutes: 1 }
   }
 
   constructor() {
@@ -194,6 +197,39 @@ class DatabaseRateLimiter {
       `ip:${ipAddress}`,
       'signup_attempt',
       this.config.signupPerIP
+    )
+  }
+
+  /**
+   * Check setup-password attempts by IP address (5 per 15 minutes)
+   */
+  async checkSetupPasswordByIP(ipAddress: string): Promise<RateLimitResult> {
+    return this.checkLimit(
+      `ip:${ipAddress}`,
+      'setup_password',
+      this.config.setupPasswordPerIP
+    )
+  }
+
+  /**
+   * Check verify-setup-token attempts by IP address (10 per 15 minutes)
+   */
+  async checkVerifySetupTokenByIP(ipAddress: string): Promise<RateLimitResult> {
+    return this.checkLimit(
+      `ip:${ipAddress}`,
+      'verify_setup_token',
+      this.config.verifySetupTokenPerIP
+    )
+  }
+
+  /**
+   * Check get-user-by-email attempts by IP address (20 per minute)
+   */
+  async checkGetUserByEmailByIP(ipAddress: string): Promise<RateLimitResult> {
+    return this.checkLimit(
+      `ip:${ipAddress}`,
+      'get_user_by_email',
+      this.config.getUserByEmailPerIP
     )
   }
 

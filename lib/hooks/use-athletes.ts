@@ -41,7 +41,7 @@ type Athlete = {
   created_at: string
   updated_at: string
   medical_notes?: string | null
-  registrations?: any[]
+  registrations?: { id: string; status?: string; payment_status?: string }[]
 }
 
 // Hook to fetch all athletes (for admin pages with RLS filtering by club)

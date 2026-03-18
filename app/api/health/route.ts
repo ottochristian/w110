@@ -63,13 +63,12 @@ export async function GET() {
     sentry: isFeatureEnabled('sentry'),
   }
 
+  // Return minimal info — do not expose environment, version, features, or service names
   const response = {
     status: isHealthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
-    checks,
-    features,
-    version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV,
+    // Collapsed checks: only ok/error status, no messages (avoids info disclosure)
+    ok: Object.values(checks).every((c) => c.status === 'ok'),
   }
 
   return NextResponse.json(response, {

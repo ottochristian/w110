@@ -201,7 +201,7 @@ function SetupPasswordContent() {
           contact: user.email,
           metadata: {
             firstName: null,
-            clubName: 'Ski Admin',
+            clubName: 'W110',
             setupLink: `${window.location.origin}/setup-password?token=${tokenFromUrl}`
           }
         })

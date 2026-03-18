@@ -14,9 +14,13 @@ export async function middleware(request: NextRequest) {
     '/', // Root route - home page handles its own auth logic
     '/login',
     '/signup',
+    '/auth/callback', // OAuth callback (Google, etc.)
+    '/complete-profile', // Post-OAuth profile setup for new users
+    '/verify-email',
+    '/forgot-password',
+    '/setup-password',
     '/api/health',
     '/api/webhooks', // Webhooks need to be public (authenticated via signatures)
-    '/setup-password', // Password setup page
   ]
 
   const isPublicRoute = publicRoutes.some(

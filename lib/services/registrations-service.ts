@@ -50,6 +50,9 @@ export class RegistrationsService extends BaseService {
       .select(`
         id,
         status,
+        payment_status,
+        amount_paid,
+        created_at,
         athletes(first_name, last_name),
         sub_programs(name, program_id, programs(id, name))
       `)

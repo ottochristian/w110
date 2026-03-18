@@ -1,34 +1,390 @@
 @import "tailwindcss";
 
+/*
+  ============================================================
+  THEME SYSTEM
+  ============================================================
+  All colors are defined here as CSS custom properties.
+  Components should only use semantic tokens (bg-background,
+  text-foreground, bg-card, etc.) or the remapped color scales
+  below — never raw hex values or hardcoded Tailwind shades.
+
+  To add light theme support in the future:
+    1. Install next-themes
+    2. Wrap layout with <ThemeProvider attribute="class">
+    3. Uncomment the .light block in @layer base below
+  ============================================================
+*/
+
+/*
+  Bridge semantic shadcn/ui tokens + override Tailwind's
+  built-in color scales so they follow the active theme.
+
+  This means:
+    bg-white         → dark card surface  (was: #ffffff)
+    bg-gray-50       → dark card surface  (was: #f9fafb)
+    text-gray-900    → near-white text    (was: #111827)
+    border-gray-200  → dark border        (was: #e5e7eb)
+    … and so on for all light shades
+
+  Every page and component that uses these classes will
+  automatically adapt to the theme without any per-file changes.
+*/
+@theme inline {
+  /* --- Shadcn/ui semantic tokens --- */
+  --color-background:           hsl(var(--background));
+  --color-foreground:           hsl(var(--foreground));
+  --color-card:                 hsl(var(--card));
+  --color-card-foreground:      hsl(var(--card-foreground));
+  --color-popover:              hsl(var(--popover));
+  --color-popover-foreground:   hsl(var(--popover-foreground));
+  --color-primary:              hsl(var(--primary));
+  --color-primary-foreground:   hsl(var(--primary-foreground));
+  --color-secondary:            hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:                hsl(var(--muted));
+  --color-muted-foreground:     hsl(var(--muted-foreground));
+  --color-accent:               hsl(var(--accent));
+  --color-accent-foreground:    hsl(var(--accent-foreground));
+  --color-destructive:          hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border:               hsl(var(--border));
+  --color-input:                hsl(var(--input));
+  --color-ring:                 hsl(var(--ring));
+  --radius: 0.5rem;
+
+  /* --- Surface hierarchy tokens (use these instead of hardcoded zinc) --- */
+  --color-surface-base:    hsl(var(--background));   /* page background */
+  --color-surface-raised:  hsl(var(--card));         /* cards, panels   */
+  --color-surface-overlay: hsl(var(--popover));      /* dropdowns, modals */
+
+  /* --- Override Tailwind's built-in white/gray/slate/zinc LIGHT shades --- */
+  /*     so legacy classes like bg-white / bg-gray-50 render dark.         */
+  /*     Invert semantics: light shades → dark surfaces, dark shades → light text */
+
+  /* white */
+  --color-white: hsl(var(--card));
+
+  /* gray scale (remapped to dark-first) */
+  --color-gray-50:  hsl(var(--card));
+  --color-gray-100: hsl(var(--secondary));
+  --color-gray-200: hsl(var(--border));
+  --color-gray-300: hsl(0 0% 28%);
+  --color-gray-400: hsl(0 0% 40%);
+  --color-gray-500: hsl(var(--muted-foreground));
+  --color-gray-600: hsl(0 0% 60%);
+  --color-gray-700: hsl(0 0% 72%);
+  --color-gray-800: hsl(0 0% 84%);
+  --color-gray-900: hsl(var(--foreground));
+  --color-gray-950: hsl(var(--foreground));
+
+  /* slate scale (same inversion) */
+  --color-slate-50:  hsl(var(--card));
+  --color-slate-100: hsl(var(--secondary));
+  --color-slate-200: hsl(var(--border));
+  --color-slate-300: hsl(0 0% 28%);
+  --color-slate-400: hsl(0 0% 40%);
+  --color-slate-500: hsl(var(--muted-foreground));
+  --color-slate-600: hsl(0 0% 60%);
+  --color-slate-700: hsl(0 0% 72%);
+  --color-slate-800: hsl(0 0% 84%);
+  --color-slate-900: hsl(var(--foreground));
+  --color-slate-950: hsl(var(--foreground));
+
+  /* zinc — remap so text-zinc-* is readable on dark bg                     */
+  /* Light shades (50-200) → dark surfaces. Mid shades (300-700) → bright  */
+  /* readable text, inverted so 300=brightest down to 700=dimmer.          */
+  /* zinc-800/900/950 stay untouched (correctly dark for surfaces)          */
+  --color-zinc-50:  hsl(var(--secondary));
+  --color-zinc-100: hsl(var(--secondary));
+  --color-zinc-200: hsl(var(--border));
+  --color-zinc-300: hsl(0 0% 88%);                 /* bright near-white text  */
+  --color-zinc-400: hsl(0 0% 75%);                 /* readable secondary text */
+  --color-zinc-500: hsl(var(--muted-foreground));  /* ~55% — readable muted   */
+  --color-zinc-600: hsl(0 0% 62%);                 /* readable secondary text */
+  --color-zinc-700: hsl(0 0% 73%);                 /* readable medium text    */
+
+  /*
+   * ─── SEMANTIC COLOR SCALES ───────────────────────────────────────────────
+   * Each scale is remapped so the full range works on dark backgrounds:
+   *   50–200   →  very dark tinted surface  (bg-blue-50, bg-red-100, etc.)
+   *   300–500  →  mid tones, mostly fine as-is
+   *   600–700  →  readable mid text on dark bg
+   *   800–950  →  bright/light text on dark bg  (text-blue-800 → bright blue)
+   *
+   * This means legacy light-mode code like:
+   *   `bg-blue-50 text-blue-800`  →  subtle dark-blue surface + bright blue text  ✓
+   *   `bg-red-50 text-red-900`    →  subtle dark-red surface  + bright red text   ✓
+   * without changing a single component file.
+   * ─────────────────────────────────────────────────────────────────────────
+   */
+
+  /* blue */
+  --color-blue-50:  hsl(220 100% 6%);
+  --color-blue-100: hsl(220 80% 10%);
+  --color-blue-200: hsl(220 70% 16%);
+  --color-blue-300: hsl(220 65% 35%);
+  --color-blue-400: hsl(220 80% 56%);
+  --color-blue-500: hsl(220 90% 62%);
+  --color-blue-600: hsl(220 90% 68%);
+  --color-blue-700: hsl(220 90% 74%);
+  --color-blue-800: hsl(220 90% 80%);
+  --color-blue-900: hsl(220 90% 88%);
+  --color-blue-950: hsl(220 90% 93%);
+
+  /* indigo */
+  --color-indigo-50:  hsl(240 100% 6%);
+  --color-indigo-100: hsl(240 80% 10%);
+  --color-indigo-200: hsl(240 65% 18%);
+  --color-indigo-300: hsl(240 60% 38%);
+  --color-indigo-400: hsl(240 75% 58%);
+  --color-indigo-500: hsl(240 80% 65%);
+  --color-indigo-600: hsl(240 80% 70%);
+  --color-indigo-700: hsl(240 80% 76%);
+  --color-indigo-800: hsl(240 80% 82%);
+  --color-indigo-900: hsl(240 80% 89%);
+  --color-indigo-950: hsl(240 80% 94%);
+
+  /* violet / purple */
+  --color-violet-50:  hsl(270 100% 6%);
+  --color-violet-100: hsl(270 80% 10%);
+  --color-violet-200: hsl(270 65% 18%);
+  --color-violet-300: hsl(270 60% 38%);
+  --color-violet-400: hsl(270 75% 58%);
+  --color-violet-500: hsl(270 80% 65%);
+  --color-violet-600: hsl(270 80% 71%);
+  --color-violet-700: hsl(270 80% 76%);
+  --color-violet-800: hsl(270 80% 82%);
+  --color-violet-900: hsl(270 80% 89%);
+  --color-violet-950: hsl(270 80% 94%);
+
+  --color-purple-50:  hsl(270 100% 6%);
+  --color-purple-100: hsl(270 80% 10%);
+  --color-purple-200: hsl(270 65% 18%);
+  --color-purple-300: hsl(270 60% 38%);
+  --color-purple-400: hsl(270 75% 58%);
+  --color-purple-500: hsl(270 80% 65%);
+  --color-purple-600: hsl(270 80% 71%);
+  --color-purple-700: hsl(270 80% 76%);
+  --color-purple-800: hsl(270 80% 82%);
+  --color-purple-900: hsl(270 80% 89%);
+  --color-purple-950: hsl(270 80% 94%);
+
+  /* green / emerald */
+  --color-green-50:  hsl(145 80% 5%);
+  --color-green-100: hsl(145 70% 8%);
+  --color-green-200: hsl(145 60% 14%);
+  --color-green-300: hsl(145 55% 30%);
+  --color-green-400: hsl(145 60% 45%);
+  --color-green-500: hsl(145 65% 52%);
+  --color-green-600: hsl(145 65% 60%);
+  --color-green-700: hsl(145 65% 68%);
+  --color-green-800: hsl(145 65% 76%);
+  --color-green-900: hsl(145 65% 85%);
+  --color-green-950: hsl(145 65% 92%);
+
+  --color-emerald-50:  hsl(152 80% 5%);
+  --color-emerald-100: hsl(152 70% 8%);
+  --color-emerald-200: hsl(152 60% 14%);
+  --color-emerald-300: hsl(152 55% 30%);
+  --color-emerald-400: hsl(152 60% 42%);
+  --color-emerald-500: hsl(152 65% 50%);
+  --color-emerald-600: hsl(152 65% 58%);
+  --color-emerald-700: hsl(152 65% 66%);
+  --color-emerald-800: hsl(152 65% 75%);
+  --color-emerald-900: hsl(152 65% 84%);
+  --color-emerald-950: hsl(152 65% 92%);
+
+  /* red */
+  --color-red-50:  hsl(0 80% 6%);
+  --color-red-100: hsl(0 70% 10%);
+  --color-red-200: hsl(0 65% 17%);
+  --color-red-300: hsl(0 70% 35%);
+  --color-red-400: hsl(0 80% 55%);
+  --color-red-500: hsl(0 84% 60%);
+  --color-red-600: hsl(0 84% 67%);
+  --color-red-700: hsl(0 84% 74%);
+  --color-red-800: hsl(0 84% 81%);
+  --color-red-900: hsl(0 84% 88%);
+  --color-red-950: hsl(0 84% 93%);
+
+  /* yellow / amber */
+  --color-yellow-50:  hsl(45 100% 5%);
+  --color-yellow-100: hsl(45 80% 8%);
+  --color-yellow-200: hsl(45 70% 14%);
+  --color-yellow-300: hsl(45 75% 32%);
+  --color-yellow-400: hsl(45 90% 50%);
+  --color-yellow-500: hsl(45 95% 58%);
+  --color-yellow-600: hsl(45 95% 64%);
+  --color-yellow-700: hsl(45 95% 70%);
+  --color-yellow-800: hsl(45 95% 78%);
+  --color-yellow-900: hsl(45 95% 86%);
+  --color-yellow-950: hsl(45 95% 92%);
+
+  --color-amber-50:  hsl(38 100% 5%);
+  --color-amber-100: hsl(38 80% 9%);
+  --color-amber-200: hsl(38 70% 15%);
+  --color-amber-300: hsl(38 80% 33%);
+  --color-amber-400: hsl(38 90% 50%);
+  --color-amber-500: hsl(38 95% 57%);
+  --color-amber-600: hsl(38 95% 63%);
+  --color-amber-700: hsl(38 95% 70%);
+  --color-amber-800: hsl(38 95% 78%);
+  --color-amber-900: hsl(38 95% 86%);
+  --color-amber-950: hsl(38 95% 92%);
+
+  /* teal / cyan */
+  --color-teal-50:  hsl(175 80% 5%);
+  --color-teal-100: hsl(175 70% 8%);
+  --color-teal-200: hsl(175 65% 14%);
+  --color-teal-300: hsl(175 65% 32%);
+  --color-teal-400: hsl(175 70% 46%);
+  --color-teal-500: hsl(175 72% 54%);
+  --color-teal-600: hsl(175 72% 62%);
+  --color-teal-700: hsl(175 72% 70%);
+  --color-teal-800: hsl(175 72% 78%);
+  --color-teal-900: hsl(175 72% 86%);
+  --color-teal-950: hsl(175 72% 92%);
+}
+
 @layer base {
+  /* ============================================================
+     DARK theme (default — the app is dark-first)
+     ============================================================ */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 214 100% 97%;
-    --accent-foreground: 221.2 83.2% 30%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 91%;
-    --input: 240 5.9% 90%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* Page & surfaces */
+    --background:              0 0% 4%;    /* #0a0a0a — page bg     */
+    --foreground:              0 0% 98%;   /* near-white text        */
+    --card:                    0 0% 9%;    /* #171717 — card/panel   */
+    --card-foreground:         0 0% 98%;
+    --popover:                 0 0% 9%;    /* dropdowns, modals      */
+    --popover-foreground:      0 0% 98%;
+
+    /* Brand */
+    --primary:                 25 91% 48%; /* orange-600             */
+    --primary-foreground:      0 0% 98%;
+
+    /* Surfaces */
+    --secondary:               0 0% 15%;   /* zinc-800 equiv          */
+    --secondary-foreground:    0 0% 98%;
+    --muted:                   0 0% 15%;
+    --muted-foreground:        0 0% 55%;   /* zinc-500 equiv          */
+
+    /* Accent (AI / highlights) */
+    --accent:                  25 91% 20%; /* subtle orange tint      */
+    --accent-foreground:       25 91% 70%;
+
+    /* States */
+    --destructive:             0 72% 50%;
+    --destructive-foreground:  0 0% 98%;
+
+    /* Chrome */
+    --border:                  0 0% 18%;   /* zinc-800 equiv          */
+    --input:                   0 0% 18%;
+    --ring:                    25 91% 48%;
+    --radius:                  0.5rem;
+
+    /* Glow / shadow tokens */
+    --glow-orange:        rgba(234, 88, 12, 0.3);   /* brand orange glow, stronger  */
+    --glow-orange-subtle: rgba(234, 88, 12, 0.25);  /* brand orange glow, subtler   */
+    --shadow-overlay:     rgba(0, 0, 0, 0.4);       /* generic dark overlay shadow  */
   }
+
+  /* ============================================================
+     LIGHT theme (uncomment when ready to enable)
+
+     Steps to activate:
+       1. npm install next-themes
+       2. Wrap app/layout.tsx children with:
+          <ThemeProvider attribute="class" defaultTheme="dark">
+       3. Uncomment the block below
+       4. Remove @theme inline overrides for gray/slate/zinc above
+          (they're only needed because the app has legacy light classes)
+     ============================================================ */
+  /*
+  .light {
+    --background:              0 0% 100%;
+    --foreground:              240 10% 4%;
+    --card:                    0 0% 100%;
+    --card-foreground:         240 10% 4%;
+    --popover:                 0 0% 100%;
+    --popover-foreground:      240 10% 4%;
+    --primary:                 25 91% 48%;
+    --primary-foreground:      0 0% 98%;
+    --secondary:               240 5% 96%;
+    --secondary-foreground:    240 6% 10%;
+    --muted:                   240 5% 96%;
+    --muted-foreground:        240 4% 46%;
+    --accent:                  25 91% 95%;
+    --accent-foreground:       25 91% 30%;
+    --destructive:             0 72% 50%;
+    --destructive-foreground:  0 0% 98%;
+    --border:                  240 6% 90%;
+    --input:                   240 6% 90%;
+    --ring:                    25 91% 48%;
+  }
+  */
+}
+
+/* ============================================================
+   Typography scale — use these classes for consistent headings
+   across all pages. Change size/weight here, updates everywhere.
+   ============================================================ */
+@layer components {
+  /* ── Page titles ───────────────────────────────────────────── */
+  /* Top-level page h1 — matches AdminPageHeader */
+  .page-title {
+    @apply text-xl font-semibold tracking-tight text-foreground;
+  }
+
+  /* ── Section / card headings ───────────────────────────────── */
+  /* Heading inside a card or section panel */
+  .section-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+  /* Larger feature-card title (settings nav cards, program names) */
+  .card-title {
+    @apply text-base font-semibold text-foreground;
+  }
+
+  /* ── Metric / stat values ──────────────────────────────────── */
+  /* Big number in a stat card */
+  .metric-value {
+    @apply text-2xl font-semibold tracking-tight tabular-nums text-foreground;
+  }
+  /* Smaller inline metric (detail rows, breakdowns) */
+  .metric-value-sm {
+    @apply text-lg font-semibold tracking-tight tabular-nums text-foreground;
+  }
+
+  /* ── Body / label text ─────────────────────────────────────── */
+  /* Standard body — use text-sm directly (no class needed, it's already the default) */
+  /* Muted description under a title */
+  .page-description {
+    @apply text-sm text-muted-foreground;
+  }
+}
+
+/* ============================================================
+   Orange ambient gradient — fixed to viewport, brand presence
+   A soft radial bloom from the top-center fades to the dark bg.
+   Opacity is intentionally low so it's felt, not seen.
+   ============================================================ */
+html {
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(ellipse 100% 45% at 50% -5%, rgba(234, 88, 12, 0.12) 0%, transparent 70%);
+  background-attachment: fixed;
+}
+
+body {
+  background-color: transparent;
+  color: hsl(var(--foreground));
 }
 
 /* Custom styles for react-day-picker */
 .rdp-custom {
-  --rdp-accent-color: #3b82f6;
-  --rdp-background-color: #eff6ff;
+  --rdp-accent-color: #ea580c;
+  --rdp-background-color: #431407;
 }
 
 .rdp-custom .rdp-months {
@@ -47,7 +403,7 @@
 .rdp-custom .rdp-caption_label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: hsl(var(--foreground));
 }
 
 .rdp-custom .rdp-nav_button {
@@ -57,11 +413,11 @@
 }
 
 .rdp-custom .rdp-nav_button:hover {
-  background-color: #f3f4f6;
+  background-color: hsl(var(--secondary));
 }
 
 .rdp-custom .rdp-head_cell {
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
   font-size: 0.6875rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -78,7 +434,7 @@
 }
 
 .rdp-custom .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
-  background-color: #f3f4f6;
+  background-color: hsl(var(--secondary));
 }
 
 .rdp-custom .rdp-day_selected {
@@ -100,11 +456,11 @@
 }
 
 .rdp-custom .rdp-day_disabled {
-  color: #d1d5db;
+  color: hsl(var(--muted-foreground));
 }
 
 .rdp-custom .rdp-day_outside {
-  color: #9ca3af;
+  color: hsl(var(--muted-foreground));
 }
 
 .rdp-custom .rdp-day_today:not(.rdp-day_selected) {

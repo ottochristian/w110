@@ -11,7 +11,7 @@ import { requireAdmin } from '@/lib/api-auth'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { adminId: string } }
+  { params }: { params: Promise<{ adminId: string }> }
 ) {
   // Require admin authentication
   const authResult = await requireAdmin(request)
@@ -32,37 +32,34 @@ export async function POST(
   const supabase = createAdminClient()
 
   try {
-    const { adminId } = params
-    const body = await request.json()
-    const { email } = body
+    const { adminId } = await params
 
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+    // Look up the admin's actual email from auth.users using adminId.
+    // Never trust an email from the request body — that would allow resetting arbitrary accounts.
+    const { data: { user: adminUser }, error: lookupError } = await supabase.auth.admin.getUserById(adminId)
+
+    if (lookupError || !adminUser?.email) {
+      return NextResponse.json({ error: 'Admin not found' }, { status: 404 })
     }
 
-    // Generate password reset link
-    const { data, error } = await supabase.auth.admin.generateLink({
+    // Generate password reset link using the verified email
+    const { error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
-      email: email,
+      email: adminUser.email,
     })
 
-    if (error) {
-      throw error
+    if (resetError) {
+      console.error('Error generating reset link:', resetError)
+      return NextResponse.json({ error: 'Failed to send reset email' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      message: `Password reset email sent to ${email}`
+      message: `Password reset email sent to ${adminUser.email}`,
     })
 
   } catch (error: any) {
     console.error('Error resetting password:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to reset password' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to reset password' }, { status: 500 })
   }
 }

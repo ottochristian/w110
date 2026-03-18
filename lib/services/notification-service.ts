@@ -279,7 +279,7 @@ The ${options.clubName} Team
     }
 
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@skioutfitters.com'
-    const fromName = process.env.RESEND_FROM_NAME || 'Ski Admin'
+    const fromName = process.env.RESEND_FROM_NAME || 'W110'
 
     try {
       const { error } = await this.resend.emails.send({
@@ -381,7 +381,7 @@ This code will expire in 10 minutes.
 If you didn't request this code, please ignore this email.
 
 Thanks,
-The Ski Admin Team
+The W110 Team
     `.trim()
   }
 
@@ -437,7 +437,7 @@ This code will expire in 10 minutes.
 If you didn't request this, please ignore this email and your password will remain unchanged.
 
 Thanks,
-The Ski Admin Team
+The W110 Team
     `.trim()
   }
 

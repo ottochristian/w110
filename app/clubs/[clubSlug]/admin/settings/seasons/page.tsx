@@ -513,8 +513,8 @@ export default function SeasonsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="bg-red-950/20 border border-border rounded-md p-4">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
@@ -531,7 +531,7 @@ export default function SeasonsPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Season Name
                 </label>
                 <input
@@ -540,13 +540,13 @@ export default function SeasonsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="2025-2026"
-                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Start Date
                   </label>
                   <input
@@ -554,11 +554,11 @@ export default function SeasonsPage() {
                     required
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-border px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     End Date
                   </label>
                   <input
@@ -566,37 +566,37 @@ export default function SeasonsPage() {
                     required
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-border px-3 py-2 text-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Season Flags
                   </label>
-                  <div className="bg-zinc-50 border border-zinc-200 rounded-md p-4 space-y-3">
+                  <div className="bg-secondary border border-border rounded-md p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <input
                         id="isCurrent"
                         type="checkbox"
                         checked={isCurrent}
                         onChange={(e) => setIsCurrent(e.target.checked)}
-                        className="h-4 w-4 rounded border-zinc-300 mt-0.5"
+                        className="h-4 w-4 rounded border-border mt-0.5"
                       />
                       <div>
-                        <label htmlFor="isCurrent" className="text-sm font-medium text-zinc-900">
+                        <label htmlFor="isCurrent" className="text-sm font-medium">
                           Current Season
                         </label>
-                        <p className="text-xs text-zinc-600 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           The season displayed by default in the UI. Only one per club.
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-zinc-900 mb-1.5">
+                      <label className="block text-sm font-medium mb-1.5">
                         Status
                       </label>
                       <select
@@ -606,7 +606,7 @@ export default function SeasonsPage() {
                             e.target.value as 'draft' | 'active' | 'closed' | 'archived'
                           )
                         }
-                        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                        className="w-full rounded-md border border-border px-3 py-2 text-sm"
                       >
                         <option value="draft">Draft - Setting up, not visible to parents</option>
                         <option value="active">Active - Open for registrations</option>
@@ -658,14 +658,14 @@ export default function SeasonsPage() {
                   className="flex items-center justify-between border rounded-lg p-4"
                 >
                   <div className="flex items-center gap-4">
-                    <Calendar className="h-5 w-5 text-zinc-400" />
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-zinc-900">
+                        <h3 className="font-semibold">
                           {season.name}
                         </h3>
                         {season.is_current && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-950/30 px-2 py-0.5 text-xs font-medium text-green-400">
                             <CheckCircle2 className="h-3 w-3" />
                             Current
                           </span>
@@ -673,12 +673,12 @@ export default function SeasonsPage() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                             season.status === 'active'
-                              ? 'bg-blue-100 text-blue-800'
+                              ? 'bg-blue-900/30 text-blue-400'
                               : season.status === 'closed'
-                              ? 'bg-orange-100 text-orange-800'
+                              ? 'bg-orange-900/30 text-orange-400'
                               : season.status === 'draft'
-                              ? 'bg-zinc-100 text-zinc-800'
-                              : 'bg-purple-100 text-purple-800'
+                              ? 'bg-secondary text-muted-foreground'
+                              : 'bg-purple-900/30 text-purple-400'
                           }`}
                         >
                           {season.status}
@@ -793,9 +793,9 @@ export default function SeasonsPage() {
                   className="flex items-center justify-between border rounded-lg p-4 opacity-60"
                 >
                   <div className="flex items-center gap-4">
-                    <Calendar className="h-5 w-5 text-zinc-400" />
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <h3 className="font-semibold text-zinc-900">
+                      <h3 className="font-semibold">
                         {season.name}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">

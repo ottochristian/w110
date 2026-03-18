@@ -8,6 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Upload, X, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 
+function isStorageError(err: unknown): err is { statusCode?: number; status?: number; message?: string; name?: string } {
+  return typeof err === 'object' && err !== null
+}
+
 interface ImageUploadProps {
   value?: string | null
   onChange: (url: string | null) => void
@@ -105,43 +109,47 @@ export function ImageUpload({
         })
 
       if (uploadError) {
+        // Cast to unknown for type-guard-friendly access
+        const ue: unknown = uploadError
+        const storageErr = isStorageError(ue) ? ue : null
+
         // Better error serialization
         const errorDetails = {
           message: uploadError.message || 'Unknown error',
           name: uploadError.name || 'Unknown',
-          statusCode: (uploadError as any).statusCode,
-          status: (uploadError as any).status,
+          statusCode: storageErr?.statusCode,
+          status: storageErr?.status,
           error: uploadError,
           errorString: String(uploadError),
           errorJSON: JSON.stringify(uploadError, Object.getOwnPropertyNames(uploadError)),
         }
-        
+
         console.error('Upload error details:', errorDetails)
-        
+
         // Check for specific error types
         const errorMessage = uploadError.message || String(uploadError)
         const errorLower = errorMessage.toLowerCase()
-        
+
         // Check if bucket doesn't exist
         if (
           errorLower.includes('bucket not found') ||
           errorLower.includes('does not exist') ||
-          (uploadError as any).statusCode === 404 ||
-          (uploadError as any).status === 404
+          storageErr?.statusCode === 404 ||
+          storageErr?.status === 404
         ) {
           showToast({
             title: 'Storage bucket not found',
             description: `The bucket "${bucket}" doesn't exist. Please create it in Supabase Dashboard → Storage.`,
             variant: 'destructive',
           })
-        } 
+        }
         // Check for permission/RLS errors
         else if (
           errorLower.includes('permission') ||
           errorLower.includes('unauthorized') ||
           errorLower.includes('forbidden') ||
-          (uploadError as any).statusCode === 403 ||
-          (uploadError as any).status === 403
+          storageErr?.statusCode === 403 ||
+          storageErr?.status === 403
         ) {
           showToast({
             title: 'Permission denied',
@@ -153,8 +161,8 @@ export function ImageUpload({
         else if (
           errorLower.includes('too large') ||
           errorLower.includes('file size') ||
-          (uploadError as any).statusCode === 413 ||
-          (uploadError as any).status === 413
+          storageErr?.statusCode === 413 ||
+          storageErr?.status === 413
         ) {
           showToast({
             title: 'File too large',

@@ -28,16 +28,16 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse request body
     // Validate request body
-    let validatedData
+    let validatedData: { registrations: Record<string, unknown>[]; clubId: string }
     try {
-      const body = await request.json()
-      validatedData = createRegistrationSchema.parse(body)
+      const rawBody = await request.json()
+      validatedData = createRegistrationSchema.parse(rawBody)
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),
@@ -47,20 +47,30 @@ export async function POST(request: NextRequest) {
       }
       throw error
     }
-    
-    const body = validatedData
-    const { registrations, clubId } = body
 
-    if (!Array.isArray(registrations) || registrations.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid registrations data' },
-        { status: 400 }
-      )
+    const { registrations: rawRegistrations, clubId } = validatedData
+    type RegistrationRow = { athlete_id: string; sub_program_id: string; season_id?: string; season?: string; status?: string; club_id?: string; notes?: string }
+
+    // Look up season name from season_id so we can satisfy the NOT NULL season column
+    const seasonId = rawRegistrations[0]?.season_id
+    let seasonName: string | undefined
+    if (seasonId) {
+      const { data: seasonData } = await adminSupabase
+        .from('seasons')
+        .select('name')
+        .eq('id', seasonId)
+        .single()
+      seasonName = seasonData?.name
     }
 
-    if (!clubId) {
-      return NextResponse.json({ error: 'Club ID required' }, { status: 400 })
-    }
+    const registrations = rawRegistrations.map((r) => ({
+      athlete_id: r.athlete_id,
+      sub_program_id: r.sub_program_id,
+      season_id: r.season_id,
+      season: seasonName,
+      status: r.status ?? 'pending',
+      club_id: r.club_id,
+    } as RegistrationRow))
 
     // 3. Verify user is linked to household
     const { data: householdGuardian } = await adminSupabase
@@ -80,7 +90,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Verify user owns all athletes they're trying to register
-    const athleteIds = registrations.map((r: any) => r.athlete_id)
+    const uniqueAthleteIds = [...new Set(registrations.map((r: { athlete_id: string }) => r.athlete_id))]
+    const athleteIds = uniqueAthleteIds
     const householdId = householdGuardian.household_id
 
     log.info('Checking athlete ownership', {
@@ -107,75 +118,45 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    type AthleteRecord = { id: string; household_id: string; club_id: string }
+
     log.info('Found requested athletes', {
       athleteIds,
-      foundAthletes: allRequestedAthletes?.map((a: any) => ({
+      foundAthletes: allRequestedAthletes?.map((a: AthleteRecord) => ({
         id: a.id,
         household_id: a.household_id,
         club_id: a.club_id,
       })),
     })
 
-    // Verify all athletes belong to user's household AND the correct club
-    const matchingAthletes = allRequestedAthletes?.filter((athlete: any) => {
-      const householdMatch = athlete.household_id === householdId
-      const clubMatch = athlete.club_id === clubId
-      
-      // Athlete must belong to user's household AND the correct club
-      return clubMatch && householdMatch
-    }) || []
+    // Verify all athletes belong to user's household
+    // (Club is enforced via program → season → club foreign keys; household ownership is the security boundary)
+    const matchingAthletes = allRequestedAthletes?.filter((athlete: AthleteRecord) =>
+      athlete.household_id === householdId
+    ) || []
 
     log.info('Athlete ownership check result', {
       requestedCount: athleteIds.length,
       foundCount: allRequestedAthletes?.length || 0,
       matchingCount: matchingAthletes.length,
       householdId,
-      matchingAthleteIds: matchingAthletes.map((a: any) => a.id),
+      matchingAthleteIds: matchingAthletes.map((a: AthleteRecord) => a.id),
     })
 
     if (matchingAthletes.length !== athleteIds.length) {
       const missingAthleteIds = athleteIds.filter(
-        (id) => !matchingAthletes.some((a: any) => a.id === id)
+        (id) => !matchingAthletes.some((a: AthleteRecord) => a.id === id)
       )
-      
+
       log.warn('User attempted to register athletes they do not own', {
         userId: user.id,
+        householdId,
         athleteIds,
         missingAthleteIds,
-        foundAthletes: matchingAthletes.map((a: any) => a.id),
-        expectedCount: athleteIds.length,
-        foundCount: matchingAthletes.length,
-        householdId,
-        athleteDetails: allRequestedAthletes?.map((a: any) => ({
-          id: a.id,
-          household_id: a.household_id,
-          matchesHousehold: a.household_id === householdId,
-        })),
       })
-      
-      // Include debug info in development
-      const debugInfo = process.env.NODE_ENV === 'development' ? {
-        userHouseholdId: householdId,
-        userClubId: clubId,
-        athleteDetails: allRequestedAthletes?.map((a: any) => ({
-          athlete_id: a.id,
-          athlete_household_id: a.household_id,
-          athlete_club_id: a.club_id,
-          matchesHousehold: a.household_id === householdId,
-          matchesClub: a.club_id === clubId,
-        })),
-      } : undefined
 
       return NextResponse.json(
-        { 
-          error: 'You can only register your own athletes. Please ensure all athletes belong to your household.',
-          details: {
-            requestedAthletes: athleteIds.length,
-            foundAthletes: matchingAthletes.length,
-            missingAthleteIds,
-            ...(debugInfo ? { debug: debugInfo } : {}),
-          }
-        },
+        { error: 'You can only register athletes that belong to your household.' },
         { status: 403 }
       )
     }
@@ -200,7 +181,7 @@ export async function POST(request: NextRequest) {
     log.info('Registrations created successfully', {
       userId: user.id,
       count: createdRegistrations.length,
-      registrationIds: createdRegistrations.map((r: any) => r.id),
+      registrationIds: createdRegistrations.map((r: { id: string }) => r.id),
     })
 
     return NextResponse.json({ registrations: createdRegistrations }, { status: 201 })

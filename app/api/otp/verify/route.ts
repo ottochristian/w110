@@ -3,6 +3,7 @@ import { otpService, OTPType } from '@/lib/services/otp-service'
 import { dbRateLimiter } from '@/lib/services/rate-limiter-db'
 import { createAdminClient } from '@/lib/supabase/server'
 import { otpSchema, ValidationError } from '@/lib/validation'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),
@@ -94,27 +95,27 @@ export async function POST(request: NextRequest) {
     // EMAIL VERIFICATION FLOW - Complete user setup after OTP is verified
     // ========================================================================
     if (type === 'email_verification') {
-      console.log('[OTP VERIFY] ===== Starting Email Verification Setup =====')
-      console.log('[OTP VERIFY] User ID:', userId)
+      log.info('[OTP VERIFY] ===== Starting Email Verification Setup =====')
+      log.info('[OTP VERIFY] User ID', { userId })
       
       try {
         const supabase = createAdminClient()
         
         // STEP 1: Confirm email in Supabase auth system
         // This is critical because we bypass Supabase's native email confirmation
-        console.log('[OTP VERIFY] STEP 1: Confirming email in Supabase auth...')
+        log.info('[OTP VERIFY] STEP 1: Confirming email in Supabase auth...')
         const { data: updateData, error: confirmError } = await supabase.auth.admin.updateUserById(
           userId,
           { email_confirm: true }
         )
-        console.log('[OTP VERIFY] Email confirmation result:', { 
-          success: !!updateData, 
+        log.info('[OTP VERIFY] Email confirmation result', {
+          success: !!updateData,
           error: confirmError?.message,
-          userEmail: updateData?.user?.email 
+          userEmail: updateData?.user?.email
         })
         
         // STEP 2: Fetch signup data
-        console.log('[OTP VERIFY] STEP 2: Fetching signup data...')
+        log.info('[OTP VERIFY] STEP 2: Fetching signup data...')
         const { data: signupData, error: signupDataError } = await supabase
           .from('signup_data')
           .select('*')
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
           .single()
         
         if (!signupData) {
-          console.log('[OTP VERIFY] ❌ No signup data found - user cannot complete setup')
+          log.warn('[OTP VERIFY] No signup data found - user cannot complete setup')
           // Still return success for OTP verification, but user will need manual setup
           return NextResponse.json({
             success: true,
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
 
         // Validate required profile fields
         if (!signupData.first_name || !signupData.last_name) {
-          console.log('[OTP VERIFY] ❌ Missing required profile fields')
+          log.warn('[OTP VERIFY] Missing required profile fields')
           return NextResponse.json({
             success: false,
             message: 'First name and last name are required'
@@ -141,21 +142,21 @@ export async function POST(request: NextRequest) {
         }
         
         // STEP 3: Check/Create Profile
-        console.log('[OTP VERIFY] STEP 3: Checking if profile exists...')
+        log.info('[OTP VERIFY] STEP 3: Checking if profile exists...')
         const { data: existingProfile, error: profileCheckError } = await supabase
           .from('profiles')
           .select('id, role')
           .eq('id', userId)
           .single()
         
-        console.log('[OTP VERIFY] Profile check:', { 
-          exists: !!existingProfile, 
+        log.info('[OTP VERIFY] Profile check', {
+          exists: !!existingProfile,
           role: existingProfile?.role,
-          error: profileCheckError?.message 
+          error: profileCheckError?.message
         })
         
         if (!existingProfile) {
-          console.log('[OTP VERIFY] Creating profile...')
+          log.info('[OTP VERIFY] Creating profile...')
           const { error: profileError } = await supabase.rpc('create_user_profile', {
             p_user_id: userId,
             p_email: signupData.email,
@@ -174,14 +175,14 @@ export async function POST(request: NextRequest) {
             })
           }
           
-          console.log('[OTP VERIFY] ✅ Profile created')
+          log.info('[OTP VERIFY] Profile created')
         } else {
-          console.log('[OTP VERIFY] Profile already exists')
+          log.info('[OTP VERIFY] Profile already exists')
         }
         
         // STEP 4: Check/Create Household (for parent role only)
         // Note: Households don't have parent_id - we use household_guardians join table
-        console.log('[OTP VERIFY] STEP 4: Checking if household exists via household_guardians...')
+        log.info('[OTP VERIFY] STEP 4: Checking if household exists via household_guardians...')
         const { data: existingGuardian, error: guardianCheckError } = await supabase
           .from('household_guardians')
           .select('household_id, households(id)')
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
           .maybeSingle()
         
         if (!existingGuardian) {
-          console.log('[OTP VERIFY] Creating household...')
+          log.info('[OTP VERIFY] Creating household...')
           const { data: household, error: householdError } = await supabase
             .from('households')
             .insert([{
@@ -216,10 +217,10 @@ export async function POST(request: NextRequest) {
             })
           }
           
-          console.log('[OTP VERIFY] ✅ Household created:', household?.id)
+          log.info('[OTP VERIFY] Household created', { householdId: household?.id })
           
           // STEP 5: Link user to household via household_guardians
-          console.log('[OTP VERIFY] STEP 5: Creating household_guardian link...')
+          log.info('[OTP VERIFY] STEP 5: Creating household_guardian link...')
           const { error: guardianLinkError } = await supabase
             .from('household_guardians')
             .insert([{
@@ -229,7 +230,7 @@ export async function POST(request: NextRequest) {
             }])
           
           if (guardianLinkError) {
-            console.log('[OTP VERIFY] ❌ Household guardian link failed:', guardianLinkError.message)
+            log.warn('[OTP VERIFY] Household guardian link failed', { error: guardianLinkError.message })
             // This IS critical - without the link, user won't have access to household
             return NextResponse.json({
               success: true,
@@ -237,20 +238,20 @@ export async function POST(request: NextRequest) {
               warning: 'Household guardian link failed - please contact support'
             })
           } else {
-            console.log('[OTP VERIFY] ✅ Household guardian link created')
+            log.info('[OTP VERIFY] Household guardian link created')
           }
         } else {
-          console.log('[OTP VERIFY] Household already exists via guardian link')
+          log.info('[OTP VERIFY] Household already exists via guardian link')
         }
         
         // STEP 6: Clean up signup data
-        console.log('[OTP VERIFY] STEP 6: Cleaning up signup_data...')
+        log.info('[OTP VERIFY] STEP 6: Cleaning up signup_data...')
         await supabase
           .from('signup_data')
           .delete()
           .eq('user_id', userId)
         
-        console.log('[OTP VERIFY] ===== Setup Complete ===== ✅')
+        log.info('[OTP VERIFY] ===== Setup Complete =====')
         
       } catch (setupError) {
         console.error('[OTP VERIFY] ❌ Critical error during setup:', setupError)

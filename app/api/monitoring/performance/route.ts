@@ -29,7 +29,11 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const performance: any = {}
+  const performance: {
+    slowestEndpoints?: { endpoint: string; avgTime: number; count: number; maxTime: number }[]
+    database?: { avgQueryTime: number; p95QueryTime: number; slowQueries: number; totalQueries: number }
+    api?: { totalCalls: number; avgResponseTime: number; period: string }
+  } = {}
 
   try {
     // 1. Slowest API Endpoints (last hour)
@@ -116,10 +120,10 @@ export async function GET(request: NextRequest) {
     trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
     return response
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Monitoring] Failed to fetch performance data:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch performance data', details: error.message },
+      { error: 'Failed to fetch performance data', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

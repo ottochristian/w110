@@ -217,7 +217,7 @@ export default function GroupsPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="page-title">
               {program.name} – {subProgram.name} – Groups
             </h1>
           </div>

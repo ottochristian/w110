@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
                   }
                 }
               } catch (emailErr) {
-                log.warn('Failed to send confirmation email', { orderId, error: emailErr })
+                log.warn('Failed to send confirmation email', { orderId, error: emailErr instanceof Error ? emailErr.message : String(emailErr) })
               }
             }
           }

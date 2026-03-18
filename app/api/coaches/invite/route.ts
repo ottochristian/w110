@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
     
     const body = validatedData
-    const { email, firstName, lastName, phone } = body
+    const { email, firstName, lastName } = body
 
     if (!email || !firstName || !lastName) {
       return NextResponse.json(

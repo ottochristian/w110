@@ -19,6 +19,17 @@ import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
 
+interface FilterData {
+  seasonId: string
+  programIds?: string[]
+  statuses?: string[]
+  paymentStatuses?: string[]
+  gender?: AnalyticsFilters['gender']
+  dateRange?: string
+  dateFrom?: string
+  dateTo?: string
+}
+
 export interface AnalyticsFilters {
   seasonId: string
   programIds?: string[]
@@ -136,12 +147,12 @@ export function AnalyticsFilterBar({
 
     // Notify parent of filter changes
     if (onFiltersChange) {
-      const filterData: any = {
+      const filterData: FilterData = {
         seasonId: selectedSeason.id,
         programIds: selectedProgram !== 'all' ? [selectedProgram] : undefined,
         statuses: selectedStatus !== 'all' ? [selectedStatus] : undefined,
         paymentStatuses: selectedPayment !== 'all' ? [selectedPayment] : undefined,
-        gender: selectedGender !== 'all' ? (selectedGender as any) : undefined,
+        gender: selectedGender !== 'all' ? (selectedGender as AnalyticsFilters['gender']) : undefined,
       }
 
       if (customDateRange?.from) {
@@ -177,16 +188,16 @@ export function AnalyticsFilterBar({
   }
 
   return (
-    <div className="space-y-4 bg-white border rounded-lg p-4 shadow-sm">
+    <div className="space-y-4 bg-card border rounded-lg p-4 shadow-sm">
       {/* Top Row: Season Display + Export */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Current Season - Read Only Display */}
         {showSeasonDisplay && (
           <div className="flex-1 min-w-[200px]">
-            <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
               Season
             </label>
-            <div className="flex items-center h-10 px-3 border rounded-md bg-gray-50">
+            <div className="flex items-center h-10 px-3 border rounded-md bg-card">
               <span className="text-sm font-medium">
                 {selectedSeason?.name || 'No season selected'}
               </span>
@@ -261,7 +272,7 @@ export function AnalyticsFilterBar({
             {/* Date Range Filter - Conditional */}
             {showDateRange && (
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
                   Date Range
                 </label>
                 <DateRangePicker
@@ -276,7 +287,7 @@ export function AnalyticsFilterBar({
 
             {/* Program Filter */}
             <div>
-              <label htmlFor="program-filter" className="text-xs font-medium text-gray-600 mb-1.5 block">
+              <label htmlFor="program-filter" className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Program
               </label>
               <Select value={selectedProgram} onValueChange={setSelectedProgram}>
@@ -285,7 +296,7 @@ export function AnalyticsFilterBar({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All programs</SelectItem>
-                  {programsData?.programs?.map((program: any) => (
+                  {programsData?.programs?.map((program: { id: string; name: string }) => (
                     <SelectItem key={program.id} value={program.id}>
                       {program.name}
                     </SelectItem>
@@ -296,7 +307,7 @@ export function AnalyticsFilterBar({
 
             {/* Status Filter */}
             <div>
-              <label htmlFor="status-filter" className="text-xs font-medium text-gray-600 mb-1.5 block">
+              <label htmlFor="status-filter" className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Status
               </label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -315,7 +326,7 @@ export function AnalyticsFilterBar({
 
             {/* Payment Status Filter */}
             <div>
-              <label htmlFor="payment-filter" className="text-xs font-medium text-gray-600 mb-1.5 block">
+              <label htmlFor="payment-filter" className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Payment
               </label>
               <Select value={selectedPayment} onValueChange={setSelectedPayment}>
@@ -334,7 +345,7 @@ export function AnalyticsFilterBar({
             {/* Gender Filter - Conditional */}
             {showGender && (
               <div>
-                <label htmlFor="gender-filter" className="text-xs font-medium text-gray-600 mb-1.5 block">
+                <label htmlFor="gender-filter" className="text-xs font-medium text-muted-foreground mb-1.5 block">
                   Gender
                 </label>
                 <Select value={selectedGender} onValueChange={setSelectedGender}>

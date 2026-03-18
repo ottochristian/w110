@@ -28,27 +28,27 @@ import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 
 interface Registration {
   id: string
-  athlete_id: string
-  program_id: string
-  parent_id: string
+  athlete_id?: string
+  program_id?: string
+  parent_id?: string
   status: string
   payment_status: string
   amount_paid: number
   created_at: string
   athlete?: {
-    id: string
+    id?: string
     first_name?: string
     last_name?: string
     date_of_birth?: string
   }
   program?: {
-    id: string
-    name: string
+    id?: string
+    name?: string
   }
   parent?: {
-    id: string
+    id?: string
     email: string
-  }
+  } | null
 }
 
 export default function RegistrationsPage() {
@@ -74,7 +74,7 @@ export default function RegistrationsPage() {
 
   // Load parent emails when registrations change
   // Use a stable key based on registration IDs to avoid infinite loops
-  const registrationsKey = registrationsData.map((r: any) => r.id).join(',')
+  const registrationsKey = registrationsData.map((r: { id: string }) => r.id).join(',')
   
   useEffect(() => {
     async function loadParentEmails() {
@@ -89,7 +89,7 @@ export default function RegistrationsPage() {
 
       // Extract unique household_ids
       const householdIds = new Set<string>()
-      registrationsData.forEach((reg: any) => {
+      registrationsData.forEach((reg: { athletes?: { household_id?: string } }) => {
         if (reg.athletes?.household_id) {
           householdIds.add(reg.athletes.household_id)
         }
@@ -105,9 +105,10 @@ export default function RegistrationsPage() {
           .in('household_id', Array.from(householdIds))
 
         if (householdGuardians) {
-          householdGuardians.forEach((hg: any) => {
-            if (hg.household_id && hg.profiles?.email) {
-              emailMap.set(hg.household_id, hg.profiles.email)
+          householdGuardians.forEach((hg: { household_id?: string; profiles?: { email?: string } | { email?: string }[] }) => {
+            const profile = Array.isArray(hg.profiles) ? hg.profiles[0] : hg.profiles
+            if (hg.household_id && profile?.email) {
+              emailMap.set(hg.household_id, profile.email)
             }
           })
         }
@@ -121,7 +122,19 @@ export default function RegistrationsPage() {
   }, [registrationsKey])
 
   // Transform data to match our interface and add parent emails
-  const registrations: Registration[] = registrationsData.map((reg: any) => {
+  interface RegistrationRow {
+    id: string
+    status: string
+    payment_status: string
+    amount_paid: number
+    created_at: string
+    athletes?: { id?: string; first_name?: string; last_name?: string; date_of_birth?: string; household_id?: string }
+    sub_programs?: { programs?: { id?: string; name?: string }; name?: string }
+    program_id?: string
+    parent_id?: string
+    athlete_id?: string
+  }
+  const registrations: Registration[] = (registrationsData as RegistrationRow[]).map((reg) => {
     const athlete = reg.athletes
     const householdId = athlete?.household_id
     const parentEmail = householdId ? parentEmailMap.get(householdId) || null : null

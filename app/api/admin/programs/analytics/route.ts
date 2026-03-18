@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase/server'
+import { log } from '@/lib/logger'
 
 type ProfileRole = 'parent' | 'coach' | 'admin' | 'system_admin'
 
@@ -93,10 +94,10 @@ export async function GET(req: NextRequest) {
       throw registrationsError
     }
 
-    console.log(`Programs Analytics - Found ${registrations?.length || 0} registrations for club ${clubIdToUse}, season ${seasonId}`)
+    log.info('Programs Analytics - Found registrations', { count: registrations?.length || 0, clubId: clubIdToUse, seasonId })
 
     if (!registrations || registrations.length === 0) {
-      console.log('Programs Analytics - No registrations found, returning empty result')
+      log.info('Programs Analytics - No registrations found, returning empty result')
       return NextResponse.json({
         summary: {
           totalPrograms: 0,
@@ -125,7 +126,7 @@ export async function GET(req: NextRequest) {
       const program = subProgram?.programs
       
       if (program && subProgram) {
-        console.log(`Program found: ${program.name}, status: ${program.status}`)
+        log.debug('Program found', { name: program.name, status: program.status })
         if (program.status === 'active' || program.status === 'full') {
           if (!programMap.has(program.id)) {
             programMap.set(program.id, {
@@ -154,11 +155,11 @@ export async function GET(req: NextRequest) {
           }
         }
       } else {
-        console.log('Registration has no program data:', reg)
+        log.warn('Registration has no program data', { reg })
       }
     })
 
-    console.log(`Programs Analytics - Grouped into ${programMap.size} programs`)
+    log.info('Programs Analytics - Grouped into programs', { count: programMap.size })
 
     // 3. Build program analytics
     const programsArray = Array.from(programMap.values())

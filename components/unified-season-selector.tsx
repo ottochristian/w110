@@ -49,11 +49,11 @@ export function UnifiedSeasonSelector() {
   if (!canChangeSeason) {
     return (
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-slate-500" />
-        <div className="text-sm font-medium text-slate-700">
+        <Calendar className="h-4 w-4 text-zinc-400" />
+        <div className="text-sm font-medium text-zinc-200">
           {displaySeason.name}
           {displaySeason.is_current && (
-            <span className="ml-2 text-xs text-slate-500">(Current)</span>
+            <span className="ml-2 text-xs text-zinc-400">(Current)</span>
           )}
         </div>
       </div>
@@ -63,7 +63,7 @@ export function UnifiedSeasonSelector() {
   // Admin/Coach: Show interactive selector
   return (
     <div className="flex items-center gap-2">
-      <Calendar className="h-4 w-4 text-slate-500" />
+      <Calendar className="h-4 w-4 text-zinc-400" />
       <Select
         value={displaySeason.id}
         onValueChange={setSelectedSeason}

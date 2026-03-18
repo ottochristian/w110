@@ -25,10 +25,7 @@ export function SystemAdminSidebar({ profile }: SystemAdminSidebarProps) {
       {/* Header */}
       <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded bg-blue-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold leading-none">S</span>
-          </div>
-          <span className="text-white text-sm font-semibold tracking-tight">Ski Admin</span>
+          <img src="/w110-logo-dark.svg" alt="W110" className="h-6 w-auto" />
         </div>
         <p className="text-zinc-400 text-xs mt-3 font-medium">System Administration</p>
         <p className="text-zinc-600 text-xs mt-0.5 truncate">{profile.email}</p>
@@ -47,7 +44,7 @@ export function SystemAdminSidebar({ profile }: SystemAdminSidebarProps) {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? 'bg-zinc-800 text-white font-medium'
+                  ? 'bg-zinc-800 text-foreground font-medium'
                   : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100'
               }`}
             >

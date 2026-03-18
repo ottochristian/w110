@@ -11,12 +11,13 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { InlineLoading } from '@/components/ui/loading-states'
-import { Sparkles, Zap, BarChart3, ShieldCheck, BookOpen } from 'lucide-react'
+import { Sparkles, Zap, BarChart3, ShieldCheck, BookOpen, Brain } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface AIStatus {
   ai_enabled: boolean
   ai_auto_briefing: boolean
+  ai_insights_enabled: boolean
   usage_this_month: { requests: number; tokens: number }
 }
 
@@ -29,6 +30,7 @@ export default function AISettingsPage() {
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
   const [togglingBriefing, setTogglingBriefing] = useState(false)
+  const [togglingInsights, setTogglingInsights] = useState(false)
   const [context, setContext] = useState('')
   const [savedContext, setSavedContext] = useState('')
   const [savingContext, setSavingContext] = useState(false)
@@ -62,6 +64,25 @@ export default function AISettingsPage() {
       toast.error('Failed to save context')
     } finally {
       setSavingContext(false)
+    }
+  }
+
+  async function handleToggleInsights(enabled: boolean) {
+    setTogglingInsights(true)
+    try {
+      const res = await fetch('/api/admin/ai/toggle', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ai_insights_enabled: enabled }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setStatus((prev) => prev ? { ...prev, ai_insights_enabled: data.ai_insights_enabled } : prev)
+      toast.success(`Club Intelligence ${data.ai_insights_enabled ? 'enabled' : 'disabled'}`)
+    } catch {
+      toast.error('Failed to update Club Intelligence setting')
+    } finally {
+      setTogglingInsights(false)
     }
   }
 
@@ -117,12 +138,13 @@ export default function AISettingsPage() {
       />
 
       {/* Main toggle card */}
-      <Card>
+      <Card className="border-orange-900/40 shadow-[0_0_40px_-12px_var(--glow-orange-subtle)] relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-100 p-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+              <div className="rounded-lg bg-orange-900/40 p-2">
+                <Sparkles className="h-5 w-5 text-orange-400" />
               </div>
               <div>
                 <CardTitle>AI Features</CardTitle>
@@ -136,8 +158,8 @@ export default function AISettingsPage() {
                 variant="outline"
                 className={
                   status.ai_enabled
-                    ? 'border-green-300 bg-green-50 text-green-700'
-                    : 'border-zinc-300 bg-zinc-50 text-zinc-500'
+                    ? 'border-green-700 bg-green-900/30 text-green-400'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400'
                 }
               >
                 {status.ai_enabled ? 'Active' : 'Inactive'}
@@ -166,8 +188,8 @@ export default function AISettingsPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-100 p-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
+              <div className="rounded-lg bg-orange-900/40 p-2">
+                <Sparkles className="h-5 w-5 text-orange-400" />
               </div>
               <div>
                 <CardTitle>Auto Daily Briefing</CardTitle>
@@ -181,8 +203,8 @@ export default function AISettingsPage() {
                 variant="outline"
                 className={
                   status.ai_auto_briefing
-                    ? 'border-blue-300 bg-blue-50 text-blue-700'
-                    : 'border-zinc-300 bg-zinc-50 text-zinc-500'
+                    ? 'border-orange-700 bg-orange-950/30 text-orange-400'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400'
                 }
               >
                 {status.ai_auto_briefing ? 'On' : 'Off'}
@@ -203,12 +225,54 @@ export default function AISettingsPage() {
         )}
       </Card>
 
+      {/* Club Intelligence */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-orange-900/40 p-2">
+                <Brain className="h-5 w-5 text-orange-400" />
+              </div>
+              <div>
+                <CardTitle>Club Intelligence</CardTitle>
+                <CardDescription className="mt-1">
+                  Weekly AI-generated summary of registrations, revenue, payments, and athlete activity. Accessible on the dashboard with a manual refresh button and conversational follow-up.
+                </CardDescription>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <Badge
+                variant="outline"
+                className={
+                  status.ai_insights_enabled
+                    ? 'border-orange-700 bg-orange-950/30 text-orange-400'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400'
+                }
+              >
+                {status.ai_insights_enabled ? 'On' : 'Off'}
+              </Badge>
+              <Switch
+                checked={status.ai_insights_enabled}
+                onCheckedChange={handleToggleInsights}
+                disabled={togglingInsights || !status.ai_enabled}
+                aria-label="Toggle Club Intelligence"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        {!status.ai_enabled && (
+          <CardContent className="border-t pt-4">
+            <p className="text-sm text-muted-foreground">Enable AI features above to use Club Intelligence.</p>
+          </CardContent>
+        )}
+      </Card>
+
       {/* Training context */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-amber-100 p-2">
-              <BookOpen className="h-5 w-5 text-amber-600" />
+            <div className="rounded-lg bg-amber-900/40 p-2">
+              <BookOpen className="h-5 w-5 text-amber-400" />
             </div>
             <div>
               <CardTitle>Club Training Context</CardTitle>
@@ -247,8 +311,8 @@ export default function AISettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-100 p-2">
-              <BarChart3 className="h-5 w-5 text-blue-600" />
+            <div className="rounded-lg bg-orange-900/40 p-2">
+              <BarChart3 className="h-5 w-5 text-orange-400" />
             </div>
             <div>
               <CardTitle>Usage This Month</CardTitle>
@@ -258,18 +322,18 @@ export default function AISettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-lg border bg-zinc-50 p-4 text-center">
-              <p className="text-2xl font-bold text-zinc-900">{status.usage_this_month.requests}</p>
+            <div className="rounded-lg border border-zinc-800 bg-zinc-800 p-4 text-center">
+              <p className="metric-value text-foreground">{status.usage_this_month.requests}</p>
               <p className="text-xs text-muted-foreground mt-1">Plans generated</p>
             </div>
-            <div className="rounded-lg border bg-zinc-50 p-4 text-center">
-              <p className="text-2xl font-bold text-zinc-900">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-800 p-4 text-center">
+              <p className="metric-value text-foreground">
                 {status.usage_this_month.tokens.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Tokens used</p>
             </div>
-            <div className="rounded-lg border bg-zinc-50 p-4 text-center">
-              <p className="text-2xl font-bold text-zinc-900">${estimatedCostUsd}</p>
+            <div className="rounded-lg border border-zinc-800 bg-zinc-800 p-4 text-center">
+              <p className="metric-value text-foreground">${estimatedCostUsd}</p>
               <p className="text-xs text-muted-foreground mt-1">Est. cost (USD)</p>
             </div>
           </div>
@@ -280,8 +344,8 @@ export default function AISettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-green-100 p-2">
-              <Zap className="h-5 w-5 text-green-600" />
+            <div className="rounded-lg bg-green-900/40 p-2">
+              <Zap className="h-5 w-5 text-green-400" />
             </div>
             <div>
               <CardTitle>What's Included</CardTitle>
@@ -300,11 +364,13 @@ export default function AISettingsPage() {
                 </p>
               </div>
             </li>
-            <li className="flex items-start gap-2 opacity-40">
-              <Zap className="h-4 w-4 text-zinc-400 mt-0.5 shrink-0" />
+            <li className="flex items-start gap-2">
+              <Zap className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
               <div>
-                <span className="font-medium">Revenue Forecasting</span>
-                <p className="text-muted-foreground text-xs mt-0.5">Coming soon — AI pricing and enrollment analysis.</p>
+                <span className="font-medium">Club Intelligence</span>
+                <p className="text-muted-foreground text-xs mt-0.5">
+                  Weekly summaries of registrations, payments, and athlete activity — with a conversational assistant to answer follow-up questions.
+                </p>
               </div>
             </li>
           </ul>
@@ -312,10 +378,10 @@ export default function AISettingsPage() {
       </Card>
 
       {/* Security notice */}
-      <Card className="border-zinc-200 bg-zinc-50">
+      <Card className="border-zinc-800 bg-zinc-900/50">
         <CardContent className="flex items-start gap-3 pt-5">
-          <ShieldCheck className="h-5 w-5 text-zinc-500 shrink-0 mt-0.5" />
-          <p className="text-sm text-zinc-600">
+          <ShieldCheck className="h-5 w-5 text-zinc-400 shrink-0 mt-0.5" />
+          <p className="text-sm text-zinc-400">
             All AI requests are server-side and scoped to your club's data only. No data from other clubs is ever included in prompts. API keys are stored securely and never exposed to the browser.
           </p>
         </CardContent>

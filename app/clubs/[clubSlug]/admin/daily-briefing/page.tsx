@@ -28,25 +28,25 @@ function BriefingDisplay({ text }: { text: string }) {
         if (/^#{1,3} /.test(section)) {
           const level = (section.match(/^(#+)/) || ['', ''])[1].length
           const title = section.replace(/^#+\s*/, '')
-          if (level === 1) return <h2 key={i} className="text-xl font-bold text-zinc-900 mt-6 first:mt-0">{title}</h2>
-          if (level === 2) return <h3 key={i} className="text-base font-semibold text-zinc-800 mt-5 border-b pb-1">{title}</h3>
-          return <h4 key={i} className="text-sm font-semibold text-blue-700 mt-4">{title}</h4>
+          if (level === 1) return <h2 key={i} className="text-xl font-bold text-foreground mt-6 first:mt-0">{title}</h2>
+          if (level === 2) return <h3 key={i} className="text-base font-semibold text-foreground mt-5 border-b border-border pb-1">{title}</h3>
+          return <h4 key={i} className="text-sm font-semibold text-blue-400 mt-4">{title}</h4>
         }
         const lines = section.split('\n').filter((l) => l.trim())
         return (
           <div key={i} className="space-y-1.5">
             {lines.map((line, j) => {
               if (/^\*\*(.+)\*\*$/.test(line.trim()))
-                return <p key={j} className="font-semibold text-zinc-800">{line.replace(/\*\*/g, '')}</p>
+                return <p key={j} className="font-semibold text-foreground">{line.replace(/\*\*/g, '')}</p>
               if (line.trim().startsWith('- ') || line.trim().startsWith('• '))
                 return (
                   <div key={j} className="flex gap-2">
-                    <span className="text-blue-500 mt-1 shrink-0">•</span>
-                    <span className="text-zinc-700">{line.replace(/^[-•]\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1')}</span>
+                    <span className="text-blue-400 mt-1 shrink-0">•</span>
+                    <span className="text-muted-foreground">{line.replace(/^[-•]\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1')}</span>
                   </div>
                 )
-              if (line.trim() === '---') return <hr key={j} className="my-3 border-zinc-200" />
-              return <p key={j} className="text-zinc-700">{line.replace(/\*\*(.+?)\*\*/g, '$1')}</p>
+              if (line.trim() === '---') return <hr key={j} className="my-3 border-border" />
+              return <p key={j} className="text-muted-foreground">{line.replace(/\*\*(.+?)\*\*/g, '$1')}</p>
             })}
           </div>
         )
@@ -155,7 +155,7 @@ export default function DailyBriefingPage() {
           )}
         </Button>
         {briefing && (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+          <Badge variant="outline" className="bg-purple-950/30 text-purple-400 border-purple-800/40">
             {dateLabel}
           </Badge>
         )}
@@ -164,11 +164,11 @@ export default function DailyBriefingPage() {
       {!displayText && !generating && (
         <Card className="border-dashed min-h-[300px]">
           <CardContent className="flex flex-col items-center justify-center min-h-[300px] gap-3 text-center">
-            <div className="rounded-full bg-purple-50 p-4">
+            <div className="rounded-full bg-purple-950/30 p-4">
               <Sparkles className="h-8 w-8 text-purple-400" />
             </div>
             <div>
-              <p className="font-medium text-zinc-700">Select a date and generate a briefing</p>
+              <p className="font-medium text-foreground">Select a date and generate a briefing</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Claude will summarise what each program is focusing on based on the scheduled sessions.
               </p>

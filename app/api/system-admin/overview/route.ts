@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       { data: activeClubsData },
       { data: clubsWithPrograms }
     ] = await Promise.all([
-      supabase.from('clubs').select('*', { count: 'exact', head: true }),
+      supabase.from('clubs').select('id', { count: 'exact', head: true }),
       supabase.from('profiles').select('club_id').eq('role', 'admin').not('club_id', 'is', null),
       supabase.from('programs').select('club_id').eq('status', 'active')
     ])
@@ -64,10 +64,10 @@ export async function GET(request: NextRequest) {
       { count: totalCoaches },
       { count: totalParents }
     ] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'admin'),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'coach'),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'parent')
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'admin'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'coach'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'parent')
     ])
 
     // Query auth.users for sign-in data (last_sign_in_at is tracked there)
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       supabase.rpc('get_athlete_gender_counts')
     ])
 
-    const genderCounts = (genderResult.data || []).reduce((acc: any, row) => {
+    const genderCounts = (genderResult.data || []).reduce((acc: Record<string, number>, row: { gender?: string; count: number }) => {
       acc[row.gender || 'unknown'] = Number(row.count) || 0
       return acc
     }, {})
@@ -120,10 +120,10 @@ export async function GET(request: NextRequest) {
       supabase.rpc('get_program_sport_counts')
     ])
 
-    const sportCounts = (sportResult.data || []).reduce((acc: any, row) => {
+    const sportCounts = (sportResult.data || []).reduce((acc: Record<string, number>, row: { sport?: string; count: number }) => {
       acc[row.sport || 'unknown'] = Number(row.count) || 0
       return acc
-    }, {})
+    }, {} as Record<string, number>)
 
     stats.programs = {
       total: totalPrograms || 0,
@@ -163,12 +163,12 @@ export async function GET(request: NextRequest) {
     }
 
     // 6. Payments Analysis (from RPC)
-    const paymentStatusCounts = (paymentResult.data || []).reduce((acc: any, row) => {
+    const paymentStatusCounts = (paymentResult.data || []).reduce((acc: Record<string, number>, row: { payment_status?: string; count: number }) => {
       acc[row.payment_status || 'unknown'] = Number(row.count) || 0
       return acc
-    }, {})
+    }, {} as Record<string, number>)
 
-    const totalPayments30d = (paymentResult.data || []).reduce((sum, row) => sum + Number(row.count || 0), 0)
+    const totalPayments30d = (paymentResult.data || []).reduce((sum: number, row: { count?: number }) => sum + Number(row.count || 0), 0)
 
     stats.payments = {
       paid: paymentStatusCounts.paid || 0,

@@ -8,22 +8,22 @@ import { Button } from '@/components/ui/button'
  * Storage Test Page - Diagnose Safari blocking issues
  */
 export default function TestStoragePage() {
-  const [results, setResults] = useState<Record<string, any>>({})
+  const [results, setResults] = useState<Record<string, string | boolean>>({})
 
   useEffect(() => {
     runTests()
   }, [])
 
   async function runTests() {
-    const tests: Record<string, any> = {}
+    const tests: Record<string, string | boolean> = {}
 
     // Test 1: localStorage write
     try {
       localStorage.setItem('test', 'value')
       localStorage.removeItem('test')
       tests.localStorage = '✅ Working'
-    } catch (e: any) {
-      tests.localStorage = `❌ Blocked: ${e.message}`
+    } catch (e: unknown) {
+      tests.localStorage = `❌ Blocked: ${e instanceof Error ? e.message : String(e)}`
     }
 
     // Test 2: sessionStorage write
@@ -31,8 +31,8 @@ export default function TestStoragePage() {
       sessionStorage.setItem('test', 'value')
       sessionStorage.removeItem('test')
       tests.sessionStorage = '✅ Working'
-    } catch (e: any) {
-      tests.sessionStorage = `❌ Blocked: ${e.message}`
+    } catch (e: unknown) {
+      tests.sessionStorage = `❌ Blocked: ${e instanceof Error ? e.message : String(e)}`
     }
 
     // Test 3: Cookies
@@ -41,8 +41,8 @@ export default function TestStoragePage() {
       const hasCookie = document.cookie.includes('test=value')
       document.cookie = 'test=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
       tests.cookies = hasCookie ? '✅ Working' : '⚠️ Partial (may be blocked)'
-    } catch (e: any) {
-      tests.cookies = `❌ Blocked: ${e.message}`
+    } catch (e: unknown) {
+      tests.cookies = `❌ Blocked: ${e instanceof Error ? e.message : String(e)}`
     }
 
     // Test 4: Private Browsing Detection
@@ -50,14 +50,14 @@ export default function TestStoragePage() {
       // Try to use quota API
       if ('storage' in navigator && 'estimate' in navigator.storage) {
         const estimate = await navigator.storage.estimate()
-        tests.privateBrowsing = estimate.quota === 0 
-          ? '⚠️ Possibly Private Browsing' 
+        tests.privateBrowsing = estimate.quota === 0
+          ? '⚠️ Possibly Private Browsing'
           : '✅ Normal Mode'
         tests.quota = `${((estimate.quota || 0) / 1024 / 1024 / 1024).toFixed(2)} GB available`
       } else {
         tests.privateBrowsing = '❓ Cannot detect'
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       tests.privateBrowsing = '❓ Cannot detect'
     }
 
@@ -70,8 +70,8 @@ export default function TestStoragePage() {
       })
       indexedDB.deleteDatabase('test-db')
       tests.indexedDB = '✅ Working'
-    } catch (e: any) {
-      tests.indexedDB = `❌ Blocked: ${e.message}`
+    } catch (e: unknown) {
+      tests.indexedDB = `❌ Blocked: ${e instanceof Error ? e.message : String(e)}`
     }
 
     // Test 6: Third-party cookie settings
@@ -105,7 +105,7 @@ export default function TestStoragePage() {
 
           <div className="space-y-2 pt-4 border-t">
             <h3 className="font-bold">Diagnosis:</h3>
-            {results.localStorage?.includes('❌') && (
+            {typeof results.localStorage === 'string' && results.localStorage.includes('❌') && (
               <div className="p-4 bg-red-50 border border-red-200 rounded">
                 <p className="font-bold text-red-900">⚠️ localStorage is BLOCKED</p>
                 <p className="text-sm text-red-800 mt-2">
@@ -117,7 +117,7 @@ export default function TestStoragePage() {
               </div>
             )}
             
-            {results.privateBrowsing?.includes('Private') && (
+            {typeof results.privateBrowsing === 'string' && results.privateBrowsing.includes('Private') && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
                 <p className="font-bold text-yellow-900">⚠️ You may be in Private Browsing mode</p>
                 <p className="text-sm text-yellow-800 mt-2">
@@ -126,7 +126,7 @@ export default function TestStoragePage() {
               </div>
             )}
 
-            {results.isSafari && !results.localStorage?.includes('❌') && (
+            {results.isSafari && !(typeof results.localStorage === 'string' && results.localStorage.includes('❌')) && (
               <div className="p-4 bg-green-50 border border-green-200 rounded">
                 <p className="font-bold text-green-900">✅ Storage is working!</p>
                 <p className="text-sm text-green-800 mt-2">

@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ski Admin",
-  description: "Ski program administration system",
+  title: "W110",
+  description: "W110 ski program administration",
 };
 
 export default function RootLayout({

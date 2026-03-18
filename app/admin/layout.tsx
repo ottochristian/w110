@@ -108,8 +108,8 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen">
       <AdminSidebar profile={profile} />
-      <main className="flex-1 ml-64 flex flex-col bg-zinc-50">
-        <div className="fixed top-0 right-0 left-64 border-b border-zinc-200 bg-white px-8 py-4 z-10">
+      <main className="flex-1 ml-64 flex flex-col bg-background">
+        <div className="fixed top-0 right-0 left-64 border-b border-zinc-200 bg-card px-8 py-4 z-10">
           <div className="flex items-center justify-end gap-4">
             <SeasonSelector />
             <ProfileMenu profile={profile} />

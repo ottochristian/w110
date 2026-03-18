@@ -1,6 +1,8 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+
+const CART_STORAGE_KEY = 'cart_items'
 
 export type CartItem = {
   id: string // temporary ID for cart
@@ -24,21 +26,55 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
+function loadFromStorage(): CartItem[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY)
+    if (!stored) return []
+    return JSON.parse(stored) as CartItem[]
+  } catch {
+    return []
+  }
+}
+
+function saveToStorage(items: CartItem[]) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
+  } catch {
+    // Storage unavailable — fail silently
+  }
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [hydrated, setHydrated] = useState(false)
+
+  // Restore cart from localStorage on mount
+  useEffect(() => {
+    const stored = loadFromStorage()
+    if (stored.length > 0) {
+      setItems(stored)
+    }
+    setHydrated(true)
+  }, [])
+
+  // Persist cart to localStorage whenever it changes (after hydration)
+  useEffect(() => {
+    if (!hydrated) return
+    saveToStorage(items)
+  }, [items, hydrated])
 
   const addItem = (item: CartItem): boolean => {
     // Check for duplicates using current state
-    // Note: This might have race conditions if multiple items added simultaneously,
-    // but the updater function will prevent duplicates as a safety check
     const existing = items.find(
       i => i.athlete_id === item.athlete_id && i.sub_program_id === item.sub_program_id
     )
-    
+
     if (existing) {
       return false // Don't add duplicates
     }
-    
+
     setItems(prev => {
       // Safety check: prevent duplicates if state changed between check and update
       const duplicate = prev.find(
@@ -49,7 +85,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, item]
     })
-    
+
     return true
   }
 
@@ -59,6 +95,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setItems([])
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(CART_STORAGE_KEY)
+      } catch {
+        // Fail silently
+      }
+    }
   }
 
   const total = items.reduce((sum, item) => sum + item.price, 0)

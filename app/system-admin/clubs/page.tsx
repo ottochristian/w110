@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table'
 import { Building2, Plus, Eye, Edit } from 'lucide-react'
 import Link from 'next/link'
+import { colors } from '@/lib/colors'
 
 type Club = {
   id: string
@@ -92,7 +93,7 @@ export default function ClubsPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">Clubs</h1>
+          <h1 className="page-title">Clubs</h1>
           <p className="text-sm text-zinc-400 mt-0.5">Manage all clubs in the system</p>
         </div>
         <Button size="sm" asChild>
@@ -103,9 +104,9 @@ export default function ClubsPage() {
         </Button>
       </div>
 
-      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-50">
-          <h3 className="text-sm font-semibold text-zinc-900">All Clubs</h3>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-800">
+          <h3 className="text-sm font-semibold text-foreground">All Clubs</h3>
           <p className="text-xs text-zinc-400 mt-0.5">{clubs.length} clubs registered</p>
         </div>
         <div className="overflow-x-auto">
@@ -136,7 +137,7 @@ export default function ClubsPage() {
                         <div
                           className="h-3 w-3 rounded-full"
                           style={{
-                            backgroundColor: club.primary_color || '#3B82F6',
+                            backgroundColor: club.primary_color || colors.primary,
                           }}
                         />
                         {club.name}

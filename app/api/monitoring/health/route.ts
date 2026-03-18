@@ -30,7 +30,12 @@ export async function GET(request: NextRequest) {
   }
 
   const startTime = Date.now()
-  const health: any = {
+  const health: {
+    timestamp: string
+    overall: string
+    checks: Record<string, unknown>
+    responseTime?: number
+  } = {
     timestamp: new Date().toISOString(),
     overall: 'healthy',
     checks: {}
@@ -61,10 +66,10 @@ export async function GET(request: NextRequest) {
         rlsActive: true
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     health.checks.database = {
       status: 'down',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
     health.overall = 'down'
   }
@@ -104,10 +109,10 @@ export async function GET(request: NextRequest) {
         health.overall = 'degraded'
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     health.checks.stripe = {
       status: 'error',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
     health.overall = 'degraded'
   }
@@ -154,10 +159,10 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     health.checks.email = {
       status: 'unknown',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
   }
 
@@ -198,10 +203,10 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     health.checks.sms = {
       status: 'unknown',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
   }
 
@@ -243,10 +248,10 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     health.checks.webhooks = {
       status: 'unknown',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
   }
 
@@ -269,10 +274,10 @@ export async function GET(request: NextRequest) {
     if (errorCount >= 50) {
       health.overall = 'degraded'
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     health.checks.errors = {
       status: 'unknown',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
   }
 

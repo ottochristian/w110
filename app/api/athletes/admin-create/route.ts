@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),

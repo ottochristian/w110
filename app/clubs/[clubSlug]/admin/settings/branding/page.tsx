@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { colors } from '@/lib/colors'
 import { useRequireAdmin } from '@/lib/auth-context'
 import { useClub } from '@/lib/club-context'
 import {
@@ -33,7 +34,7 @@ export default function BrandingPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const [primaryColor, setPrimaryColor] = useState('#3B82F6')
+  const [primaryColor, setPrimaryColor] = useState<string>(colors.primary)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   // Load existing club branding data
@@ -42,7 +43,7 @@ export default function BrandingPage() {
     if (club && !clubLoading) {
       // Only update if values actually changed to prevent unnecessary re-renders
       setPrimaryColor((prev) => {
-        const newColor = club.primary_color || '#3B82F6'
+        const newColor = club.primary_color || colors.primary
         return prev !== newColor ? newColor : prev
       })
       setLogoUrl((prev) => {
@@ -78,8 +79,6 @@ export default function BrandingPage() {
         primary_color: primaryColor,
         logo_url: logoUrl?.trim() || null,
       }
-
-      console.log('Updating club branding:', updateData)
 
       // PHASE 2: RLS ensures user can only update their club
       const { data: updatedClub, error: updateError } = await supabase
@@ -137,15 +136,15 @@ export default function BrandingPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Club Branding</h1>
+        <h1 className="page-title">Club Branding</h1>
         <p className="text-muted-foreground">
           Customize your club's visual identity
         </p>
       </div>
 
       {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <AlertDescription className="text-green-800">
+        <Alert className="border-green-900/50 bg-green-950/30">
+          <AlertDescription className="text-green-400">
             Club branding updated successfully!
           </AlertDescription>
         </Alert>
@@ -205,8 +204,8 @@ export default function BrandingPage() {
             </div>
 
             {error && !success && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="bg-red-950/20 border border-border rounded-md p-4">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 

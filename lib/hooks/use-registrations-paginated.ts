@@ -10,7 +10,7 @@ export interface RegistrationsPaginationParams {
 }
 
 export interface PaginatedRegistrations {
-  data: any[]
+  data: Record<string, unknown>[]
   total: number
   page: number
   pageSize: number

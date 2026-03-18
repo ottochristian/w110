@@ -12,8 +12,7 @@ import {
   useAthletesByAge,
 } from '@/lib/hooks/use-athletes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+import { CHART_PALETTE, CHART_COLORS, GRID_PROPS, AXIS_STYLE, TOOLTIP_STYLE } from '@/lib/chart-theme'
 
 export default function AthletesPage() {
   const searchParams = useSearchParams()
@@ -38,7 +37,7 @@ export default function AthletesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Athletes</h1>
+        <h1 className="page-title">Athletes</h1>
         <p className="text-muted-foreground mt-2">
           Athlete enrollment and demographic analytics
         </p>
@@ -60,17 +59,17 @@ export default function AthletesPage() {
             <CardTitle className="text-sm font-medium">
               Total Athletes
             </CardTitle>
-            <Users className="h-4 w-4 text-blue-600" />
+            <Users className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="metric-value text-orange-600">
                   {summary?.totalAthletes || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -91,12 +90,12 @@ export default function AthletesPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-32 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="metric-value text-green-600">
                   {summary?.newAthletes || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -117,12 +116,12 @@ export default function AthletesPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="metric-value text-purple-600">
                   {summary?.returningAthletes || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -143,12 +142,12 @@ export default function AthletesPage() {
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-24 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-amber-600">
+                <div className="metric-value text-amber-600">
                   {summary?.uniqueHouseholds || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -182,11 +181,11 @@ export default function AthletesPage() {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={byProgram.programs}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="programName" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="athleteCount" fill="#3b82f6" name="Athletes" />
+                  <CartesianGrid {...GRID_PROPS} />
+                  <XAxis dataKey="programName" angle={-45} textAnchor="end" height={100} {...AXIS_STYLE} />
+                  <YAxis {...AXIS_STYLE} />
+                  <Tooltip {...TOOLTIP_STYLE} />
+                  <Bar dataKey="athleteCount" fill={CHART_COLORS.primary} name="Athletes" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -223,10 +222,10 @@ export default function AthletesPage() {
                     label
                   >
                     {byGender.distribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip {...TOOLTIP_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -254,11 +253,11 @@ export default function AthletesPage() {
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={byAge.distribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="ageGroup" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8b5cf6" name="Athletes" />
+                <CartesianGrid {...GRID_PROPS} />
+                <XAxis dataKey="ageGroup" {...AXIS_STYLE} />
+                <YAxis {...AXIS_STYLE} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Bar dataKey="count" fill={CHART_COLORS.primary} name="Athletes" />
               </BarChart>
             </ResponsiveContainer>
           )}

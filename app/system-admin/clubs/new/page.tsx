@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import { colors } from '@/lib/colors'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
@@ -26,7 +27,7 @@ export default function NewClubPage() {
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
-  const [primaryColor, setPrimaryColor] = useState('#3B82F6')
+  const [primaryColor, setPrimaryColor] = useState<string>(colors.primary)
   const [address, setAddress] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [timezone, setTimezone] = useState('America/Denver')
@@ -92,7 +93,7 @@ export default function NewClubPage() {
           {
             name: name.trim(),
             slug: slug.trim(),
-            primary_color: primaryColor || '#3B82F6',
+            primary_color: primaryColor || colors.primary,
             address: address.trim() || null,
             contact_email: contactEmail.trim() || null,
             timezone: timezone || 'America/Denver',
@@ -148,7 +149,7 @@ export default function NewClubPage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-zinc-900">Create New Club</h2>
+          <h1 className="page-title">Create New Club</h1>
           <p className="text-muted-foreground">Add a new club to the system</p>
         </div>
       </div>
@@ -161,8 +162,8 @@ export default function NewClubPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md bg-destructive/10 border border-destructive/30 p-4">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 

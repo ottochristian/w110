@@ -148,7 +148,7 @@ export function CreateClubAdminDialog({ clubs, onSuccess }: CreateClubAdminDialo
 
       // Read response as text first (can only read once)
       const responseText = await response.text()
-      let data: any = {}
+      let data: { error?: string; hint?: string; details?: unknown; message?: string; code?: string } = {}
       
       // Try to parse as JSON
       try {

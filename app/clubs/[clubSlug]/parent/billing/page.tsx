@@ -1,453 +1,229 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useSearchParams, useParams } from 'next/navigation'
+import { useState } from 'react'
+import { useParams } from 'next/navigation'
 import { useParentClub } from '@/lib/use-parent-club'
 import { useCurrentSeason } from '@/lib/contexts/season-context'
 import { useOrdersByHousehold } from '@/lib/hooks/use-orders'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { loadStripe } from '@stripe/stripe-js'
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Clock, XCircle, CreditCard } from 'lucide-react'
-import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
+import { InlineLoading } from '@/components/ui/loading-states'
+import { CheckCircle2, Clock, Lock } from 'lucide-react'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 type Order = {
   id: string
   total_amount: number
   status: string
   created_at: string
-  order_items: Array<{
-    description: string
-    amount: number
-  }>
-  payments: Array<{
-    amount: number
-    status: string
-    method: string
-    processed_at: string
-  }>
+  order_items: Array<{ description: string; amount: number }>
+  payments: Array<{ amount: number; status: string }>
+}
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === 'paid') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-950/30 border border-green-800/40 px-2.5 py-1 text-xs font-medium text-green-400">
+        <CheckCircle2 className="h-3 w-3" /> Paid
+      </span>
+    )
+  }
+  if (status === 'partially_paid') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-950/30 border border-yellow-800/40 px-2.5 py-1 text-xs font-medium text-yellow-400">
+        <Clock className="h-3 w-3" /> Partial
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-red-950/30 border border-red-800/40 px-2.5 py-1 text-xs font-medium text-red-400">
+      Unpaid
+    </span>
+  )
 }
 
 export default function BillingPage() {
-  const searchParams = useSearchParams()
-  const [supabase] = useState(() => createClient())
-
   const params = useParams()
   const clubSlug = params.clubSlug as string
-  const { clubId, household, loading: authLoading } = useParentClub()
-  const [payingOrderId, setPayingOrderId] = useState<string | null>(null)
+  const [supabase] = useState(() => createClient())
 
-  // PHASE 2: Use base useSeason hook - RLS handles filtering
+  const { household, loading: authLoading } = useParentClub()
   const currentSeason = useCurrentSeason()
 
-  // PHASE 2: RLS handles club filtering automatically
-  const {
-    data: orders = [],
-    isLoading: ordersLoading,
-    error: ordersError,
-    refetch,
-  } = useOrdersByHousehold(household?.id || null, currentSeason?.id)
+  const { data: orders = [], isLoading: ordersLoading, error: ordersError, refetch } =
+    useOrdersByHousehold(household?.id || null, currentSeason?.id)
 
-  const isLoading = authLoading || ordersLoading
-  const success = searchParams.get('success')
-  const orderId = searchParams.get('order')
-  const [verifying, setVerifying] = useState(false)
-
-  // Verify payment after successful checkout (fallback for webhook issues)
-  // IMPORTANT: Must be before any conditional returns (React Rules of Hooks)
-  // Use ref to prevent duplicate calls in React Strict Mode
-  const verificationStartedRef = useRef(false)
-
-  useEffect(() => {
-    async function verifyPayment() {
-      if (success === 'true' && orderId) {
-        // Prevent duplicate verification in React Strict Mode
-        if (verificationStartedRef.current) {
-          console.log('[Billing] Verification already started, skipping duplicate call')
-          return
-        }
-        
-        verificationStartedRef.current = true
-        setVerifying(true)
-        
-        console.log('[Billing] Verifying payment for order:', orderId)
-        try {
-          // Wait a moment for webhook to process first
-          await new Promise(resolve => setTimeout(resolve, 2000))
-          
-          // Get session token
-          const { data: { session } } = await supabase.auth.getSession()
-          if (!session?.access_token) {
-            console.error('[Billing] No session token available')
-            setVerifying(false)
-            return
-          }
-          
-          console.log('[Billing] Calling verify-payment endpoint')
-          
-          // Call verify endpoint
-          const response = await fetch(`/api/orders/${orderId}/verify-payment`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-            credentials: 'include',
-          })
-          
-          console.log('[Billing] Verify response status:', response.status)
-          
-          if (response.ok) {
-            const result = await response.json()
-            console.log('[Billing] Verify result:', result)
-            
-            if (result.status === 'paid') {
-              // Refresh orders to show updated status
-              console.log('[Billing] Payment verified, refreshing orders')
-              refetch()
-            }
-          } else {
-            const errorText = await response.text()
-            console.error('[Billing] Verify failed:', response.status, errorText)
-          }
-        } catch (error) {
-          console.error('[Billing] Error verifying payment:', error)
-        } finally {
-          setVerifying(false)
-        }
-      }
-    }
-    
-    verifyPayment()
-  }, [success, orderId, refetch])
-
-  // Show message if no household or season (only after auth is loaded)
-  if (!authLoading && (!household || !currentSeason)) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Setup Required</CardTitle>
-            <CardDescription>
-              Please set up your household and select a season to view billing
-              history.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
-  }
+  const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null)
+  const [payingOrderId, setPayingOrderId] = useState<string | null>(null)
+  const [payError, setPayError] = useState<string | null>(null)
 
   async function handlePayNow(order: Order) {
     setPayingOrderId(order.id)
-    
+    setPayError(null)
     try {
-      // Get session token
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !session?.access_token) {
-        alert('Authentication error. Please refresh and try again.')
-        setPayingOrderId(null)
-        return
-      }
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Session expired. Please log in again.')
 
-      // Call checkout API
-      const response = await fetch('/api/checkout', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          orderId: order.id,
-          amount: order.total_amount,
-          clubSlug,
-        }),
+        body: JSON.stringify({ orderId: order.id, amount: order.total_amount, clubSlug }),
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to initiate checkout')
-      }
-
-      const { checkoutUrl } = await response.json()
-      
-      if (checkoutUrl) {
-        // Redirect to Stripe checkout
-        window.location.href = checkoutUrl
-      } else {
-        throw new Error('No checkout URL received')
-      }
-    } catch (error) {
-      console.error('Error initiating checkout:', error)
-      alert(error instanceof Error ? error.message : 'Failed to start payment process')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to start payment')
+      setCheckoutSecret(data.clientSecret)
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : 'Failed to start payment')
       setPayingOrderId(null)
     }
   }
 
-  // Filter and group orders (only after data is loaded)
-  const now = new Date()
-  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-
-  const paidOrders = !ordersLoading ? orders.filter(
-    (order: Order) =>
-      order.status === 'paid' || order.status === 'partially_paid'
-  ) : []
-
-  const recentUnpaidOrders = !ordersLoading ? orders.filter((order: Order) => {
-    if (order.status === 'paid' || order.status === 'partially_paid') {
-      return false
-    }
-
-    const orderDate = new Date(order.created_at)
-    const hasSuccessfulPayment = order.payments.some(
-      (p) => p.status === 'succeeded'
-    )
-
-    return orderDate > oneHourAgo || hasSuccessfulPayment
-  }) : []
-
-  function renderOrder(order: Order) {
-    const totalPaid = order.payments
-      .filter((p) => p.status === 'succeeded')
-      .reduce((sum, p) => sum + Number(p.amount), 0)
-
-    const isPaid = order.status === 'paid'
-    const isPartial = order.status === 'partially_paid'
-
+  // ── Embedded checkout view ─────────────────────────────────────────────────
+  if (checkoutSecret) {
     return (
-      <Card key={order.id}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base">
-                Order #{order.id.slice(0, 8)}
-              </CardTitle>
-              <CardDescription>
-                {new Date(order.created_at).toLocaleDateString()}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              {isPaid && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                  <CheckCircle2 className="h-3 w-3" />
-                  Paid
-                </span>
-              )}
-              {isPartial && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
-                  <Clock className="h-3 w-3" />
-                  Partial
-                </span>
-              )}
-              {!isPaid && !isPartial && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
-                  <XCircle className="h-3 w-3" />
-                  Unpaid
-                </span>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {order.order_items.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2">Items</h4>
-                <div className="space-y-2">
-                  {order.order_items.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between text-sm border-b pb-2"
-                    >
-                      <span>{item.description}</span>
-                      <span>${Number(item.amount).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="border-t pt-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Total Amount</span>
-                <span className="font-semibold">
-                  ${Number(order.total_amount).toFixed(2)}
-                </span>
-              </div>
-              {order.payments.length > 0 && (
-                <div className="flex justify-between text-sm mb-3">
-                  <span>Amount Paid</span>
-                  <span className="font-semibold">
-                    ${totalPaid.toFixed(2)}
-                  </span>
-                </div>
-              )}
-              
-              {/* Show Pay Now button for unpaid orders */}
-              {!isPaid && !isPartial && (
-                <Button 
-                  className="w-full mt-3"
-                  onClick={() => handlePayNow(order)}
-                  disabled={payingOrderId === order.id}
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  {payingOrderId === order.id ? 'Redirecting...' : 'Pay Now'}
-                </Button>
-              )}
-              
-              {/* Show Pay Remaining for partial payments */}
-              {isPartial && totalPaid < Number(order.total_amount) && (
-                <Button 
-                  className="w-full mt-3"
-                  onClick={() => handlePayNow(order)}
-                  disabled={payingOrderId === order.id}
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  {payingOrderId === order.id ? 'Redirecting...' : `Pay Remaining $${(Number(order.total_amount) - totalPaid).toFixed(2)}`}
-                </Button>
-              )}
-            </div>
-
-            {order.payments.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2">Payments</h4>
-                <div className="space-y-2">
-                  {order.payments.map((payment, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between text-xs border rounded p-2"
-                    >
-                      <div>
-                        <span className="capitalize">{payment.method}</span>
-                        {payment.processed_at && (
-                          <span className="text-muted-foreground ml-2">
-                            {new Date(payment.processed_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>${Number(payment.amount).toFixed(2)}</span>
-                        {payment.status === 'succeeded' && (
-                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
-                            Paid
-                          </span>
-                        )}
-                        {payment.status === 'pending' && (
-                          <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-800">
-                            Pending
-                          </span>
-                        )}
-                        {payment.status === 'failed' && (
-                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-800">
-                            Failed
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-4">
+        <div>
+          <button
+            type="button"
+            onClick={() => { setCheckoutSecret(null); setPayingOrderId(null); refetch() }}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← Back to Billing
+          </button>
+        </div>
+        <h1 className="page-title">Complete Payment</h1>
+        <p className="text-sm text-muted-foreground">Secure checkout powered by Stripe</p>
+        <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: checkoutSecret }}>
+          <EmbeddedCheckout />
+        </EmbeddedCheckoutProvider>
+      </div>
     )
   }
 
+  // ── Loading / error states ─────────────────────────────────────────────────
+  if (authLoading || ordersLoading) return <InlineLoading />
+
+  if (ordersError) {
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="page-title">Billing</h1>
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p className="text-sm text-red-400 mb-4">{ordersError.message}</p>
+            <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // ── Main render ────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
-        <p className="text-muted-foreground">View your order and payment history</p>
+        <h1 className="page-title">Billing</h1>
+        <p className="text-muted-foreground">Your orders for {currentSeason?.name}</p>
       </div>
 
-      {success === 'true' && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <p className="text-sm font-medium text-green-900">
-              Payment successful! Your registrations have been confirmed.
-            </p>
-          </div>
+      {payError && (
+        <div className="rounded-lg border border-red-800/40 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+          {payError}
         </div>
       )}
 
-      {ordersLoading ? (
-        <div className="space-y-4">
+      {(() => {
+        const visibleOrders = (orders as Order[]).filter(
+          (o) => o.status === 'paid' || o.status === 'partially_paid'
+        )
+        if (visibleOrders.length === 0) return (
           <Card>
-            <CardContent className="py-8">
-              <div className="flex items-center justify-center">
-                <div className="animate-pulse text-muted-foreground">
-                  Loading orders...
-                </div>
-              </div>
+            <CardContent className="py-16 text-center">
+              <p className="text-muted-foreground">No payments yet this season.</p>
             </CardContent>
           </Card>
-        </div>
-      ) : ordersError ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <p className="text-red-600 mb-4">
-                {ordersError.message || 'Failed to load orders'}
-              </p>
-              <Button onClick={() => refetch()} variant="outline">
-                Retry
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : orders.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <p className="text-muted-foreground">
-                No orders found for this season.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {paidOrders.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Paid Orders</h2>
-              <div className="space-y-4">
-                {paidOrders.map((order: Order) => renderOrder(order))}
-              </div>
-            </div>
-          )}
+        )
+        return (
+        <div className="flex flex-col gap-4">
+          {visibleOrders.map((order) => {
+            const totalPaid = order.payments
+              .filter((p) => p.status === 'succeeded')
+              .reduce((sum, p) => sum + Number(p.amount), 0)
+            const isPaid = order.status === 'paid'
+            const isPartial = order.status === 'partially_paid'
+            const remaining = Number(order.total_amount) - totalPaid
 
-          {recentUnpaidOrders.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-              <div className="space-y-4">
-                {recentUnpaidOrders.map((order: Order) => renderOrder(order))}
-              </div>
-            </div>
-          )}
+            return (
+              <Card key={order.id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-base">
+                        {new Date(order.created_at).toLocaleDateString('en-US', {
+                          month: 'long', day: 'numeric', year: 'numeric',
+                        })}
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Order #{order.id.slice(0, 8).toUpperCase()}
+                      </p>
+                    </div>
+                    <StatusBadge status={order.status} />
+                  </div>
+                </CardHeader>
 
-          {paidOrders.length === 0 && recentUnpaidOrders.length === 0 && (
-            <Card>
-              <CardContent className="py-12">
-                <div className="text-center">
-                  <p className="text-muted-foreground">
-                    No active orders. Old unpaid orders are hidden to reduce
-                    clutter.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                <CardContent className="space-y-4">
+                  {/* Line items */}
+                  <div className="space-y-1.5">
+                    {order.order_items.map((item, i) => (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{item.description}</span>
+                        <span className="font-medium">${Number(item.amount).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Total */}
+                  <div className="flex justify-between border-t pt-3 font-semibold">
+                    <span>Total</span>
+                    <span>${Number(order.total_amount).toFixed(2)}</span>
+                  </div>
+
+                  {/* Amount paid (if partial) */}
+                  {isPartial && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Paid so far</span>
+                      <span>${totalPaid.toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  {/* Pay button */}
+                  {!isPaid && (
+                    <Button
+                      className="w-full gap-2 bg-green-600 hover:bg-green-700 text-foreground"
+                      onClick={() => handlePayNow(order)}
+                      disabled={payingOrderId === order.id}
+                    >
+                      <Lock className="h-4 w-4" />
+                      {payingOrderId === order.id
+                        ? 'Loading…'
+                        : isPartial
+                        ? `Pay Remaining $${remaining.toFixed(2)}`
+                        : `Pay $${Number(order.total_amount).toFixed(2)}`}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

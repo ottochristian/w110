@@ -191,7 +191,7 @@ export default function GroupsPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="page-title">
               {program.name} – {subProgram.name} – Groups
             </h1>
           </div>
@@ -202,8 +202,8 @@ export default function GroupsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="bg-red-950/20 border border-border rounded-md p-4">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
@@ -224,9 +224,9 @@ export default function GroupsPage() {
               {groups.map(group => (
                 <div key={group.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-zinc-900">{group.name}</h3>
+                    <h3 className="font-medium">{group.name}</h3>
                     {group.status === ProgramStatus.INACTIVE && (
-                      <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 ring-1 ring-inset ring-zinc-500/10">
+                      <span className="inline-flex items-center rounded-full bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-inset ring-border">
                         Inactive
                       </span>
                     )}

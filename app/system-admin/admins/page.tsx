@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { UserCheck, Key } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +46,7 @@ type Club = {
 
 export default function AdminsPage() {
   const { profile, loading: authLoading } = useSystemAdmin()
+  const [supabase] = useState(() => createClient())
 
   const [loading, setLoading] = useState(true)
   const [admins, setAdmins] = useState<ClubAdmin[]>([])
@@ -196,15 +198,15 @@ export default function AdminsPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">Club Admins</h1>
+          <h1 className="page-title">Club Admins</h1>
           <p className="text-sm text-zinc-400 mt-0.5">Manage club administrators across all clubs</p>
         </div>
         <CreateClubAdminDialog clubs={clubs} onSuccess={loadAdmins} />
       </div>
 
-      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-50">
-          <h3 className="text-sm font-semibold text-zinc-900">All Club Administrators</h3>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-800">
+          <h3 className="text-sm font-semibold text-foreground">All Club Administrators</h3>
           <p className="text-xs text-zinc-400 mt-0.5">{admins.length} administrators</p>
         </div>
         <div className="overflow-x-auto">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getUserByEmailSchema } from '@/lib/validation'
+import { dbRateLimiter } from '@/lib/services/rate-limiter-db'
 import { z } from 'zod'
 
 function getSupabaseAdmin() {
@@ -18,6 +19,16 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 20 attempts per minute per IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimitResult = await dbRateLimiter.checkGetUserByEmailByIP(ip)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests, please try again later' },
+        { status: 429 }
+      )
+    }
+
     // Validate request body
     let validatedData
     try {
@@ -28,7 +39,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),

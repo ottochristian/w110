@@ -1,18 +1,23 @@
 // lib/types.ts
 import { ProgramStatus } from "./programStatus"
 
-export interface Program {
-  id: string
-  name: string
-  // add whatever fields you really have
-  status: ProgramStatus
-}
-
 export interface SubProgram {
   id: string
   program_id: string
   name: string
+  description?: string | null
   status: ProgramStatus
+}
+
+export interface Program {
+  id: string
+  name: string
+  description?: string | null
+  season_id?: string | null
+  club_id?: string | null
+  // add whatever fields you really have
+  status: ProgramStatus
+  sub_programs?: SubProgram[]
 }
 
 export interface Group {
@@ -28,6 +33,7 @@ export interface Profile {
   first_name?: string | null
   last_name?: string | null
   avatar_url?: string | null
+  bio?: string | null
   role: string
   club_id?: string | null
 }

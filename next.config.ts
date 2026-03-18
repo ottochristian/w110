@@ -53,6 +53,25 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
           },
+          {
+            // Content-Security-Policy: restricts what resources the browser can load.
+            // 'unsafe-inline' is required for Next.js inline scripts/styles.
+            // Refine further (e.g. add nonces) post-launch if needed.
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://o*.ingest.sentry.io",
+              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+              "frame-ancestors 'self'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
+          },
         ],
       },
     ]
@@ -77,8 +96,10 @@ export default withSentryConfig(nextConfig, {
   // Suppress non-CI output
   silent: !process.env.CI,
 
-  // Hide source maps from generated client bundles (security)
-  hideSourceMaps: true,
+  // Delete source maps after upload so they aren't shipped to clients (security)
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 
   // Disable telemetry
   telemetry: false,

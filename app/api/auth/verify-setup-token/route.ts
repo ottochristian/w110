@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { tokenService } from '@/lib/services/token-service'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifySetupTokenSchema } from '@/lib/validation'
+import { dbRateLimiter } from '@/lib/services/rate-limiter-db'
 import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 10 attempts per 15 minutes per IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimitResult = await dbRateLimiter.checkVerifySetupTokenByIP(ip)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests, please try again later' },
+        { status: 429 }
+      )
+    }
+
     // Validate request body
     let validatedData
     try {
@@ -17,7 +28,7 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),

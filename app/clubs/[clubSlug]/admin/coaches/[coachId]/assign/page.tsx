@@ -319,7 +319,7 @@ export default function AssignCoachPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Coaches
         </Button>
-        <h1 className="text-3xl font-bold">
+        <h1 className="page-title">
           Assign {coach.first_name} {coach.last_name}
         </h1>
         <p className="text-muted-foreground">
@@ -329,8 +329,8 @@ export default function AssignCoachPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="bg-red-950/20 border border-red-800/40 rounded-md p-4">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 

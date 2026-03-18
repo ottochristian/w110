@@ -33,18 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-// Vibrant color palette for programs
-const PROGRAM_COLORS = [
-  '#3B82F6', // blue
-  '#10B981', // green
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#8B5CF6', // purple
-  '#EC4899', // pink
-  '#14B8A6', // teal
-  '#F97316', // orange
-]
+import { CHART_PALETTE, CHART_COLORS, GRID_PROPS, AXIS_STYLE, TOOLTIP_STYLE, LEGEND_STYLE, GRADIENT_IDS } from '@/lib/chart-theme'
+import { colors } from '@/lib/colors'
 
 export default function AnalyticsOverviewPage() {
   const { profile, loading: authLoading } = useRequireAdmin()
@@ -105,17 +95,17 @@ export default function AnalyticsOverviewPage() {
       {
         name: 'Confirmed',
         value: summary.status.confirmed,
-        color: '#10B981', // green
+        color: colors.chart[2], // emerald
       },
       {
         name: 'Pending',
         value: summary.status.pending,
-        color: '#F59E0B', // amber
+        color: colors.chart[4], // amber
       },
       {
         name: 'Waitlisted',
         value: summary.status.waitlisted,
-        color: '#EF4444', // red
+        color: colors.chart[7], // red
       },
     ].filter((item) => item.value > 0)
   }, [summary])
@@ -147,12 +137,6 @@ export default function AnalyticsOverviewPage() {
         }),
       }))
   }, [revenueTimeseriesData, dateRange])
-
-  // Export function
-  const handleExport = () => {
-    // TODO: Implement CSV export
-    console.log('Exporting overview data...')
-  }
 
   if (authLoading || !profile) {
     return <InlineLoading message="Loading dashboard..." />
@@ -208,38 +192,34 @@ export default function AnalyticsOverviewPage() {
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={revenueChartData}>
                 <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                  <linearGradient id={GRADIENT_IDS.emerald} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.chart[2]} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={colors.chart[2]} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="displayDate" 
-                  tick={{ fontSize: 12 }}
+                <CartesianGrid {...GRID_PROPS} />
+                <XAxis
+                  dataKey="displayDate"
+                  {...AXIS_STYLE}
                   angle={-45}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis 
+                <YAxis
                   tickFormatter={(value) => `$${(value / 1000).toFixed(1)}k`}
-                  tick={{ fontSize: 12 }}
+                  {...AXIS_STYLE}
                 />
                 <Tooltip
+                  {...TOOLTIP_STYLE}
                   formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
                   labelFormatter={(label) => label}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                  }}
                 />
                 <Area
                   type="monotone"
                   dataKey="paidAmount"
-                  stroke="#10B981"
+                  stroke={CHART_COLORS.success}
                   strokeWidth={2}
-                  fill="url(#colorRevenue)"
+                  fill={`url(#${GRADIENT_IDS.emerald})`}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -269,27 +249,23 @@ export default function AnalyticsOverviewPage() {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={programChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis type="number" />
+                  <CartesianGrid {...GRID_PROPS} />
+                  <XAxis type="number" {...AXIS_STYLE} />
                   <YAxis
                     type="category"
                     dataKey="programName"
                     width={120}
-                    tick={{ fontSize: 12 }}
+                    {...AXIS_STYLE}
                   />
                   <Tooltip
+                    {...TOOLTIP_STYLE}
                     formatter={(value: number) => [`${value} athletes`, 'Registrations']}
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                    }}
                   />
                   <Bar dataKey="registrations" radius={[0, 4, 4, 0]}>
                     {programChartData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={PROGRAM_COLORS[index % PROGRAM_COLORS.length]}
+                        fill={CHART_PALETTE[index % CHART_PALETTE.length]}
                       />
                     ))}
                   </Bar>
@@ -328,7 +304,7 @@ export default function AnalyticsOverviewPage() {
                       `${name}: ${((percent || 0) * 100).toFixed(0)}%`
                     }
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill={CHART_COLORS.primary}
                     dataKey="value"
                   >
                     {statusChartData.map((entry, index) => (
@@ -336,14 +312,10 @@ export default function AnalyticsOverviewPage() {
                     ))}
                   </Pie>
                   <Tooltip
+                    {...TOOLTIP_STYLE}
                     formatter={(value: number) => [`${value} athletes`, 'Count']}
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                    }}
                   />
-                  <Legend />
+                  <Legend {...LEGEND_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -370,35 +342,32 @@ export default function AnalyticsOverviewPage() {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={programChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid {...GRID_PROPS} />
                   <XAxis
                     type="number"
                     tickFormatter={(value) =>
                       `$${(value / 1000).toFixed(0)}k`
                     }
+                    {...AXIS_STYLE}
                   />
                   <YAxis
                     type="category"
                     dataKey="programName"
                     width={120}
-                    tick={{ fontSize: 12 }}
+                    {...AXIS_STYLE}
                   />
                   <Tooltip
+                    {...TOOLTIP_STYLE}
                     formatter={(value: number) => [
                       `$${value.toLocaleString()}`,
                       'Revenue',
                     ]}
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                    }}
                   />
                   <Bar dataKey="paidAmount" radius={[0, 4, 4, 0]}>
                     {programChartData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={PROGRAM_COLORS[index % PROGRAM_COLORS.length]}
+                        fill={CHART_PALETTE[index % CHART_PALETTE.length]}
                       />
                     ))}
                   </Bar>
@@ -429,13 +398,13 @@ export default function AnalyticsOverviewPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b">
                   <span className="text-sm font-medium">Total Programs</span>
-                  <span className="text-2xl font-bold">
+                  <span className="metric-value">
                     {programData.bySport.length}
                   </span>
                 </div>
                 <div className="flex items-center justify-between pb-3 border-b">
                   <span className="text-sm font-medium">Avg per Program</span>
-                  <span className="text-2xl font-bold">
+                  <span className="metric-value">
                     {Math.round(
                       programData.bySport.reduce(
                         (sum, p) => sum + p.registrations,
@@ -454,7 +423,7 @@ export default function AnalyticsOverviewPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Total Revenue</span>
-                  <span className="text-2xl font-bold text-green-600">
+                  <span className="metric-value text-green-600">
                     $
                     {programData.bySport
                       .reduce((sum, p) => sum + p.paidAmount, 0)
@@ -493,13 +462,13 @@ export default function AnalyticsOverviewPage() {
               )}
 
               {summary.status.waitlisted > 0 && (
-                <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="text-blue-600 font-semibold">ℹ️</div>
+                <div className="flex items-start gap-3 p-3 bg-blue-950/30 border border-blue-800/40 rounded-lg">
+                  <div className="text-blue-400 font-semibold">ℹ️</div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-900">
+                    <p className="text-sm font-medium text-blue-300">
                       {summary.status.waitlisted} athlete{summary.status.waitlisted > 1 ? 's' : ''} on waitlist
                     </p>
-                    <p className="text-xs text-blue-700 mt-0.5">
+                    <p className="text-xs text-blue-400/70 mt-0.5">
                       Consider expanding capacity or notifying when spots open
                     </p>
                   </div>
@@ -507,13 +476,13 @@ export default function AnalyticsOverviewPage() {
               )}
 
               {summary.payments.unpaidAmount > 1000 && (
-                <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="text-red-600 font-semibold">💰</div>
+                <div className="flex items-start gap-3 p-3 bg-red-950/30 border border-red-800/40 rounded-lg">
+                  <div className="text-red-400 font-semibold">💰</div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-red-900">
+                    <p className="text-sm font-medium text-red-300">
                       ${summary.payments.unpaidAmount.toLocaleString()} outstanding
                     </p>
-                    <p className="text-xs text-red-700 mt-0.5">
+                    <p className="text-xs text-red-400/70 mt-0.5">
                       {summary.payments.unpaidCount} household{summary.payments.unpaidCount > 1 ? 's' : ''} need{summary.payments.unpaidCount === 1 ? 's' : ''} payment follow-up
                     </p>
                   </div>
@@ -523,13 +492,13 @@ export default function AnalyticsOverviewPage() {
               {summary.status.pending === 0 &&
                 summary.status.waitlisted === 0 &&
                 summary.payments.unpaidAmount < 1000 && (
-                  <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="text-green-600 font-semibold">✓</div>
+                  <div className="flex items-start gap-3 p-3 bg-green-950/30 border border-green-800/40 rounded-lg">
+                    <div className="text-green-400 font-semibold">✓</div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-green-900">
+                      <p className="text-sm font-medium text-green-300">
                         All systems running smoothly
                       </p>
-                      <p className="text-xs text-green-700 mt-0.5">
+                      <p className="text-xs text-green-400/70 mt-0.5">
                         No urgent actions required at this time
                       </p>
                     </div>

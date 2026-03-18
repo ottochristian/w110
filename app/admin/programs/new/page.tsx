@@ -96,7 +96,7 @@ export default function NewProgramPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">New Program</h1>
+          <h1 className="page-title">New Program</h1>
           <p className="text-muted-foreground">
             Create a new program for your club (e.g., Alpine, Freeride, Nordic).
           </p>

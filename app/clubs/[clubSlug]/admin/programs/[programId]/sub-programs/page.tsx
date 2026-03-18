@@ -147,7 +147,7 @@ export default function SubProgramsPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Programs
           </Button>
-          <h1 className="text-2xl font-bold">{program.name} - Sub-Programs</h1>
+          <h1 className="page-title">{program.name} - Sub-Programs</h1>
           <p className="text-muted-foreground">
             Manage sub-programs for this program
           </p>
@@ -170,13 +170,13 @@ export default function SubProgramsPage() {
               {allSubPrograms.map((subProgram) => (
                 <div
                   key={subProgram.id}
-                  className="flex items-start justify-between border-b pb-4 last:border-0"
+                  className="flex items-start justify-between border-b border-border pb-4 last:border-0"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{subProgram.name}</h3>
                       {subProgram.status === ProgramStatus.INACTIVE && (
-                        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 ring-1 ring-inset ring-zinc-500/10">
+                        <span className="inline-flex items-center rounded-full bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-inset ring-border">
                           Inactive
                         </span>
                       )}

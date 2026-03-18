@@ -27,16 +27,32 @@ export default function ReportsPage() {
   const { data: allRegistrations = [], isLoading: registrationsLoading } =
     useRegistrations(selectedSeason?.id)
 
+  interface ProgramRow {
+    id: string
+    name: string
+    status: string | null
+    max_participants?: number
+    price?: number
+  }
+
+  interface RegistrationRow {
+    sub_programs?: { programs?: { id?: string } }
+    program_id?: string
+    sub_program_id?: string
+    payment_status?: string
+    amount_paid?: number
+  }
+
   // Filter to active programs only
-  const programs = allPrograms.filter(
-    (p: any) => p.status === ProgramStatus.ACTIVE || p.status === null
+  const programs = (allPrograms as ProgramRow[]).filter(
+    (p) => p.status === ProgramStatus.ACTIVE || p.status === null
   )
 
   // Combine programs with their registrations
   const programsWithRegistrations = useMemo(() => {
-    return programs.map((program: any) => {
-      const programRegistrations = allRegistrations.filter(
-        (reg: any) =>
+    return programs.map((program) => {
+      const programRegistrations = (allRegistrations as RegistrationRow[]).filter(
+        (reg) =>
           reg.sub_programs?.programs?.id === program.id ||
           (reg.program_id === program.id && !reg.sub_program_id)
       )
@@ -53,10 +69,10 @@ export default function ReportsPage() {
     let revenue = 0
     let registrations = 0
 
-    programsWithRegistrations.forEach((program: any) => {
+    programsWithRegistrations.forEach((program) => {
       if (program.registrations) {
         registrations += program.registrations.length
-        revenue += program.registrations.reduce((sum: number, reg: any) => {
+        revenue += program.registrations.reduce((sum: number, reg: RegistrationRow) => {
           return sum + Number(reg.amount_paid || 0)
         }, 0)
       }
@@ -156,17 +172,17 @@ export default function ReportsPage() {
         <CardContent>
           <div className="space-y-6">
             {programsWithRegistrations.length > 0 ? (
-              programsWithRegistrations.map((program: any) => {
+              programsWithRegistrations.map((program) => {
                 const totalEnrolled = program.registrations?.length || 0
                 const totalRevenue =
                   program.registrations?.reduce(
-                    (sum: number, reg: any) =>
+                    (sum: number, reg: RegistrationRow) =>
                       sum + Number(reg.amount_paid || 0),
                     0
                   ) || 0
                 const paidCount =
                   program.registrations?.filter(
-                    (reg: any) => reg.payment_status === 'paid'
+                    (reg: RegistrationRow) => reg.payment_status === 'paid'
                   ).length || 0
 
                 return (

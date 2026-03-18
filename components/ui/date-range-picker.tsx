@@ -132,20 +132,20 @@ export function DateRangePicker({
             id="date"
             variant="outline"
             className={cn(
-              'h-9 justify-start text-left font-normal',
+              'h-9 w-full justify-start text-left font-normal text-xs',
               !date && 'text-muted-foreground'
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {displayText}
+            <CalendarIcon className="mr-2 h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">{displayText}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[580px] p-0 bg-white shadow-lg" align="start">
+        <PopoverContent className="w-auto p-0 bg-popover border-border shadow-lg" align="start">
           <div className="flex">
             {/* Preset Options Sidebar */}
-            <div className="border-r border-gray-200 bg-gray-50 p-2.5 w-[110px] flex-shrink-0">
+            <div className="border-r border-border bg-card p-2 w-[100px] flex-shrink-0">
               <div className="space-y-0.5">
-                <div className="text-[9px] font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Presets</div>
+                <div className="text-[9px] font-semibold text-zinc-500 mb-1.5 uppercase tracking-wide">Presets</div>
                 {presetOptions.map((preset) => (
                   <button
                     key={preset.label}
@@ -153,8 +153,8 @@ export function DateRangePicker({
                     className={cn(
                       'w-full text-left px-2 py-1 text-xs rounded transition-colors',
                       selectedPreset === preset.label
-                        ? 'bg-white font-medium text-gray-900'
-                        : 'text-gray-600 hover:bg-white hover:text-gray-900'
+                        ? 'bg-secondary font-medium text-foreground'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                     )}
                   >
                     {preset.label}
@@ -166,15 +166,15 @@ export function DateRangePicker({
             {/* Calendar Section */}
             <div className="p-2.5 flex-1">
               {/* Header with date range display and actions */}
-              <div className="flex items-center justify-between mb-2 pb-2 border-b">
-                <div className="text-xs font-medium text-gray-700">
+              <div className="flex items-center justify-between mb-2 pb-2 border-b border-border">
+                <div className="text-xs font-medium text-foreground">
                   {tempDate?.from ? (
                     <>
                       {format(tempDate.from, 'd MMM yyyy')}
                       {tempDate.to && ` - ${format(tempDate.to, 'd MMM yyyy')}`}
                     </>
                   ) : (
-                    <span className="text-gray-400">Select date range</span>
+                    <span className="text-muted-foreground">Select date range</span>
                   )}
                 </div>
                 <div className="flex gap-1.5">

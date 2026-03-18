@@ -34,6 +34,15 @@ import { Plus, Edit, FileText, Eye, CheckCircle, Copy } from 'lucide-react'
 import { useWaivers, useCreateWaiver, useUpdateWaiver } from '@/lib/hooks/use-waivers'
 import { toast } from 'sonner'
 
+interface Waiver {
+  id: string
+  title: string
+  body: string
+  required: boolean
+  status: string
+  created_at: string
+}
+
 export default function WaiversAdminPage() {
   const params = useParams()
   const router = useRouter()
@@ -42,7 +51,7 @@ export default function WaiversAdminPage() {
   const selectedSeason = useSelectedSeason()
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [editingWaiver, setEditingWaiver] = useState<any>(null)
+  const [editingWaiver, setEditingWaiver] = useState<Waiver | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     body: '',
@@ -69,16 +78,9 @@ export default function WaiversAdminPage() {
       setFormData({ title: '', body: '', required: true })
       setIsCreateDialogOpen(false)
       toast.success('Waiver created successfully')
-    } catch (error: any) {
-      const errorMessage = error?.message || error?.toString() || 'Unknown error occurred'
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('Create waiver error:', error)
-      console.error('Error details:', {
-        message: error?.message,
-        hint: error?.hint,
-        details: error?.details,
-        code: error?.code,
-        full: JSON.stringify(error, null, 2)
-      })
       toast.error(`Failed to create waiver: ${errorMessage}`)
     }
   }
@@ -101,7 +103,7 @@ export default function WaiversAdminPage() {
     }
   }
 
-  const handleCloneWaiver = (waiver: any) => {
+  const handleCloneWaiver = (waiver: Waiver) => {
     setFormData({
       title: `${waiver.title} (Copy)`,
       body: waiver.body,
@@ -111,7 +113,7 @@ export default function WaiversAdminPage() {
     toast.info('Waiver cloned. Edit the title and save to create a new waiver.')
   }
 
-  const handleEdit = (waiver: any) => {
+  const handleEdit = (waiver: Waiver) => {
     setEditingWaiver(waiver)
     const newFormData = {
       title: waiver.title,
@@ -218,7 +220,7 @@ export default function WaiversAdminPage() {
                       onCheckedChange={(checked) => {
                         setFormData(prev => ({ ...prev, required: checked }))
                       }}
-                      className="h-7 w-12 data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
+                      className="h-7 w-12 data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-secondary"
                     />
                   </div>
                 </div>
@@ -261,7 +263,7 @@ export default function WaiversAdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {waivers.map((waiver: any) => (
+                {(waivers as Waiver[]).map((waiver) => (
                   <TableRow key={waiver.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
@@ -291,10 +293,10 @@ export default function WaiversAdminPage() {
                         }
                         className={
                           waiver.status === 'active'
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            ? 'bg-green-950/30 hover:bg-green-950/50 text-green-400 border border-green-900/50'
                             : waiver.status === 'inactive'
-                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                            : 'bg-gray-500 hover:bg-gray-600 text-white'
+                            ? 'bg-yellow-950/30 hover:bg-yellow-950/50 text-yellow-400 border border-yellow-900/50'
+                            : 'bg-secondary hover:bg-secondary/80 text-muted-foreground border border-border'
                         }
                       >
                         {waiver.status.charAt(0).toUpperCase() + waiver.status.slice(1)}

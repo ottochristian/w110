@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useParentClub } from '@/lib/use-parent-club'
 import { useCurrentSeason } from '@/lib/contexts/season-context'
 import { usePrograms } from '@/lib/hooks/use-programs'
 import { useCart } from '@/lib/cart-context'
+import { createClient } from '@/lib/supabase/client'
 import {
   Card,
   CardContent,
@@ -14,17 +15,18 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, ShoppingCart } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { ShoppingCart, Check, Plus, Minus, Users } from 'lucide-react'
 import { ProgramStatus } from '@/lib/programStatus'
-import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
+import { InlineLoading } from '@/components/ui/loading-states'
 import { toast } from 'sonner'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
-type Program = {
+type Athlete = {
   id: string
-  name: string
-  description?: string | null
-  status: ProgramStatus | null
-  sub_programs?: SubProgram[]
+  first_name: string
+  last_name: string
 }
 
 type SubProgram = {
@@ -38,117 +40,181 @@ type SubProgram = {
   registrations?: { count: number }[]
 }
 
-type ProgramWithSubPrograms = Program & {
+type Program = {
+  id: string
+  name: string
+  description?: string | null
+  status: ProgramStatus | null
   sub_programs: SubProgram[]
+}
+
+// sub_program_id → Set of athlete_ids that are already confirmed/pending registered
+type ExistingRegistrations = Record<string, Set<string>>
+
+function AthleteChip({
+  athlete,
+  state,
+  onClick,
+  disabled,
+}: {
+  athlete: Athlete
+  state: 'default' | 'in-cart' | 'registered'
+  onClick: () => void
+  disabled: boolean
+}) {
+  const name = athlete.first_name
+
+  if (state === 'registered') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-green-800 bg-green-950/30 px-2.5 py-1 text-xs font-medium text-green-400">
+        <Check className="h-3 w-3" />
+        {name}
+      </span>
+    )
+  }
+
+  if (state === 'in-cart') {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className="inline-flex items-center gap-1 rounded-full border border-orange-600 bg-orange-600 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+        title={`Remove ${name} from cart`}
+      >
+        <Minus className="h-3 w-3" />
+        {name}
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+        disabled
+          ? 'cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-500'
+          : 'cursor-pointer border-zinc-600 bg-zinc-800 text-zinc-300 hover:border-orange-500 hover:bg-orange-950/30 hover:text-orange-400'
+      )}
+      title={disabled ? undefined : `Add ${name} to cart`}
+    >
+      <Plus className="h-3 w-3" />
+      {name}
+    </button>
+  )
 }
 
 export default function ParentProgramsPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
+  const router = useRouter()
   const clubSlug = params.clubSlug as string
-  const {
-    clubId,
-    household,
-    athletes,
-    loading: authLoading,
-    error: authError,
-  } = useParentClub()
-  const { addItem } = useCart()
-
-  // PHASE 2: Use base useSeason hook - RLS handles filtering
+  const { clubId, household, athletes, loading: authLoading } = useParentClub()
+  const { addItem, removeItem, items: cartItems, itemCount } = useCart()
   const currentSeason = useCurrentSeason()
 
-  // PHASE 2: RLS handles club filtering automatically
   const {
     data: allPrograms = [],
     isLoading: programsLoading,
-    error: programsError,
-  } = usePrograms(currentSeason?.id, true) // Include sub-programs
+  } = usePrograms(currentSeason?.id, true)
 
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string>('')
+  const [existingRegs, setExistingRegs] = useState<ExistingRegistrations>({})
+  const [regsLoading, setRegsLoading] = useState(false)
 
-  // Filter to active programs only
-  const programs = allPrograms.filter(
-    (p: any) => p.status === ProgramStatus.ACTIVE || p.status === null
-  ) as ProgramWithSubPrograms[]
-
-  // Set default athlete if available
-  // Use stable athlete IDs instead of athletes array to avoid infinite loops
-  const athleteIds = athletes?.map((a) => a.id).join(',') || ''
+  // Fetch existing registrations for this household + season so we can
+  // show "already registered" state on each athlete chip
   useEffect(() => {
-    // Check if athleteId is in URL params (from athlete detail page)
-    const athleteIdFromUrl = searchParams.get('athleteId')
-    if (athleteIdFromUrl && athletes?.some(a => a.id === athleteIdFromUrl)) {
-      setSelectedAthleteId(athleteIdFromUrl)
-    } else if (athletes && athletes.length > 0 && !selectedAthleteId) {
-      // Default to first athlete if no athlete selected and no URL param
-      setSelectedAthleteId(athletes[0].id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [athleteIds, selectedAthleteId, searchParams])
+    if (!currentSeason?.id || !household?.id) return
+    setRegsLoading(true)
+    const supabase = createClient()
+    supabase
+      .from('registrations')
+      .select('sub_program_id, athlete_id, status')
+      .eq('season_id', currentSeason.id)
+      .in('status', ['confirmed', 'pending', 'waitlisted'])
+      .then(({ data }) => {
+        const map: ExistingRegistrations = {}
+        for (const row of data ?? []) {
+          if (!row.sub_program_id || !row.athlete_id) continue
+          if (!map[row.sub_program_id]) map[row.sub_program_id] = new Set()
+          map[row.sub_program_id].add(row.athlete_id)
+        }
+        setExistingRegs(map)
+        setRegsLoading(false)
+      })
+  }, [currentSeason?.id, household?.id])
 
-  const handleAddToCart = (
-    subProgram: SubProgram,
-    program: Program,
-    athleteId: string
-  ) => {
-    if (!athleteId) {
-      toast.error('Please select an athlete first')
+  const programs = (allPrograms as Program[]).filter(
+    (p) => p.status === ProgramStatus.ACTIVE || p.status === null
+  )
+
+  const isSeasonClosed = currentSeason?.status === 'closed'
+  const isSeasonDraft = currentSeason?.status === 'draft'
+  const isLoading = authLoading || programsLoading || regsLoading
+
+  // Helper: get chip state for a given athlete + sub-program
+  function chipState(athleteId: string, subProgramId: string): 'default' | 'in-cart' | 'registered' {
+    if (existingRegs[subProgramId]?.has(athleteId)) return 'registered'
+    if (cartItems.some(i => i.athlete_id === athleteId && i.sub_program_id === subProgramId)) return 'in-cart'
+    return 'default'
+  }
+
+  function handleChipClick(athlete: Athlete, subProgram: SubProgram, program: Program) {
+    const state = chipState(athlete.id, subProgram.id)
+    if (state === 'registered') return
+
+    if (state === 'in-cart') {
+      const cartItemId = `${subProgram.id}-${athlete.id}`
+      removeItem(cartItemId)
+      toast.info(`Removed ${athlete.first_name} from cart`, {
+        description: `${program.name} — ${subProgram.name}`,
+        duration: 2000,
+      })
       return
     }
 
-    const athlete = athletes?.find((a) => a.id === athleteId)
-    if (!athlete) {
-      toast.error('Athlete not found')
+    // Add to cart
+    const spotsLeft = subProgram.max_capacity != null
+      ? subProgram.max_capacity - (subProgram.registrations?.[0]?.count ?? 0)
+      : Infinity
+    if (spotsLeft <= 0) {
+      toast.error(`${subProgram.name} is full`)
       return
     }
 
-    const cartItem = {
-      id: `${subProgram.id}-${athleteId}`, // Temporary ID for cart
-      athlete_id: athleteId,
+    addItem({
+      id: `${subProgram.id}-${athlete.id}`,
+      athlete_id: athlete.id,
       athlete_name: `${athlete.first_name} ${athlete.last_name}`,
       sub_program_id: subProgram.id,
       sub_program_name: subProgram.name,
       program_name: program.name,
       price: subProgram.registration_fee ?? 0,
-    }
-
-    const wasAdded = addItem(cartItem)
-
-    // Show success toast only if item was actually added
-    if (wasAdded) {
-      toast.success(
-        `${athlete.first_name} ${athlete.last_name} added to cart`,
-        {
-          description: `${program.name} - ${subProgram.name}`,
-          duration: 3000,
-        }
-      )
-    } else {
-      // Item already in cart - show different message
-      toast.info(
-        `${athlete.first_name} ${athlete.last_name} is already in cart`,
-        {
-          description: `${program.name} - ${subProgram.name}`,
-          duration: 2000,
-        }
-      )
-    }
+    })
+    toast.success(`${athlete.first_name} added to cart`, {
+      description: `${program.name} — ${subProgram.name}`,
+      duration: 4000,
+      action: {
+        label: 'View Cart →',
+        onClick: () => router.push(`/clubs/${clubSlug}/parent/cart`),
+      },
+    })
   }
 
-  const isLoading = authLoading || programsLoading
+  // ── Guard states ────────────────────────────────────────────────────────────
 
-  // Show message if no current season (only after auth is loaded)
+  if (isLoading && !currentSeason) return <InlineLoading />
+
   if (!authLoading && !currentSeason) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-lg text-center">
           <CardHeader className="space-y-3 pb-6">
             <CardTitle className="text-2xl">No Season Available</CardTitle>
-            <CardDescription className="text-base leading-relaxed">
-              No current season found.
-              <br />
-              Please contact support for assistance.
+            <CardDescription>
+              No current season found. Please contact support.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -156,10 +222,20 @@ export default function ParentProgramsPage() {
     )
   }
 
-  // Check if current season is accepting registrations
-  const isSeasonOpen = currentSeason?.status === 'active'
-  const isSeasonClosed = currentSeason?.status === 'closed'
-  const isSeasonDraft = currentSeason?.status === 'draft'
+  if (isSeasonDraft) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="max-w-lg text-center">
+          <CardHeader className="space-y-3 pb-6">
+            <CardTitle className="text-2xl">Coming Soon</CardTitle>
+            <CardDescription>
+              Registration for {currentSeason?.name} is being set up. Check back soon.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    )
+  }
 
   if (!household || !athletes || athletes.length === 0) {
     return (
@@ -168,8 +244,7 @@ export default function ParentProgramsPage() {
           <CardHeader>
             <CardTitle>Setup Required</CardTitle>
             <CardDescription>
-              Please set up your household and add athletes before viewing
-              programs.
+              Please add athletes to your household before registering for programs.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -177,164 +252,151 @@ export default function ParentProgramsPage() {
     )
   }
 
-  // Don't show programs if season is in draft mode
-  if (isSeasonDraft) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-lg text-center">
-          <CardHeader className="space-y-3 pb-6">
-            <CardTitle className="text-2xl">Season Not Available</CardTitle>
-            <CardDescription className="text-base leading-relaxed">
-              The current season is being set up.
-              <br />
-              Programs will be available soon.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
-  }
+  // ── Main render ─────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold">Available Programs</h1>
-        <p className="text-muted-foreground">
-          Browse and register for programs for {currentSeason?.name || 'current season'}
-        </p>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Register for Programs</h1>
+          <p className="text-muted-foreground">
+            {currentSeason?.name} — tap a name on any program to add that athlete
+          </p>
+        </div>
+        <Link href={`/clubs/${clubSlug}/parent/cart`}>
+          <Button variant={itemCount > 0 ? 'default' : 'outline'} className="shrink-0 gap-2 relative">
+            <ShoppingCart className="h-4 w-4" />
+            Cart
+            {itemCount > 0 && (
+              <span className="ml-0.5 rounded-full bg-zinc-900 text-orange-400 text-xs font-bold px-1.5 py-0.5 leading-none">
+                {itemCount}
+              </span>
+            )}
+          </Button>
+        </Link>
       </div>
 
-      {/* Athlete Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Athlete</CardTitle>
-          <CardDescription>
-            Choose which athlete you're registering
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <select
-            value={selectedAthleteId}
-            onChange={(e) => setSelectedAthleteId(e.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="">Select an athlete</option>
-            {athletes.map((athlete) => (
-              <option key={athlete.id} value={athlete.id}>
-                {athlete.first_name} {athlete.last_name}
-              </option>
-            ))}
-          </select>
-        </CardContent>
-      </Card>
-
-      {/* Programs List */}
-      {programsLoading ? (
-        <div className="space-y-6">
-          {[1, 2].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-6 w-48 rounded bg-gray-200" />
-                  <div className="h-4 w-full rounded bg-gray-200" />
-                  <div className="h-4 w-3/4 rounded bg-gray-200" />
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div className="h-32 rounded bg-gray-200" />
-                    <div className="h-32 rounded bg-gray-200" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Athletes legend */}
+      {athletes.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <Users className="h-4 w-4" />
+            Your athletes:
+          </span>
+          {(athletes as Athlete[]).map((a) => (
+            <span key={a.id} className="font-medium">
+              {a.first_name} {a.last_name}
+            </span>
           ))}
+          <span className="ml-auto text-muted-foreground hidden sm:inline">
+            Tap a name on a program to register · Filled blue = in cart · Green = registered
+          </span>
         </div>
-      ) : programsError ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <p className="text-red-600 mb-4">
-                {programsError.message || 'Failed to load programs'}
-              </p>
-              <Button onClick={() => window.location.reload()} variant="outline">
-                Retry
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      )}
+
+      {isSeasonClosed && (
+        <div className="rounded-lg border border-orange-800 bg-orange-950/20 px-4 py-3 text-sm text-orange-400">
+          Registration for {currentSeason?.name} is closed.
+        </div>
+      )}
+
+      {/* Programs */}
+      {programsLoading ? (
+        <InlineLoading />
       ) : programs.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">
-              No active programs available for this season.
-            </p>
+            <p className="text-muted-foreground">No active programs available for this season.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-6">
-          {programs.map((program) => (
-            <Card key={program.id}>
-              <CardHeader>
-                <CardTitle>{program.name}</CardTitle>
-                {program.description && (
-                  <CardDescription>{program.description}</CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                {program.sub_programs &&
-                program.sub_programs.length > 0 ? (
-                  <div className="space-y-4">
-                    {program.sub_programs
-                      .filter((sp) => sp.status === ProgramStatus.ACTIVE)
-                      .map((subProgram) => (
-                        <div
-                          key={subProgram.id}
-                          className="flex items-center justify-between border rounded-lg p-4"
-                        >
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{subProgram.name}</h3>
-                            {subProgram.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {subProgram.description}
-                              </p>
+          {programs.map((program) => {
+            const activeSubPrograms = (program.sub_programs ?? []).filter(
+              (sp) => sp.status === ProgramStatus.ACTIVE
+            )
+            if (activeSubPrograms.length === 0) return null
+
+            return (
+              <Card key={program.id}>
+                <CardHeader className="pb-3">
+                  <CardTitle>{program.name}</CardTitle>
+                  {program.description && (
+                    <CardDescription>{program.description}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {activeSubPrograms.map((sp) => {
+                    const registrationCount = sp.registrations?.[0]?.count ?? 0
+                    const spotsLeft = sp.max_capacity != null
+                      ? sp.max_capacity - registrationCount
+                      : null
+                    const isFull = spotsLeft !== null && spotsLeft <= 0
+
+                    return (
+                      <div
+                        key={sp.id}
+                        className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        {/* Sub-program info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-semibold">{sp.name}</span>
+                            {isFull && (
+                              <Badge variant="destructive" className="text-xs">Full</Badge>
                             )}
-                            <div className="mt-2 flex gap-4 text-sm">
-                              {subProgram.registration_fee !== null && subProgram.registration_fee !== undefined && (
-                                <span className="font-medium text-lg">
-                                  ${(subProgram.registration_fee).toFixed(2)}
-                                </span>
-                              )}
-                              {subProgram.max_capacity !== null && subProgram.max_capacity !== undefined && (() => {
-                                const registrationCount = subProgram.registrations?.[0]?.count || 0
-                                const spotsLeft = subProgram.max_capacity - registrationCount
-                                return (
-                                  <span className={`text-sm ${spotsLeft <= 5 && spotsLeft > 0 ? 'text-orange-600 font-medium' : spotsLeft === 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
-                                    {spotsLeft > 0 ? `${spotsLeft} spots left` : 'Full'}
-                                  </span>
-                                )
-                              })()}
-                            </div>
+                            {spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 5 && (
+                              <Badge variant="outline" className="text-xs text-orange-400 border-orange-700">
+                                {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} left
+                              </Badge>
+                            )}
                           </div>
-                          <Button
-                            onClick={() =>
-                              handleAddToCart(subProgram, program, selectedAthleteId)
-                            }
-                            disabled={!selectedAthleteId || isSeasonClosed}
-                            size="sm"
-                            title={isSeasonClosed ? 'Registration closed for this season' : ''}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            {isSeasonClosed ? 'Registration Closed' : 'Add to Cart'}
-                          </Button>
+                          {sp.description && (
+                            <p className="mt-0.5 text-sm text-muted-foreground">{sp.description}</p>
+                          )}
+                          {sp.registration_fee != null && (
+                            <p className="mt-1 text-base font-medium">
+                              ${sp.registration_fee.toFixed(2)}
+                              <span className="ml-1 text-xs font-normal text-muted-foreground">per athlete</span>
+                            </p>
+                          )}
                         </div>
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No sub-programs available for this program.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                        {/* Athlete chips */}
+                        <div className="flex flex-wrap gap-2 sm:justify-end">
+                          {(athletes as Athlete[]).map((athlete) => {
+                            const state = chipState(athlete.id, sp.id)
+                            return (
+                              <AthleteChip
+                                key={athlete.id}
+                                athlete={athlete}
+                                state={state}
+                                onClick={() => handleChipClick(athlete, sp, program)}
+                                disabled={isSeasonClosed || (isFull && state === 'default')}
+                              />
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Sticky cart button on mobile when cart has items */}
+      {itemCount > 0 && (
+        <div className="sticky bottom-4 flex justify-center sm:hidden">
+          <Link href={`/clubs/${clubSlug}/parent/cart`}>
+            <Button size="lg" className="shadow-lg gap-2 px-8">
+              <ShoppingCart className="h-5 w-5" />
+              View Cart ({itemCount}) · ${cartItems.reduce((s, i) => s + i.price, 0).toFixed(2)}
+            </Button>
+          </Link>
         </div>
       )}
     </div>

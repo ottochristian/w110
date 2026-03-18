@@ -9,7 +9,7 @@ export interface OrdersPaginationParams {
 }
 
 export interface PaginatedOrders {
-  data: any[]
+  data: Record<string, unknown>[]
   total: number
   page: number
   pageSize: number

@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, ShoppingCart, User, CreditCard } from 'lucide-react'
+import { Plus, ShoppingCart, User, CreditCard, Calendar, MapPin, Clock, ChevronRight } from 'lucide-react'
+import { useUpcomingEvents } from '@/lib/hooks/use-events'
 
 export default function ParentDashboardPage() {
   const params = useParams()
@@ -22,6 +23,7 @@ export default function ParentDashboardPage() {
   const { household, athletes, profile } = useParentClub()
   const { club } = useClub()
   const { data: guardians = [], isLoading: guardiansLoading } = useHouseholdGuardians(household?.id)
+  const { data: upcomingEvents = [] } = useUpcomingEvents(club?.id, 5)
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,7 +43,7 @@ export default function ParentDashboardPage() {
           </div>
         )}
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="page-title">
             {club?.name ? `${club.name} Dashboard` : 'Dashboard'}
           </h1>
           <p className="text-muted-foreground">
@@ -120,7 +122,7 @@ export default function ParentDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-2xl font-bold">{athletes.length}</p>
+              <p className="metric-value">{athletes.length}</p>
               <Link href={`/clubs/${clubSlug}/parent/athletes`}>
                 <Button variant="outline" size="sm" className="w-full">
                   <User className="h-4 w-4 mr-2" />
@@ -157,6 +159,64 @@ export default function ParentDashboardPage() {
             </Link>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Upcoming Events */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-zinc-400" />
+            <h2 className="font-semibold text-foreground">Upcoming Events</h2>
+          </div>
+          <Link href={`/clubs/${clubSlug}/parent/schedule`} className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-400 font-medium">
+            Full schedule <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+        {upcomingEvents.length === 0 ? (
+          <div className="px-5 py-8 text-center">
+            <p className="text-sm text-muted-foreground">No upcoming events.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-800">
+            {upcomingEvents.map((ev) => {
+              const start = new Date(ev.start_at)
+              const typeColors: Record<string, string> = {
+                training: 'bg-orange-500', race: 'bg-red-500', camp: 'bg-purple-500',
+                meeting: 'bg-yellow-500', other: 'bg-zinc-400',
+              }
+              return (
+                <div key={ev.id} className="flex items-start gap-4 px-5 py-3.5 hover:bg-zinc-800/60">
+                  {/* Date block */}
+                  <div className="flex-shrink-0 w-10 text-center">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase">
+                      {start.toLocaleDateString('en-US', { month: 'short' })}
+                    </p>
+                    <p className="text-xl font-bold text-foreground leading-none">{start.getDate()}</p>
+                  </div>
+                  {/* Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${typeColors[ev.event_type] ?? 'bg-zinc-400'}`} />
+                      <p className="text-sm font-medium text-foreground truncate">{ev.title}</p>
+                    </div>
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                      {ev.location && (
+                        <span className="flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          {ev.location}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -32,24 +32,15 @@ import {
 } from 'recharts'
 import { DollarSign, TrendingUp, AlertCircle, CreditCard } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
-const PROGRAM_COLORS = [
-  '#3B82F6', // blue
-  '#10B981', // green
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#8B5CF6', // purple
-  '#EC4899', // pink
-  '#14B8A6', // teal
-  '#F97316', // orange
-]
-
-const METHOD_COLORS: Record<string, string> = {
-  stripe: '#635BFF',
-  cash: '#10B981',
-  check: '#3B82F6',
-  other: '#6B7280',
-}
+import {
+  CHART_PALETTE,
+  GRID_PROPS,
+  AXIS_STYLE,
+  TOOLTIP_STYLE,
+  LEGEND_STYLE,
+  GRADIENT_IDS,
+} from '@/lib/chart-theme'
+import { colors } from '@/lib/colors'
 
 export default function RevenuePage() {
   const { profile, loading: authLoading } = useRequireAdmin()
@@ -96,11 +87,11 @@ export default function RevenuePage() {
   // Transform payment methods data
   const methodsChartData = useMemo(() => {
     if (!paymentMethods?.methods) return []
-    return paymentMethods.methods.map((m) => ({
+    return paymentMethods.methods.map((m, index) => ({
       name: m.method.charAt(0).toUpperCase() + m.method.slice(1),
       amount: m.amount,
       count: m.count,
-      color: METHOD_COLORS[m.method] || METHOD_COLORS.other,
+      color: CHART_PALETTE[index % CHART_PALETTE.length],
     }))
   }, [paymentMethods])
 
@@ -121,10 +112,6 @@ export default function RevenuePage() {
     if (!programRevenue?.programs) return []
     return programRevenue.programs.slice(0, 8)
   }, [programRevenue])
-
-  const handleExport = () => {
-    console.log('Exporting revenue data...')
-  }
 
   if (authLoading || !profile) {
     return <InlineLoading message="Loading dashboard..." />
@@ -154,17 +141,17 @@ export default function RevenuePage() {
             <CardTitle className="text-sm font-medium">
               Total Revenue Collected
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-28 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-28 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-32 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="metric-value text-green-500">
                   ${(summary?.totalCollected || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -180,17 +167,17 @@ export default function RevenuePage() {
             <CardTitle className="text-sm font-medium">
               Outstanding Revenue
             </CardTitle>
-            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertCircle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-24 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-amber-600">
+                <div className="metric-value text-amber-500">
                   ${(summary?.outstanding || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -206,17 +193,17 @@ export default function RevenuePage() {
             <CardTitle className="text-sm font-medium">
               Refunds Issued
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />
+            <TrendingUp className="h-4 w-4 text-red-500 rotate-180" />
           </CardHeader>
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-24 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="metric-value text-red-500">
                   ${(summary?.refunded || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -232,17 +219,17 @@ export default function RevenuePage() {
             <CardTitle className="text-sm font-medium">
               Average per Registration
             </CardTitle>
-            <CreditCard className="h-4 w-4 text-blue-600" />
+            <CreditCard className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             {summaryLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-24 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-32 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="metric-value text-orange-500">
                   ${(summary?.averagePerRegistration || 0).toLocaleString(undefined, {
                     maximumFractionDigits: 0,
                   })}
@@ -278,30 +265,27 @@ export default function RevenuePage() {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={programChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid {...GRID_PROPS} />
                   <XAxis
                     type="number"
                     tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                    {...AXIS_STYLE}
                   />
                   <YAxis
                     type="category"
                     dataKey="programName"
                     width={120}
-                    tick={{ fontSize: 12 }}
+                    {...AXIS_STYLE}
                   />
                   <Tooltip
+                    {...TOOLTIP_STYLE}
                     formatter={(value: number) => [`$${value.toLocaleString()}`, 'Collected']}
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                    }}
                   />
                   <Bar dataKey="paidAmount" radius={[0, 4, 4, 0]}>
                     {programChartData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={PROGRAM_COLORS[index % PROGRAM_COLORS.length]}
+                        fill={CHART_PALETTE[index % CHART_PALETTE.length]}
                       />
                     ))}
                   </Bar>
@@ -340,22 +324,18 @@ export default function RevenuePage() {
                       `${name}: ${((percent || 0) * 100).toFixed(0)}%`
                     }
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill={CHART_PALETTE[0]}
                     dataKey="amount"
                   >
                     {methodsChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
                     ))}
                   </Pie>
                   <Tooltip
+                    {...TOOLTIP_STYLE}
                     formatter={(value: number) => [`$${value.toLocaleString()}`, 'Amount']}
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                    }}
                   />
-                  <Legend />
+                  <Legend {...LEGEND_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -383,37 +363,33 @@ export default function RevenuePage() {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={cumulativeChartData}>
                   <defs>
-                    <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    <linearGradient id={GRADIENT_IDS.orange} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={colors.primary} stopOpacity={0.35}/>
+                      <stop offset="100%" stopColor={colors.primary} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="date" 
-                    tick={{ fontSize: 12 }}
+                  <CartesianGrid {...GRID_PROPS} />
+                  <XAxis
+                    dataKey="date"
                     angle={-45}
                     textAnchor="end"
                     height={60}
+                    {...AXIS_STYLE}
                   />
-                  <YAxis 
+                  <YAxis
                     tickFormatter={(value) => `$${(value / 1000).toFixed(1)}k`}
-                    tick={{ fontSize: 12 }}
+                    {...AXIS_STYLE}
                   />
                   <Tooltip
+                    {...TOOLTIP_STYLE}
                     formatter={(value: number) => [`$${value.toLocaleString()}`, 'Cumulative']}
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                    }}
                   />
                   <Area
                     type="monotone"
                     dataKey="amount"
-                    stroke="#3B82F6"
+                    stroke={colors.primary}
                     strokeWidth={2}
-                    fill="url(#colorCumulative)"
+                    fill={`url(#${GRADIENT_IDS.orange})`}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -446,7 +422,7 @@ export default function RevenuePage() {
                     <span className="text-sm font-medium">Paid</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">
+                    <div className="metric-value-sm text-green-500">
                       ${summary.totalCollected.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -461,7 +437,7 @@ export default function RevenuePage() {
                     <span className="text-sm font-medium">Outstanding</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-amber-600">
+                    <div className="metric-value-sm text-amber-500">
                       ${summary.outstanding.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -476,7 +452,7 @@ export default function RevenuePage() {
                     <span className="text-sm font-medium">Refunded</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-red-600">
+                    <div className="metric-value-sm text-red-500">
                       ${summary.refunded.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -532,7 +508,7 @@ export default function RevenuePage() {
                             payment.programs.map((prog, idx) => (
                               <span
                                 key={idx}
-                                className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded whitespace-nowrap"
+                                className="text-xs bg-orange-900/30 text-orange-400 px-2 py-0.5 rounded whitespace-nowrap"
                               >
                                 {prog}
                               </span>
@@ -557,9 +533,9 @@ export default function RevenuePage() {
                         <span
                           className={
                             payment.daysSinceCreated > 30
-                              ? 'text-red-600 font-semibold'
+                              ? 'text-red-500 font-semibold'
                               : payment.daysSinceCreated > 14
-                              ? 'text-amber-600 font-medium'
+                              ? 'text-amber-500 font-medium'
                               : 'text-muted-foreground'
                           }
                         >

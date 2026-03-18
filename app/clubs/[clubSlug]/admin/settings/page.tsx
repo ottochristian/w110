@@ -63,7 +63,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="page-title">Settings</h1>
         <p className="text-muted-foreground">
           Manage your club's configuration and preferences
         </p>
@@ -74,14 +74,14 @@ export default function SettingsPage() {
           const Icon = option.icon
           return (
             <Link key={option.href} href={option.href}>
-              <Card className="hover:bg-zinc-50 transition-colors cursor-pointer">
+              <Card className="hover:bg-secondary/50 transition-colors cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-100">
-                      <Icon className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 rounded-lg bg-orange-900/30">
+                      <Icon className="h-5 w-5 text-orange-500" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{option.title}</CardTitle>
+                      <CardTitle className="card-title">{option.title}</CardTitle>
                       <CardDescription className="mt-1">
                         {option.description}
                       </CardDescription>

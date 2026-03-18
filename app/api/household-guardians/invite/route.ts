@@ -44,11 +44,11 @@ export async function POST(request: NextRequest) {
       normalizedEmail = validated.email
     } catch (error) {
       if (error instanceof z.ZodError) {
-        log.warn('Guardian invitation validation failed', { errors: error.errors })
+        log.warn('Guardian invitation validation failed', { errors: error.issues })
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),

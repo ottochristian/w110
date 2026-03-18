@@ -143,7 +143,7 @@ Keep the tone professional but readable — this is for club leadership, not coa
           completion_tokens: final.usage.output_tokens,
           model: 'claude-sonnet-4-6',
           metadata: { date: body.date, event_count: events.length },
-        }).then(({ error }) => { if (error) console.error('ai_usage insert:', error) })
+        }).then(({ error }: { error: unknown }) => { if (error) console.error('ai_usage insert:', error) })
       } catch (err) {
         console.error('[daily-briefing] stream error:', err)
         controller.error(err)

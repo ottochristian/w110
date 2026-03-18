@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/nextjs'
 /**
  * Capture an exception with context
  */
-export function captureException(error: Error, context?: Record<string, any>) {
+export function captureException(error: Error, context?: Record<string, unknown>) {
   if (process.env.SENTRY_DSN) {
     Sentry.captureException(error, {
       extra: context,
@@ -23,7 +23,7 @@ export function captureException(error: Error, context?: Record<string, any>) {
 export function captureMessage(
   message: string,
   level: Sentry.SeverityLevel = 'info',
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) {
   if (process.env.SENTRY_DSN) {
     Sentry.captureMessage(message, {
@@ -64,7 +64,7 @@ export function addBreadcrumb(
   message: string,
   category: string,
   level: Sentry.SeverityLevel = 'info',
-  data?: Record<string, any>
+  data?: Record<string, unknown>
 ) {
   if (process.env.SENTRY_DSN) {
     Sentry.addBreadcrumb({
@@ -78,10 +78,12 @@ export function addBreadcrumb(
 
 /**
  * Start a transaction for performance monitoring
+ * Note: Sentry v8+ uses startSpan instead of startTransaction
  */
 export function startTransaction(name: string, op: string) {
   if (process.env.SENTRY_DSN) {
-    return Sentry.startTransaction({ name, op })
+    // startTransaction was removed in Sentry v8; return a no-op object for compatibility
+    return { name, op, finish: () => {} }
   }
   return null
 }
@@ -89,11 +91,11 @@ export function startTransaction(name: string, op: string) {
 /**
  * Wrap async function with error capture
  */
-export function withErrorCapture<T extends (...args: any[]) => Promise<any>>(
+export function withErrorCapture<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): T {
-  return (async (...args: any[]) => {
+  return (async (...args: unknown[]) => {
     try {
       return await fn(...args)
     } catch (error) {

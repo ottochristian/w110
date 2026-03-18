@@ -4,30 +4,70 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParentClub } from '@/lib/use-parent-club'
+import { useCurrentSeason } from '@/lib/contexts/season-context'
 import { useAthlete, useUpdateAthlete } from '@/lib/hooks/use-athletes'
 import { useAthleteRegistrations } from '@/lib/hooks/use-registrations'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { useWaivers, useAthleteWaiverStatus } from '@/lib/hooks/use-waivers'
+import { WaiverSignDialog } from '@/components/waiver-sign-dialog'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { ArrowLeft, Calendar, ShoppingCart, Mail, Phone, Edit2, Save, X } from 'lucide-react'
-import { toast } from 'sonner'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
+import {
+  ArrowLeft, BookOpen, Edit2, Save, X,
+  CheckCircle2, AlertCircle, Phone, User, PenLine,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { getAthleteCategory, FIS_DEFAULT_CATEGORIES, type AgeCalculationMethod } from '@/lib/ski-categories'
+import { useClub } from '@/lib/club-context'
+
+
+type Reg = {
+  id: string
+  status: string
+  payment_status: string | null
+  amount_paid: number | null
+  created_at: string
+  season_id: string
+  sub_programs?: { name: string; programs?: { name: string } | null } | null
+  seasons?: { id: string; name: string } | null
+}
+
+function RegRow({ reg }: { reg: Reg }) {
+  const program = reg.sub_programs?.programs?.name ?? 'Unknown Program'
+  const subProgram = reg.sub_programs?.name ?? ''
+  const season = reg.seasons?.name ?? ''
+  const isPaid = reg.payment_status === 'paid'
+
+  const statusColor: Record<string, string> = {
+    confirmed: 'bg-green-950/30 text-green-400',
+    active: 'bg-green-950/30 text-green-400',
+    pending: 'bg-yellow-950/30 text-yellow-400',
+    waitlisted: 'bg-blue-950/30 text-blue-400',
+    cancelled: 'bg-secondary text-muted-foreground line-through',
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium truncate">{program}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          {subProgram}{season ? ` · ${season}` : ''}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColor[reg.status] ?? 'bg-secondary text-foreground'}`}>
+          {reg.status}
+        </span>
+        {reg.status !== 'cancelled' && (
+          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${isPaid ? 'bg-green-950/30 text-green-400' : 'bg-orange-950/30 text-orange-400'}`}>
+            {isPaid ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+            {isPaid ? 'Paid' : 'Unpaid'}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function AthleteDetailPage() {
   const params = useParams()
@@ -35,362 +75,260 @@ export default function AthleteDetailPage() {
   const clubSlug = params.clubSlug as string
   const athleteId = params.athleteId as string
 
-  const { profile, loading: authLoading } = useParentClub()
+  const { profile, household, loading: authLoading } = useParentClub()
+  const { club } = useClub()
+  const ageMethod = ((club as any)?.age_calculation_method ?? 'fis_competition_year') as AgeCalculationMethod
+  const ageCategories = (club as any)?.age_categories ?? FIS_DEFAULT_CATEGORIES
+  const currentSeason = useCurrentSeason()
 
-  const { data: athlete, isLoading: athleteLoading, error: athleteError, refetch: refetchAthlete } = useAthlete(athleteId)
+  const { data: athlete, isLoading: athleteLoading, error: athleteError, refetch } = useAthlete(athleteId)
   const { data: registrations = [], isLoading: registrationsLoading } = useAthleteRegistrations(athleteId)
-  
-  // State for medical notes editing
-  const [isEditingMedicalNotes, setIsEditingMedicalNotes] = useState(false)
-  const [medicalNotesValue, setMedicalNotesValue] = useState('')
+  const { data: waivers = [] } = useWaivers(currentSeason?.id)
+  const { data: waiverStatuses = [] } = useAthleteWaiverStatus(athleteId)
   const updateAthlete = useUpdateAthlete()
 
-  // Calculate age correctly
-  const calculateAge = (dateOfBirth: string | null | undefined): number | null => {
-    if (!dateOfBirth) return null
-    const today = new Date()
-    const birthDate = new Date(dateOfBirth)
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [notesValue, setNotesValue] = useState('')
+  const [signingWaiver, setSigningWaiver] = useState<{ id: string; title: string; body: string; required: boolean } | null>(null)
 
-  const age = athlete ? calculateAge(athlete.date_of_birth) : null
-
-  // Initialize medical notes value when athlete loads
   useEffect(() => {
-    if (athlete && !isEditingMedicalNotes) {
-      setMedicalNotesValue(athlete.medical_notes || '')
-    }
-  }, [athlete, isEditingMedicalNotes])
+    if (athlete && !editingNotes) setNotesValue(athlete.medical_notes || '')
+  }, [athlete, editingNotes])
 
-  const handleStartEditMedicalNotes = () => {
-    setMedicalNotesValue(athlete?.medical_notes || '')
-    setIsEditingMedicalNotes(true)
-  }
-
-  const handleCancelEditMedicalNotes = () => {
-    setMedicalNotesValue(athlete?.medical_notes || '')
-    setIsEditingMedicalNotes(false)
-  }
-
-  const handleSaveMedicalNotes = async () => {
+  async function saveNotes() {
     if (!athlete) return
-
     try {
-      const result = await updateAthlete.mutateAsync({
-        athleteId: athlete.id,
-        updates: {
-          medical_notes: medicalNotesValue.trim() || null,
-        },
-      })
-      
-      // #region agent log
-      // #endregion
-      
-      toast.success('Medical notes updated successfully')
-      setIsEditingMedicalNotes(false)
-      
-      // #region agent log
-      // #endregion
-      
-      const refetchResult = await refetchAthlete()
-      
-      // #region agent log
-      // #endregion
-    } catch (error) {
-      // #region agent log
-      // #endregion
-      
-      toast.error('Failed to update medical notes')
-      console.error('Error updating medical notes:', error)
+      await updateAthlete.mutateAsync({ athleteId: athlete.id, updates: { medical_notes: notesValue.trim() || null } })
+      toast.success('Medical notes saved')
+      setEditingNotes(false)
+      refetch()
+    } catch {
+      toast.error('Failed to save medical notes')
     }
   }
 
-  if (authLoading || athleteLoading) {
-    return <InlineLoading />
-  }
+  if (authLoading || athleteLoading) return <InlineLoading />
+  if (athleteError) return <ErrorState error={athleteError} />
+  if (!athlete) return <div className="text-sm text-muted-foreground py-12 text-center">Athlete not found.</div>
 
-  if (athleteError) {
-    return <ErrorState error={athleteError} />
-  }
+  const { age, category } = athlete.date_of_birth
+    ? getAthleteCategory(athlete.date_of_birth, ageMethod, ageCategories)
+    : { age: null, category: null }
+  const initials = `${athlete.first_name.charAt(0)}${athlete.last_name.charAt(0)}`.toUpperCase()
 
-  if (!athlete) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Athlete Not Found</CardTitle>
-            <CardDescription>
-              The athlete you're looking for doesn't exist or you don't have permission to view it.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
-  }
+  const requiredWaivers = (waivers as any[]).filter((w) => w.required && w.status === 'active')
+  const signedWaiverIds = new Set((waiverStatuses as any[]).filter((s) => s.status === 'signed').map((s) => s.waiver_id))
+  const allWaiversSigned = requiredWaivers.length === 0 || requiredWaivers.every((w) => signedWaiverIds.has(w.id))
+
+  // Group registrations by season
+  const regsBySeason = (registrations as Reg[]).reduce<Record<string, Reg[]>>((acc, reg) => {
+    const key = reg.seasons?.name ?? 'Unknown Season'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(reg)
+    return acc
+  }, {})
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push(`/clubs/${clubSlug}/parent/athletes`)}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Athletes
-        </Button>
+    <div className="flex flex-col gap-8">
+      {/* Back */}
+      <button
+        type="button"
+        onClick={() => router.push(`/clubs/${clubSlug}/parent/athletes`)}
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground w-fit"
+      >
+        <ArrowLeft className="h-4 w-4" /> Athletes
+      </button>
+
+      {/* Hero */}
+      <div className="flex items-center gap-5">
+        <div className="w-16 h-16 rounded-full bg-orange-600 flex items-center justify-center flex-shrink-0">
+          <span className="text-foreground text-xl font-semibold">{initials}</span>
+        </div>
+        <div className="flex-1">
+          <h1 className="page-title">{athlete.first_name} {athlete.last_name}</h1>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {age !== null && (
+              <>
+                <span className="text-muted-foreground text-sm">
+                  {age} years old
+                  {athlete.date_of_birth && (
+                    <> · Born {new Date(athlete.date_of_birth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</>
+                  )}
+                  {athlete.gender && <> · {athlete.gender}</>}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-orange-950/30 px-2.5 py-0.5 text-xs font-semibold text-orange-400">
+                  {category}
+                </span>
+              </>
+            )}
+            {age === null && <span className="text-muted-foreground text-sm">Age unknown{athlete.gender && ` · ${athlete.gender}`}</span>}
+          </div>
+        </div>
+        <Link href={`/clubs/${clubSlug}/parent/programs`}>
+          <Button>
+            <BookOpen className="h-4 w-4 mr-2" />
+            Browse Programs
+          </Button>
+        </Link>
       </div>
 
-      {/* Athlete Info */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                {athlete.first_name} {athlete.last_name}
-                {age !== null && (
-                  <Badge variant="outline">
-                    {age} {age === 1 ? 'year' : 'years'} old
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                {athlete.date_of_birth 
-                  ? `Date of Birth: ${new Date(athlete.date_of_birth).toLocaleDateString()}`
-                  : 'Date of Birth: Not specified'
-                }
-                {athlete.gender && ` • Gender: ${athlete.gender}`}
-              </CardDescription>
-            </div>
-            <Link href={`/clubs/${clubSlug}/parent/programs?athleteId=${athleteId}`}>
-              <Button>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Sign Up for Program
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Date of Birth</span>
-                </div>
-                <p className="text-sm text-muted-foreground ml-6">
-                  {athlete.date_of_birth 
-                    ? new Date(athlete.date_of_birth).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })
-                    : 'Not specified'
-                  }
-                </p>
-              </div>
-              {age !== null && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Age</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {age} {age === 1 ? 'year' : 'years'} old
-                  </p>
-                </div>
-              )}
-              {athlete.gender && (
-                <div className="space-y-2">
-                  <span className="text-sm font-medium">Gender</span>
-                  <p className="text-sm text-muted-foreground">{athlete.gender}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
 
-      {/* Medical Notes */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Medical Notes</CardTitle>
-              <CardDescription>
-                Important medical information for {athlete.first_name}
-              </CardDescription>
+        {/* Left col */}
+        <div className="flex flex-col gap-4">
+
+          {/* Waivers */}
+          {requiredWaivers.length > 0 && (
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                {allWaiversSigned
+                  ? <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  : <AlertCircle className="h-4 w-4 text-orange-500" />}
+                <h2 className="font-semibold">Waivers</h2>
+              </div>
+              <div className="space-y-2">
+                {requiredWaivers.map((w: any) => {
+                  const signed = signedWaiverIds.has(w.id)
+                  return (
+                    <div key={w.id} className="flex items-center justify-between gap-2">
+                      <span className="text-sm text-foreground truncate">{w.title}</span>
+                      {signed ? (
+                        <span className="flex items-center gap-1 text-xs text-green-400 flex-shrink-0">
+                          <CheckCircle2 className="h-3 w-3" /> Signed
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 gap-1 px-2 text-xs border-orange-700 text-orange-400 hover:bg-orange-950/30 flex-shrink-0"
+                          onClick={() => setSigningWaiver(w)}
+                        >
+                          <PenLine className="h-3 w-3" /> Sign
+                        </Button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            {!isEditingMedicalNotes && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleStartEditMedicalNotes}
-              >
-                <Edit2 className="h-4 w-4 mr-2" />
-                {athlete.medical_notes ? 'Edit' : 'Add Medical Notes'}
-              </Button>
+          )}
+
+          {/* Emergency contact */}
+          {(household?.emergency_contact_name || household?.emergency_contact_phone) && (
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <h2 className="font-semibold mb-3">Emergency Contact</h2>
+              <div className="space-y-1.5">
+                {household.emergency_contact_name && (
+                  <div className="flex items-center gap-2 text-sm text-foreground">
+                    <User className="h-3.5 w-3.5 text-zinc-400 flex-shrink-0" />
+                    {household.emergency_contact_name}
+                  </div>
+                )}
+                {household.emergency_contact_phone && (
+                  <div className="flex items-center gap-2 text-sm text-foreground">
+                    <Phone className="h-3.5 w-3.5 text-zinc-400 flex-shrink-0" />
+                    {household.emergency_contact_phone}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Medical notes */}
+          <div className="rounded-xl border bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold">Medical Notes</h2>
+              {!editingNotes && (
+                <button
+                  type="button"
+                  onClick={() => setEditingNotes(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Edit2 className="h-3 w-3" />
+                  {athlete.medical_notes ? 'Edit' : 'Add'}
+                </button>
+              )}
+            </div>
+            {editingNotes ? (
+              <div className="space-y-3">
+                <Textarea
+                  value={notesValue}
+                  onChange={(e) => setNotesValue(e.target.value)}
+                  placeholder="Allergies, medications, medical conditions…"
+                  rows={5}
+                  className="text-sm"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveNotes} disabled={updateAthlete.isPending}>
+                    <Save className="h-3 w-3 mr-1" />
+                    {updateAthlete.isPending ? 'Saving…' : 'Save'}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditingNotes(false)}>
+                    <X className="h-3 w-3 mr-1" /> Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : athlete.medical_notes ? (
+              <p className="text-sm whitespace-pre-wrap text-foreground">{athlete.medical_notes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No medical notes on file.</p>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
-          {isEditingMedicalNotes ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="medical-notes">
-                  Medical Notes <span className="text-muted-foreground">(Optional)</span>
-                </Label>
-                <Textarea
-                  id="medical-notes"
-                  value={medicalNotesValue}
-                  onChange={(e) => setMedicalNotesValue(e.target.value)}
-                  placeholder="Allergies, medications, or other important medical information..."
-                  rows={6}
-                  className="font-sans"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Include any allergies, medications, medical conditions, or other important health information.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={handleSaveMedicalNotes}
-                  disabled={updateAthlete.isPending}
-                  size="sm"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {updateAthlete.isPending ? 'Saving...' : 'Save'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCancelEditMedicalNotes}
-                  disabled={updateAthlete.isPending}
-                  size="sm"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : athlete.medical_notes ? (
-            <div className="rounded-lg border p-4 bg-blue-50 border-blue-200">
-              <p className="text-sm whitespace-pre-wrap text-foreground">
-                {athlete.medical_notes}
-              </p>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground mb-4">
-                No medical notes on file.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Click "Add Medical Notes" above to add important medical information.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
 
+        {/* Right col: Registrations by season */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          <div className="rounded-xl border bg-card p-5 shadow-sm">
+            <h2 className="font-semibold mb-4">
+              Program Registrations
+              {registrations.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({registrations.length})
+                </span>
+              )}
+            </h2>
 
-      {/* Registration History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Program Registrations</CardTitle>
-          <CardDescription>
-            Registration history for {athlete.first_name}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {registrationsLoading ? (
-            <div className="text-center py-8">
+            {registrationsLoading ? (
               <InlineLoading />
-            </div>
-          ) : registrations.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm mb-4">
-                No registrations found for {athlete.first_name}.
-              </p>
-              <Link href={`/clubs/${clubSlug}/parent/programs`}>
-                <Button variant="outline">
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Browse Programs
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Program</TableHead>
-                    <TableHead>Sub-Program</TableHead>
-                    <TableHead>Season</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Registered Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {registrations.map((registration: any) => (
-                    <TableRow key={registration.id}>
-                      <TableCell className="font-medium">
-                        {registration.sub_programs?.programs?.name || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        {registration.sub_programs?.name || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        {registration.seasons?.name || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            registration.status === 'confirmed' ? 'default' :
-                            registration.status === 'pending' ? 'secondary' :
-                            registration.status === 'cancelled' ? 'destructive' :
-                            'outline'
-                          }
-                        >
-                          {registration.status || 'Unknown'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <Badge 
-                            variant={
-                              registration.payment_status === 'paid' ? 'default' :
-                              registration.payment_status === 'pending' ? 'secondary' :
-                              registration.payment_status === 'partial' ? 'outline' :
-                              'destructive'
-                            }
-                          >
-                            {registration.payment_status || 'Unknown'}
-                          </Badge>
-                          {registration.amount_paid > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              ${registration.amount_paid.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {registration.created_at
-                          ? new Date(registration.created_at).toLocaleDateString()
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
+            ) : registrations.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground mb-4">No registrations yet.</p>
+                <Link href={`/clubs/${clubSlug}/parent/programs`}>
+                  <Button variant="outline" size="sm">Browse Programs</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {Object.entries(regsBySeason)
+                  .sort(([a], [b]) => b.localeCompare(a))
+                  .map(([seasonName, regs]) => (
+                    <div key={seasonName}>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        {seasonName}
+                      </p>
+                      <div className="space-y-2">
+                        {regs.map((reg) => <RegRow key={reg.id} reg={reg} />)}
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Waiver sign dialog */}
+      {signingWaiver && profile && (
+        <WaiverSignDialog
+          open
+          onOpenChange={(open) => !open && setSigningWaiver(null)}
+          waiver={signingWaiver}
+          athlete={athlete}
+          guardianId={profile.id}
+          guardianName={`${profile.first_name} ${profile.last_name}`}
+          onSignatureComplete={() => setSigningWaiver(null)}
+        />
+      )}
     </div>
   )
 }

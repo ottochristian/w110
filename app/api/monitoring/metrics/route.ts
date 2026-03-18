@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   const hours = period === '7d' ? 168 : period === '30d' ? 720 : 24
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
-  const metrics: any = {}
+  const metrics: Record<string, unknown> = {}
 
   try {
     // 1. Registration Metrics
@@ -219,17 +219,18 @@ export async function GET(request: NextRequest) {
     trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
     return response
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Monitoring] Failed to fetch metrics:', error)
+    const message = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
-      { error: 'Failed to fetch metrics', details: error.message },
+      { error: 'Failed to fetch metrics', details: message },
       { status: 500 }
     )
   }
 }
 
 // Helper: Generate sparkline data (simple hourly buckets)
-function generateSparkline(data: any[], timeField: string, hours: number): number[] {
+function generateSparkline(data: { [key: string]: string | number }[], timeField: string, hours: number): number[] {
   if (!data || data.length === 0) return []
 
   const buckets = Math.min(hours, 24) // Max 24 data points
@@ -248,7 +249,7 @@ function generateSparkline(data: any[], timeField: string, hours: number): numbe
 }
 
 // Helper: Generate revenue sparkline
-function generateRevenueSparkline(data: any[], timeField: string, hours: number): number[] {
+function generateRevenueSparkline(data: { [key: string]: string | number }[], timeField: string, hours: number): number[] {
   if (!data || data.length === 0) return []
 
   const buckets = Math.min(hours, 24)

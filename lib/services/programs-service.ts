@@ -25,7 +25,7 @@ export class ProgramsService extends BaseService {
   async getPrograms(
     seasonId?: string,
     includeSubPrograms = false
-  ): Promise<QueryResult<any[]>> {
+  ): Promise<QueryResult<Program[]>> {
     // Note: Alias method name for backward compatibility
     return this.getProgramsByClub(seasonId, includeSubPrograms)
   }
@@ -36,8 +36,9 @@ export class ProgramsService extends BaseService {
   async getProgramsByClub(
     seasonId?: string,
     includeSubPrograms = false
-  ): Promise<QueryResult<any[]>> {
+  ): Promise<QueryResult<Program[]>> {
     // Build select query with optional nested sub_programs
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let selectQuery: any
     if (includeSubPrograms) {
       // NOTE: Use LEFT join (default) NOT !inner join
@@ -81,10 +82,10 @@ export class ProgramsService extends BaseService {
     // Filter out soft-deleted sub-programs in application layer
     // (Can't use database filter with LEFT join without excluding programs without sub-programs)
     if (includeSubPrograms && result.data) {
-      result.data = result.data.map((program: any) => ({
+      result.data = (result.data as unknown as Program[]).map((program) => ({
         ...program,
-        sub_programs: program.sub_programs?.filter((sp: any) => sp.deleted_at === null) || []
-      }))
+        sub_programs: (program as unknown as { sub_programs?: Array<{ deleted_at: string | null }> }).sub_programs?.filter((sp) => sp.deleted_at === null) || []
+      })) as unknown as Program[]
     }
 
     return handleSupabaseError(result)

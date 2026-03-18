@@ -40,10 +40,6 @@ export async function GET(req: NextRequest) {
   const isSystemAdmin = role === 'system_admin'
   const clubIdToUse = isSystemAdmin ? requestedClubId : profile.club_id
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run12',hypothesisId:'P',location:'app/api/admin/registrations/by-sport/route.ts:75',message:'by-program start',data:{seasonId,clubId:clubIdToUse,isSystemAdmin},timestamp:Date.now()})}).catch(()=>{})
-  // #endregion
-
   const admin = createAdminClient()
 
   // Step 1: registrations with sub_program_id -> program_id/name
@@ -62,9 +58,6 @@ export async function GET(req: NextRequest) {
     .eq('seasons.club_id', clubIdToUse)
 
   if (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run12',hypothesisId:'Q',location:'app/api/admin/registrations/by-sport/route.ts:92',message:'registrations fetch error',data:{error:error.message},timestamp:Date.now()})}).catch(()=>{})
-    // #endregion
     return NextResponse.json(
       { error: error.message || 'Failed to load by-program summary (registrations)' },
       { status: 500 }
@@ -113,10 +106,6 @@ export async function GET(req: NextRequest) {
   const result = Array.from(summaries.values()).sort((a, b) =>
     a.programName.localeCompare(b.programName),
   )
-
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run12',hypothesisId:'P',location:'app/api/admin/registrations/by-sport/route.ts:142',message:'by-program success',data:{count:result.length},timestamp:Date.now()})}).catch(()=>{})
-  // #endregion
 
   return NextResponse.json({ bySport: result })
 }

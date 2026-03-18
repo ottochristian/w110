@@ -23,11 +23,11 @@ import { Search } from 'lucide-react'
 
 function statusStyle(status: string) {
   switch (status?.toLowerCase()) {
-    case 'confirmed': case 'paid':    return 'bg-emerald-50 text-emerald-700 ring-emerald-100'
-    case 'pending': case 'unpaid':    return 'bg-amber-50 text-amber-700 ring-amber-100'
-    case 'waitlisted':                return 'bg-zinc-100 text-zinc-600 ring-zinc-200'
-    case 'cancelled': case 'failed':  return 'bg-red-50 text-red-600 ring-red-100'
-    default:                          return 'bg-zinc-100 text-zinc-600 ring-zinc-200'
+    case 'confirmed': case 'paid':    return 'bg-emerald-950/30 text-emerald-400 ring-emerald-800/40'
+    case 'pending': case 'unpaid':    return 'bg-amber-950/30 text-amber-400 ring-amber-800/40'
+    case 'waitlisted':                return 'bg-secondary text-muted-foreground ring-border'
+    case 'cancelled': case 'failed':  return 'bg-red-950/30 text-red-400 ring-red-800/40'
+    default:                          return 'bg-secondary text-muted-foreground ring-border'
   }
 }
 
@@ -131,8 +131,8 @@ export default function RegistrationsPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <p className="text-sm font-medium text-zinc-900 mb-1">No Season Selected</p>
-          <p className="text-sm text-zinc-400">Please select a season to view registrations.</p>
+          <p className="text-sm font-medium text-foreground mb-1">No Season Selected</p>
+          <p className="text-sm text-muted-foreground">Please select a season to view registrations.</p>
         </div>
       </div>
     )
@@ -151,54 +151,54 @@ export default function RegistrationsPage() {
       />
 
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">
-          <div className="bg-white px-5 py-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-secondary rounded-xl overflow-hidden ring-1 ring-border">
+          <div className="bg-card px-5 py-5">
             <div className="flex items-start justify-between mb-4">
-              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Revenue</span>
-              <DollarSign className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Revenue</span>
+              <DollarSign className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             </div>
-            <p className="text-3xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+            <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums">
               ${summary.payments.paidAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
-            <p className="text-xs text-zinc-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Net ${summary.netRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="bg-white px-5 py-5">
+          <div className="bg-card px-5 py-5">
             <div className="flex items-start justify-between mb-4">
-              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Registrations</span>
-              <FileText className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Registrations</span>
+              <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             </div>
-            <p className="text-3xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+            <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums">
               {summary.totals.registrations}
             </p>
-            <p className="text-xs text-zinc-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               {summary.status.confirmed} confirmed · {summary.status.pending} pending · {summary.status.waitlisted} waitlist
             </p>
           </div>
-          <div className="bg-white px-5 py-5">
+          <div className="bg-card px-5 py-5">
             <div className="flex items-start justify-between mb-4">
-              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Payments</span>
-              <CreditCard className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Payments</span>
+              <CreditCard className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             </div>
-            <p className="text-3xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+            <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums">
               {summary.payments.paidCount}
             </p>
-            <p className="text-xs text-zinc-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               paid · {summary.payments.unpaidCount} unpaid · ${summary.payments.pendingAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} pending
             </p>
           </div>
         </div>
       )}
 
-      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-50 flex items-center justify-between gap-4">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900">All Registrations</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">{selectedSeason.name}</p>
+            <h3 className="text-sm font-semibold text-foreground">All Registrations</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{selectedSeason.name}</p>
           </div>
           <div className="relative w-56 flex-shrink-0">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search athletes…"
               value={search}
@@ -231,7 +231,7 @@ export default function RegistrationsPage() {
                     <TableCell>
                       {reg.athlete?.first_name} {reg.athlete?.last_name}
                       {reg.athlete?.date_of_birth && (
-                        <div className="text-xs text-zinc-400">
+                        <div className="text-xs text-muted-foreground">
                           DOB: {new Date(reg.athlete.date_of_birth).toLocaleDateString()}
                         </div>
                       )}
@@ -257,7 +257,7 @@ export default function RegistrationsPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="py-10 text-center text-sm text-zinc-400">
+            <p className="py-10 text-center text-sm text-muted-foreground">
               No registrations found for this season
             </p>
           )}
@@ -265,7 +265,7 @@ export default function RegistrationsPage() {
 
         {/* Pagination controls */}
         {paginatedData && paginatedData.totalPages > 1 && (
-          <div className="px-5 py-4 border-t border-zinc-50">
+          <div className="px-5 py-4 border-t border-border">
             <PaginationControls
               currentPage={paginatedData.page}
               totalPages={paginatedData.totalPages}

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, AlertCircle } from 'lucide-react'
 
-interface SentryError {
+export interface SentryError {
   id: string
   title: string
   message: string
@@ -29,13 +29,13 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'bg-red-600 text-white'
+        return 'bg-red-600 text-foreground'
       case 'error':
-        return 'bg-red-500 text-white'
+        return 'bg-red-500 text-foreground'
       case 'warning':
-        return 'bg-yellow-500 text-white'
+        return 'bg-yellow-500 text-foreground'
       default:
-        return 'bg-zinc-500 text-white'
+        return 'bg-zinc-500 text-foreground'
     }
   }
 
@@ -69,7 +69,7 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
           <CardTitle>Error Feed</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             Loading errors...
           </div>
         </CardContent>
@@ -85,13 +85,13 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-sm text-gray-600 mb-4">
+            <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground mb-4">
               Sentry API not configured
             </p>
-            <div className="text-xs text-left bg-gray-50 p-4 rounded-lg max-w-md mx-auto">
+            <div className="text-xs text-left bg-card p-4 rounded-lg max-w-md mx-auto">
               <p className="font-medium mb-2">To enable error feed:</p>
-              <ol className="list-decimal list-inside space-y-1 text-gray-700">
+              <ol className="list-decimal list-inside space-y-1 text-foreground">
                 <li>Get auth token from Sentry</li>
                 <li>Add SENTRY_AUTH_TOKEN to .env.local</li>
                 <li>Restart server</li>
@@ -120,7 +120,7 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
       </CardHeader>
       <CardContent className="max-h-[600px] overflow-y-auto">
         {errors.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <span className="text-4xl mb-4 block">🎉</span>
             <p>No errors in the last 24 hours!</p>
             <p className="text-xs mt-2">Your app is running smoothly.</p>
@@ -130,7 +130,7 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
             {errors.map((error) => (
               <div
                 key={error.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                className="border rounded-lg p-4 hover:bg-card transition-colors"
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-start gap-2 flex-1">
@@ -138,7 +138,7 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm mb-1 truncate">{error.title}</h4>
                       {error.message && (
-                        <p className="text-xs text-gray-600 truncate">{error.message}</p>
+                        <p className="text-xs text-muted-foreground truncate">{error.message}</p>
                       )}
                     </div>
                   </div>
@@ -147,7 +147,7 @@ export function ErrorFeed({ errors, loading, configured }: ErrorFeedProps) {
                   </Badge>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
                   <div className="flex items-center gap-3">
                     <span>{formatTimeAgo(error.lastSeen)}</span>
                     <span>•</span>

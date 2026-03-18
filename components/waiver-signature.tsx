@@ -1,15 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { FileText, CheckCircle, AlertCircle } from 'lucide-react'
+import { CheckCircle, PenLine } from 'lucide-react'
 import { useSignWaiver, useAthleteWaiverStatus } from '@/lib/hooks/use-waivers'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface WaiverSignatureProps {
   waiver: {
@@ -24,6 +23,7 @@ interface WaiverSignatureProps {
     last_name: string
   }
   guardianId: string
+  guardianName: string
   onSignatureComplete?: () => void
   showTitle?: boolean
 }
@@ -32,8 +32,9 @@ export function WaiverSignature({
   waiver,
   athlete,
   guardianId,
+  guardianName,
   onSignatureComplete,
-  showTitle = true
+  showTitle = true,
 }: WaiverSignatureProps) {
   const [agreed, setAgreed] = useState(false)
   const [typedName, setTypedName] = useState('')
@@ -42,20 +43,21 @@ export function WaiverSignature({
   const signWaiver = useSignWaiver()
   const { data: waiverStatus } = useAthleteWaiverStatus(athlete.id)
 
-  // Check if this specific waiver is already signed
   const isSigned = waiverStatus?.find(
     (status: any) => status.waiver_id === waiver.id && status.status === 'signed'
   )
+
+  const athleteFullName = `${athlete.first_name} ${athlete.last_name}`
+  const nameMatches = typedName.trim().toLowerCase() === guardianName.trim().toLowerCase()
+  const canSign = agreed && typedName.trim() && nameMatches
 
   const handleSign = async () => {
     if (!agreed) {
       toast.error('Please check the agreement box to continue')
       return
     }
-
-    const fullName = `${athlete.first_name} ${athlete.last_name}`
-    if (typedName.trim().toLowerCase() !== fullName.toLowerCase()) {
-      toast.error('Please type the athlete\'s full name exactly as shown')
+    if (!nameMatches) {
+      toast.error(`Please type your full name exactly: ${guardianName}`)
       return
     }
 
@@ -67,7 +69,6 @@ export function WaiverSignature({
         guardianId,
         signedName: typedName.trim(),
       })
-
       toast.success('Waiver signed successfully')
       setAgreed(false)
       setTypedName('')
@@ -82,103 +83,109 @@ export function WaiverSignature({
 
   if (isSigned) {
     return (
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2 text-green-700">
-            <CheckCircle className="h-5 w-5" />
-            <span className="font-medium">
-              Waiver signed for {athlete.first_name} {athlete.last_name}
-            </span>
-          </div>
-          <p className="text-sm text-green-600 mt-1">
-            Signed on {new Date(isSigned.signed_at).toLocaleDateString()}
+      <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-center">
+        <div className="rounded-full bg-green-100 p-4">
+          <CheckCircle className="h-8 w-8 text-green-600" />
+        </div>
+        <div>
+          <p className="text-base font-semibold text-green-800">Waiver Signed</p>
+          <p className="mt-1 text-sm text-green-700">
+            Signed for {athleteFullName} on{' '}
+            {new Date(isSigned.signed_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className={waiver.required ? 'border-orange-200' : 'border-gray-200'}>
-      <CardHeader>
-        {showTitle && (
-          <>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {waiver.title}
-              {waiver.required && (
-                <span className="text-sm font-normal text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                  Required
-                </span>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Please read and sign this waiver for {athlete.first_name} {athlete.last_name}
-            </CardDescription>
-          </>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Waiver Content */}
-        <div className="border rounded-lg p-4 max-h-96 overflow-y-auto bg-gray-50">
-          <pre className="whitespace-pre-wrap text-sm font-sans leading-relaxed">
-            {waiver.body}
-          </pre>
+    <div className="flex flex-col">
+      {showTitle && (
+        <div className="px-6 pt-5 pb-4 border-b">
+          <h3 className="text-base font-semibold">{waiver.title}</h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Please read and sign for {athleteFullName}
+          </p>
         </div>
+      )}
 
-        {/* Agreement Checkbox */}
-        <div className="flex items-center space-x-2">
+      {/* Waiver body */}
+      <div className="px-6 py-5 border-b bg-card overflow-y-auto" style={{ maxHeight: '38vh' }}>
+        <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-sans">
+          {waiver.body}
+        </div>
+      </div>
+
+      {/* Signature section */}
+      <div className="px-6 py-5 space-y-5 bg-card">
+        {/* Checkbox */}
+        <label className="flex items-start gap-3 cursor-pointer group">
           <Checkbox
             id={`agree-${waiver.id}-${athlete.id}`}
             checked={agreed}
             onCheckedChange={(checked) => setAgreed(checked as boolean)}
+            className="mt-0.5 shrink-0"
           />
-          <Label
-            htmlFor={`agree-${waiver.id}-${athlete.id}`}
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            I have read and agree to the terms of this waiver
-          </Label>
-        </div>
+          <span className="text-sm text-foreground group-hover:text-foreground transition-colors leading-snug">
+            I, <strong>{guardianName}</strong>, have read and agree to the terms of this waiver on behalf of{' '}
+            <strong>{athleteFullName}</strong>, and accept full responsibility as described above.
+          </span>
+        </label>
 
-        {/* Name Verification */}
+        {/* Guardian name confirmation */}
         <div className="space-y-2">
-          <Label htmlFor={`name-${waiver.id}-${athlete.id}`}>
-            Type the athlete's full name to confirm: <strong>{athlete.first_name} {athlete.last_name}</strong>
+          <Label htmlFor={`name-${waiver.id}-${athlete.id}`} className="text-sm font-medium">
+            Type your full name to sign
           </Label>
-          <Input
-            id={`name-${waiver.id}-${athlete.id}`}
-            value={typedName}
-            onChange={(e) => setTypedName(e.target.value)}
-            placeholder={`${athlete.first_name} ${athlete.last_name}`}
-            className="font-mono"
-          />
-          {typedName && typedName.trim().toLowerCase() !== `${athlete.first_name} ${athlete.last_name}`.toLowerCase() && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Name must match exactly: {athlete.first_name} {athlete.last_name}
-              </AlertDescription>
-            </Alert>
+          <p className="text-xs text-muted-foreground -mt-1">
+            Sign as: <strong>{guardianName}</strong>
+          </p>
+          <div className="relative">
+            <PenLine className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id={`name-${waiver.id}-${athlete.id}`}
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              placeholder={guardianName}
+              className={cn(
+                'pl-9',
+                typedName && !nameMatches && 'border-red-300 focus-visible:ring-red-300',
+                typedName && nameMatches && 'border-green-400 focus-visible:ring-green-300',
+              )}
+            />
+          </div>
+          {typedName && !nameMatches && (
+            <p className="text-xs text-red-600">
+              Must match exactly: <strong>{guardianName}</strong>
+            </p>
+          )}
+          {typedName && nameMatches && (
+            <p className="text-xs text-green-600 flex items-center gap-1">
+              <CheckCircle className="h-3.5 w-3.5" /> Signature confirmed
+            </p>
           )}
         </div>
 
-        {/* Sign Button */}
+        {/* Submit */}
         <Button
           onClick={handleSign}
-          disabled={!agreed || !typedName.trim() || isSubmitting}
+          disabled={!canSign || isSubmitting}
           className="w-full"
-          variant={waiver.required ? "default" : "outline"}
+          size="lg"
         >
-          {isSubmitting ? 'Signing...' : `Sign Waiver for ${athlete.first_name} ${athlete.last_name}`}
+          {isSubmitting ? 'Signing…' : `Sign Waiver for ${athlete.first_name}`}
         </Button>
 
         {waiver.required && (
           <p className="text-xs text-muted-foreground text-center">
-            This waiver is required before you can complete registration
+            This waiver must be signed before completing registration
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

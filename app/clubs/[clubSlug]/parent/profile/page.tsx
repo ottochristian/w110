@@ -300,7 +300,7 @@ export default function ParentProfilePage() {
                   setFormData({ ...formData, firstName: e.target.value })
                 }
                 required
-                className={!formData.firstName ? 'border-red-300' : ''}
+                className={!formData.firstName ? 'border-red-700' : ''}
               />
             </div>
 
@@ -314,7 +314,7 @@ export default function ParentProfilePage() {
                   setFormData({ ...formData, lastName: e.target.value })
                 }
                 required
-                className={!formData.lastName ? 'border-red-300' : ''}
+                className={!formData.lastName ? 'border-red-700' : ''}
               />
             </div>
 
@@ -725,7 +725,7 @@ export default function ParentProfilePage() {
 
               {/* Guardian Count Warning */}
               {guardianCount >= 3 && (
-                <div className="rounded-md bg-yellow-50 dark:bg-yellow-900/20 p-3 text-sm text-yellow-800 dark:text-yellow-200">
+                <div className="rounded-md border border-yellow-800/40 bg-yellow-950/20 p-3 text-sm text-yellow-400">
                   <p className="font-medium">Maximum guardians reached</p>
                   <p className="text-xs mt-1">
                     Your household has reached the maximum of 3 guardians. Remove a guardian before inviting a new one.
@@ -735,7 +735,7 @@ export default function ParentProfilePage() {
 
               {/* Info for secondary guardians */}
               {!isPrimaryGuardian && (
-                <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-3 text-sm text-blue-800 dark:text-blue-200">
+                <div className="rounded-md border border-blue-800/40 bg-blue-950/20 p-3 text-sm text-blue-300">
                   <p>
                     You are a secondary guardian. You have the same permissions as the primary guardian, but you cannot remove other guardians or invite new ones.
                   </p>

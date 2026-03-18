@@ -4,6 +4,7 @@ import { otpService } from '@/lib/services/otp-service'
 import { notificationService } from '@/lib/services/notification-service'
 import { tokenService } from '@/lib/services/token-service'
 import { systemAdminInviteSchema, ValidationError } from '@/lib/validation'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Creating admin invitation for:', email)
+    log.info('Creating admin invitation', { email })
 
     // Step 1: Create user in auth.users (without password - they'll set it later)
     // Note: Supabase auth automatically lowercases emails
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
       .eq('id', clubId)
       .single()
 
-    const clubName = clubData?.name || 'Ski Admin'
+    const clubName = clubData?.name || 'W110'
 
     // Step 4: Generate secure setup token (prevents unauthorized access)
     let setupToken: string

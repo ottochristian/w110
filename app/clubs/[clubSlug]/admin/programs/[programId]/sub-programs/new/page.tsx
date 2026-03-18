@@ -127,12 +127,12 @@ export default function NewSubProgramPage() {
         </Button>
         {isLoading ? (
           <div>
-            <h1 className="text-3xl font-bold">Add Sub-Program</h1>
+            <h1 className="page-title">Add Sub-Program</h1>
             <InlineLoading message="Loading program…" />
           </div>
         ) : !program ? (
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">Program Not Found</h1>
+            <h1 className="page-title">Program Not Found</h1>
             <ErrorState
               error="The program you're looking for doesn't exist or you don't have access to it."
               onRetry={() => router.push(`${basePath}/programs`)}
@@ -140,7 +140,7 @@ export default function NewSubProgramPage() {
           </div>
         ) : (
           <div>
-            <h1 className="text-3xl font-bold">Add Sub-Program to {program.name}</h1>
+            <h1 className="page-title">Add Sub-Program to {program.name}</h1>
             <p className="text-muted-foreground">Create a new sub-program</p>
           </div>
         )}

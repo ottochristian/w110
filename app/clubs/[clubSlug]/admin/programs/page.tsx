@@ -92,7 +92,7 @@ export default function ProgramsPage() {
   })
 
   // Extract programs from paginated data
-  const programs = (paginatedData?.data || []) as ProgramWithSubPrograms[]
+  const programs = (paginatedData?.data || []) as unknown as ProgramWithSubPrograms[]
 
   async function handleDeleteClick(programId: string) {
     const program = programs.find(p => p.id === programId)
@@ -303,10 +303,10 @@ export default function ProgramsPage() {
       />
 
 
-      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-50 flex items-center justify-between gap-4">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Programs</h3>
+            <h3 className="text-sm font-semibold text-foreground">Programs</h3>
             <p className="text-xs text-zinc-400 mt-0.5">
               {selectedSeason?.name || 'Selected season'}
             </p>
@@ -329,17 +329,17 @@ export default function ProgramsPage() {
             No programs yet. Click "Add Program" to create one.
           </div>
         ) : (
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-border">
             {programs.map((program) => (
               <div key={program.id} className="group/program">
 
                 {/* Program row */}
-                <div className="flex items-start gap-4 px-5 py-4 hover:bg-zinc-50/40 transition-colors">
+                <div className="flex items-start gap-4 px-5 py-4 hover:bg-secondary/50 transition-colors">
                   <div className="flex-1 min-w-0 pt-px">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-zinc-900">{program.name}</span>
+                      <span className="text-sm font-semibold text-foreground">{program.name}</span>
                       {program.status === ProgramStatus.INACTIVE && (
-                        <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-500 ring-1 ring-inset ring-zinc-200 uppercase tracking-wide">
+                        <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-secondary text-muted-foreground ring-1 ring-inset ring-border uppercase tracking-wide">
                           Inactive
                         </span>
                       )}
@@ -351,19 +351,19 @@ export default function ProgramsPage() {
                   {/* Program actions — always visible */}
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     <Link href={`${basePath}/programs/${program.id}/edit`}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-secondary/50">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                     </Link>
                     <Link href={`${basePath}/programs/${program.id}/sub-programs/new`}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100" title="Add sub-program">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-secondary/50" title="Add sub-program">
                         <Plus className="h-3.5 w-3.5" />
                       </Button>
                     </Link>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50"
+                      className="h-7 w-7 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-950/30"
                       onClick={() => handleActivateAll(program.id)}
                       disabled={activatingId === program.id}
                       title="Activate all sub-programs and groups"
@@ -373,7 +373,7 @@ export default function ProgramsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-zinc-300 hover:text-red-500 hover:bg-red-50"
+                      className="h-7 w-7 text-muted-foreground hover:text-red-500 hover:bg-red-950/20"
                       onClick={() => handleDeleteClick(program.id)}
                       disabled={deletingId === program.id}
                     >
@@ -384,18 +384,18 @@ export default function ProgramsPage() {
 
                 {/* Sub-programs — indented with left accent line */}
                 <div className="px-5 pb-3">
-                  <div className="ml-4 pl-4 border-l-2 border-zinc-100">
+                  <div className="ml-4 pl-4 border-l-2 border-border">
                     {program.sub_programs && program.sub_programs.length > 0 ? (
                       <div className="space-y-px">
                         {program.sub_programs.map(subProgram => (
                           <div
                             key={subProgram.id}
-                            className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-zinc-50 transition-colors group/sub"
+                            className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-secondary/50 transition-colors group/sub"
                           >
                             <div className="flex-1 min-w-0 flex items-center gap-2">
-                              <span className="text-sm text-zinc-700">{subProgram.name}</span>
+                              <span className="text-sm text-foreground">{subProgram.name}</span>
                               {subProgram.status === ProgramStatus.INACTIVE && (
-                                <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-400 ring-1 ring-inset ring-zinc-200 uppercase tracking-wide flex-shrink-0">
+                                <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-secondary text-muted-foreground ring-1 ring-inset ring-border uppercase tracking-wide flex-shrink-0">
                                   Inactive
                                 </span>
                               )}
@@ -406,19 +406,19 @@ export default function ProgramsPage() {
                             {/* Sub-program actions — appear on hover */}
                             <div className="flex items-center gap-0.5 opacity-0 group-hover/sub:opacity-100 transition-opacity flex-shrink-0">
                               <Link href={`${basePath}/sub-programs/${subProgram.id}/edit`}>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-secondary/50">
                                   <Pencil className="h-3 w-3" />
                                 </Button>
                               </Link>
                               <Link href={`${basePath}/sub-programs/${subProgram.id}/groups/new`}>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100" title="Add group">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-secondary/50" title="Add group">
                                   <Plus className="h-3 w-3" />
                                 </Button>
                               </Link>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 text-zinc-300 hover:text-red-500 hover:bg-red-50"
+                                className="h-6 w-6 text-muted-foreground hover:text-red-500 hover:bg-red-950/20"
                                 onClick={() => handleDeleteSubProgram(subProgram.id, program.id)}
                                 disabled={deletingSubProgramId === subProgram.id}
                               >
@@ -430,7 +430,7 @@ export default function ProgramsPage() {
                         {/* Add sub-program inline link */}
                         <Link
                           href={`${basePath}/programs/${program.id}/sub-programs/new`}
-                          className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-zinc-300 hover:text-blue-500 transition-colors rounded-lg hover:bg-zinc-50"
+                          className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-orange-500 transition-colors rounded-lg hover:bg-secondary/50"
                         >
                           <Plus className="h-3 w-3" />
                           Add sub-program
@@ -439,7 +439,7 @@ export default function ProgramsPage() {
                     ) : (
                       <Link
                         href={`${basePath}/programs/${program.id}/sub-programs/new`}
-                        className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-zinc-300 hover:text-blue-500 transition-colors rounded-lg hover:bg-zinc-50"
+                        className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-orange-500 transition-colors rounded-lg hover:bg-secondary/50"
                       >
                         <Plus className="h-3 w-3" />
                         Add sub-program
@@ -454,7 +454,7 @@ export default function ProgramsPage() {
         )}
 
         {paginatedData && paginatedData.totalPages > 1 && (
-          <div className="px-5 py-4 border-t border-zinc-50">
+          <div className="px-5 py-4 border-t border-border">
             <PaginationControls
               currentPage={paginatedData.page}
               totalPages={paginatedData.totalPages}
@@ -487,11 +487,11 @@ export default function ProgramsPage() {
               </div>
             ) : deleteCounts && (
               <>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                  <p className="text-sm font-semibold text-yellow-900 mb-2">
+                <div className="bg-yellow-950/30 border border-yellow-800/40 rounded-md p-4">
+                  <p className="text-sm font-semibold text-yellow-400 mb-2">
                     ⚠️ This action will affect:
                   </p>
-                  <ul className="text-sm text-yellow-800 space-y-1">
+                  <ul className="text-sm text-yellow-300 space-y-1">
                     <li>• {deleteCounts.subPrograms} sub-program(s)</li>
                     <li>• {deleteCounts.groups} group(s)</li>
                     <li>• {deleteCounts.athletes} athlete registration(s)</li>
@@ -499,11 +499,11 @@ export default function ProgramsPage() {
                   </ul>
                 </div>
 
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                  <p className="text-sm font-semibold text-red-900 mb-2">
+                <div className="bg-red-950/20 border border-red-800/40 rounded-md p-4">
+                  <p className="text-sm font-semibold text-red-400 mb-2">
                     🚨 Soft Delete: Data remains in database
                   </p>
-                  <p className="text-sm text-red-800">
+                  <p className="text-sm text-red-300">
                     This program will be hidden from the admin portal but data remains in the database for audit/recovery purposes. 
                     All relationships with athletes, coaches, sub-programs, and groups will be preserved.
                   </p>
@@ -511,13 +511,13 @@ export default function ProgramsPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Type <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm:
+                    Type <span className="font-mono bg-secondary px-1.5 py-0.5 rounded">DELETE</span> to confirm:
                   </label>
                   <input
                     type="text"
                     value={deleteConfirmText}
                     onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full rounded-md border border-border bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="Type DELETE"
                     autoFocus
                   />

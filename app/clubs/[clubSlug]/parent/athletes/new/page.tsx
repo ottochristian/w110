@@ -77,7 +77,7 @@ export default function NewAthletePage() {
       // Use SECURITY DEFINER function to create athlete (bypasses RLS issues)
       const { data: athleteId, error: createError } = await supabase
         .rpc('create_athlete_for_parent', {
-          p_user_id: user.id as any, // Cast to UUID for PostgreSQL function
+          p_user_id: user.id,
           p_first_name: formData.firstName,
           p_last_name: formData.lastName,
           p_household_id: household.id,
@@ -96,6 +96,7 @@ export default function NewAthletePage() {
       // Athlete created successfully - redirect to athletes list
       // Waivers will be handled during program registration (cart/checkout)
       await queryClient.invalidateQueries({ queryKey: ['athletes'] })
+      await queryClient.invalidateQueries({ queryKey: ['athletes-by-household'] })
       router.push(`/clubs/${clubSlug}/parent/athletes`)
       toast.success(`${formData.firstName} ${formData.lastName} has been added to your household!`)
     } catch (err) {
@@ -149,8 +150,8 @@ export default function NewAthletePage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="bg-red-950/20 border border-red-800 rounded-md p-4">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
@@ -199,7 +200,7 @@ export default function NewAthletePage() {
                 }
                 required
               >
-                <SelectTrigger id="gender" className={!formData.gender ? 'border-red-300' : ''}>
+                <SelectTrigger id="gender" className={!formData.gender ? 'border-red-700' : ''}>
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>

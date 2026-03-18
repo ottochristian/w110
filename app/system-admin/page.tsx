@@ -81,12 +81,12 @@ function MetricCell({
   valueColor?: string
 }) {
   return (
-    <div className="bg-white px-5 py-5">
+    <div className="bg-zinc-900 px-5 py-5">
       <div className="flex items-start justify-between mb-4">
         <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">{label}</span>
-        <Icon className="h-3.5 w-3.5 text-zinc-300 mt-0.5" />
+        <Icon className="h-3.5 w-3.5 text-zinc-600 mt-0.5" />
       </div>
-      <p className={`text-3xl font-semibold tracking-tight tabular-nums ${valueColor || 'text-zinc-900'}`}>
+      <p className={`metric-value ${valueColor || 'text-foreground'}`}>
         {value}
       </p>
       {sub && <p className="text-xs text-zinc-400 mt-2">{sub}</p>}
@@ -147,14 +147,14 @@ export default function SystemAdminDashboard() {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <p className="text-xl font-semibold text-zinc-900 tracking-tight">System Overview</p>
+          <p className="page-title text-foreground">System Overview</p>
         </div>
-        <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4">
-          <div className="flex items-center gap-2 text-red-600 mb-3">
+        <div className="rounded-xl border border-red-900/50 bg-red-900/20 px-5 py-4">
+          <div className="flex items-center gap-2 text-red-400 mb-3">
             <AlertCircle className="w-4 h-4" />
             <p className="text-sm font-medium">Failed to load dashboard</p>
           </div>
-          <p className="text-sm text-red-500 mb-4">{error}</p>
+          <p className="text-sm text-red-400 mb-4">{error}</p>
           <Button onClick={loadStats} variant="outline" size="sm">
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             Retry
@@ -173,7 +173,7 @@ export default function SystemAdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">System Overview</h1>
+          <h1 className="page-title text-foreground">System Overview</h1>
           <p className="text-sm text-zinc-400 mt-0.5">Platform-wide metrics and health</p>
         </div>
         <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export default function SystemAdminDashboard() {
       </div>
 
       {/* Primary Metric Strip — Clubs · Users · Athletes · Revenue */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-800 rounded-xl overflow-hidden ring-1 ring-zinc-800">
         <MetricCell
           label="Clubs"
           value={stats.clubs.total}
@@ -224,7 +224,7 @@ export default function SystemAdminDashboard() {
       </div>
 
       {/* Secondary Metric Strip — Programs · Registrations · Payments · Health */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-100">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-800 rounded-xl overflow-hidden ring-1 ring-zinc-800">
         <MetricCell
           label="Programs"
           value={stats.programs.total}
@@ -255,20 +255,20 @@ export default function SystemAdminDashboard() {
       {/* Second Row — User Breakdown + Payments + Programs */}
       <div className="grid gap-5 lg:grid-cols-3">
         {/* User Breakdown */}
-        <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-50">
-            <h3 className="text-sm font-semibold text-zinc-900">Users by Role</h3>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-800">
+            <h3 className="text-sm font-semibold text-foreground">Users by Role</h3>
           </div>
-          <div className="grid grid-cols-2 gap-px bg-zinc-50 p-px">
+          <div className="grid grid-cols-2 gap-px bg-zinc-800 p-px">
             {[
               { label: 'Admins', value: stats.users.admins },
               { label: 'Coaches', value: stats.users.coaches },
               { label: 'Parents', value: stats.users.parents },
               { label: 'Active Today', value: stats.users.activeToday, highlight: true },
             ].map(({ label, value, highlight }) => (
-              <div key={label} className="bg-white px-4 py-4">
+              <div key={label} className="bg-zinc-900 px-4 py-4">
                 <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-2">{label}</p>
-                <p className={`text-2xl font-semibold tracking-tight tabular-nums ${highlight ? 'text-emerald-600' : 'text-zinc-900'}`}>
+                <p className={`metric-value ${highlight ? 'text-emerald-400' : 'text-foreground'}`}>
                   {value}
                 </p>
               </div>
@@ -277,20 +277,20 @@ export default function SystemAdminDashboard() {
         </div>
 
         {/* Payment Status */}
-        <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-50">
-            <h3 className="text-sm font-semibold text-zinc-900">Payment Status</h3>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-800">
+            <h3 className="text-sm font-semibold text-foreground">Payment Status</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Last 30 days</p>
           </div>
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-zinc-800">
             <div className="flex items-center justify-between px-5 py-3.5">
               <div className="flex items-center gap-2.5">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="text-sm text-zinc-700">Paid</span>
+                <span className="text-sm text-zinc-300">Paid</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-zinc-900 tabular-nums">{stats.payments.paid}</span>
-                <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100">
+                <span className="text-sm font-semibold text-foreground tabular-nums">{stats.payments.paid}</span>
+                <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-emerald-900/30 text-emerald-400 ring-1 ring-inset ring-emerald-800">
                   {stats.payments.successRate}%
                 </span>
               </div>
@@ -298,35 +298,35 @@ export default function SystemAdminDashboard() {
             <div className="flex items-center justify-between px-5 py-3.5">
               <div className="flex items-center gap-2.5">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-sm text-zinc-700">Pending</span>
+                <span className="text-sm text-zinc-300">Pending</span>
               </div>
-              <span className="text-sm font-semibold text-zinc-900 tabular-nums">{stats.payments.pending}</span>
+              <span className="text-sm font-semibold text-foreground tabular-nums">{stats.payments.pending}</span>
             </div>
             <div className="flex items-center justify-between px-5 py-3.5">
               <div className="flex items-center gap-2.5">
                 <AlertCircle className="w-3.5 h-3.5 text-red-400" />
-                <span className="text-sm text-zinc-700">Failed</span>
+                <span className="text-sm text-zinc-300">Failed</span>
               </div>
-              <span className="text-sm font-semibold text-red-600 tabular-nums">{stats.payments.failed}</span>
+              <span className="text-sm font-semibold text-red-400 tabular-nums">{stats.payments.failed}</span>
             </div>
           </div>
         </div>
 
         {/* Programs by Sport */}
-        <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-50">
-            <h3 className="text-sm font-semibold text-zinc-900">Programs by Sport</h3>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-800">
+            <h3 className="text-sm font-semibold text-foreground">Programs by Sport</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Distribution across sports</p>
           </div>
           {Object.keys(stats.programs.bySport).length > 0 ? (
-            <div className="divide-y divide-zinc-50">
+            <div className="divide-y divide-zinc-800">
               {Object.entries(stats.programs.bySport)
                 .sort(([, a], [, b]) => b - a)
                 .slice(0, 5)
                 .map(([sport, count]) => (
                   <div key={sport} className="flex items-center justify-between px-5 py-3.5">
-                    <span className="text-sm text-zinc-700 capitalize">{sport}</span>
-                    <span className="text-sm font-semibold text-zinc-900 tabular-nums">{count}</span>
+                    <span className="text-sm text-zinc-300 capitalize">{sport}</span>
+                    <span className="text-sm font-semibold text-foreground tabular-nums">{count}</span>
                   </div>
                 ))}
             </div>
@@ -337,11 +337,11 @@ export default function SystemAdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-xl border border-zinc-100 bg-white overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-50">
-          <h3 className="text-sm font-semibold text-zinc-900">Quick Actions</h3>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-800">
+          <h3 className="text-sm font-semibold text-foreground">Quick Actions</h3>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-50 p-px">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-800 p-px">
           {[
             { href: '/system-admin/clubs', icon: Building2, label: 'Manage Clubs' },
             { href: '/system-admin/monitoring', icon: Activity, label: 'Monitoring' },
@@ -351,12 +351,12 @@ export default function SystemAdminDashboard() {
             <Link
               key={href}
               href={href}
-              className="bg-white flex items-center gap-3 px-5 py-4 hover:bg-zinc-50/80 transition-colors group"
+              className="bg-zinc-900 flex items-center gap-3 px-5 py-4 hover:bg-zinc-800 transition-colors group"
             >
-              <div className="w-7 h-7 rounded-lg bg-zinc-50 flex items-center justify-center flex-shrink-0 group-hover:bg-zinc-100 transition-colors">
+              <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0 group-hover:bg-zinc-700 transition-colors">
                 <Icon className="w-3.5 h-3.5 text-zinc-400" />
               </div>
-              <span className="text-sm font-medium text-zinc-700">{label}</span>
+              <span className="text-sm font-medium text-zinc-300">{label}</span>
             </Link>
           ))}
         </div>

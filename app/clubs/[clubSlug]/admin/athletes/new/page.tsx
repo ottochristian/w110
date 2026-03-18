@@ -118,7 +118,7 @@ export default function NewAthletePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold">Add New Athlete</h1>
+        <h1 className="page-title">Add New Athlete</h1>
         <p className="text-muted-foreground">Create a new athlete profile</p>
       </div>
 
@@ -130,8 +130,8 @@ export default function NewAthletePage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="bg-red-950/20 border border-red-800/40 rounded-md p-4">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 

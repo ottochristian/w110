@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadAuthInProgressRef = useRef(false) // Prevent concurrent auth loads
   const lastAuthEventRef = useRef<{ event: string; timestamp: number } | null>(null) // Track events
   const pathnameRef = useRef(pathname)
+  const profileRef = useRef<Profile | null>(null) // Track if profile exists (for SIGNED_IN tab-switch detection)
 
   // Load user and profile
   // showLoader: set to false when refreshing token (user already authenticated)
@@ -110,19 +111,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(currentUser)
 
 
-      // Load profile
+      // Load profile — use maybeSingle() so missing rows don't throw PGRST116
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
-        .single()
-
+        .maybeSingle()
 
       if (profileError) {
-        console.error('Profile error:', profileError)
+        console.error('Profile error:', profileError.code, profileError.message, profileError.details)
         setError('Failed to load profile')
         setProfile(null)
         setLoading(false)
+        return
+      }
+
+      if (!profileData) {
+        // Profile row doesn't exist yet (e.g. trigger hasn't fired, new OAuth user)
+        // Don't block login — leave profile null and let the page handle it
+        console.warn('No profile found for user', currentUser.id)
+        setUser(currentUser)
+        setProfile(null)
+        if (showLoader) setLoading(false)
         return
       }
 
@@ -173,9 +183,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Keep pathnameRef current on every render so the subscription callback
-  // always sees the latest pathname without being a dependency of the effect.
+  // Keep refs current on every render so subscription callbacks
+  // always see the latest values without being dependencies of the effect.
   pathnameRef.current = pathname
+  profileRef.current = profile
 
   // Initial load — runs once on mount only.
   // pathname is accessed via pathnameRef inside callbacks to avoid re-subscribing
@@ -212,11 +223,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.push('/login')
         }
       } else if (event === 'SIGNED_IN') {
-        if (initialLoadRef.current) {
+        if (profileRef.current) {
+          // Session restored (tab-switch, router.refresh) — session is valid, just
+          // sync the user object from the event. No getSession call, no spinner.
+          if (session?.user) setUser(session.user)
+        } else {
+          // Fresh sign-in — load full auth
           await loadAuth(true)
         }
       } else if (event === 'TOKEN_REFRESHED') {
-        await loadAuth(false)
+        // Token silently refreshed — update user object, no need to reload profile
+        if (session?.user) setUser(session.user)
       }
     })
 

@@ -3,7 +3,8 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { otpService, OTPType } from '@/lib/services/otp-service'
 import { notificationService } from '@/lib/services/notification-service'
 import { dbRateLimiter } from '@/lib/services/rate-limiter-db'
-import { otpSchema, ValidationError } from '@/lib/validation'
+import { sendOtpSchema, ValidationError } from '@/lib/validation'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 // Helper to get client IP address
@@ -19,13 +20,13 @@ export async function POST(request: NextRequest) {
     let validatedData
     try {
       const body = await request.json()
-      validatedData = otpSchema.parse(body)
+      validatedData = sendOtpSchema.parse(body)
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(
           {
             error: 'Validation failed',
-            validationErrors: error.errors.map((e) => ({
+            validationErrors: error.issues.map((e) => ({
               field: e.path.join('.'),
               message: e.message,
             })),
@@ -39,11 +40,11 @@ export async function POST(request: NextRequest) {
     const body = validatedData
     const { userId, type, contact, metadata } = body
     
-    console.log('[OTP SEND] Request received:', { userId, type, contact, metadata })
+    log.info('[OTP SEND] Request received', { userId, type, contact, metadata })
 
     // Validate required fields
     if (!userId || !type || !contact) {
-      console.log('[OTP SEND] Missing required fields')
+      log.info('[OTP SEND] Missing required fields')
       return NextResponse.json(
         { error: 'Missing required fields: userId, type, contact' },
         { status: 400 }
@@ -121,35 +122,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Send OTP based on type
-    console.log('[OTP SEND] Sending notification for type:', type)
+    log.info('[OTP SEND] Sending notification for type', { type })
     let notificationResult
-    
+    // Cast metadata values to string where needed
+    const metaStr = (key: string): string | undefined =>
+      metadata && typeof metadata[key] === 'string' ? (metadata[key] as string) : undefined
+
     switch (type) {
       case 'email_verification':
-        console.log('[OTP SEND] Calling sendEmailVerificationOTP...')
+        log.debug('[OTP SEND] Calling sendEmailVerificationOTP...')
         notificationResult = await notificationService.sendEmailVerificationOTP(
           contact,
           otpResult.code,
-          metadata?.firstName
+          metaStr('firstName')
         )
-        console.log('[OTP SEND] Email verification OTP sent:', notificationResult)
+        log.info('[OTP SEND] Email verification OTP sent', { notificationResult })
         break
-        
+
       case 'phone_verification':
         notificationResult = await notificationService.sendPhoneVerificationOTP(
           contact,
           otpResult.code
         )
         break
-        
+
       case 'admin_invitation':
         notificationResult = await notificationService.sendAdminInvitationOTP(
           contact,
           otpResult.code,
           {
-            firstName: metadata?.firstName,
-            clubName: metadata?.clubName || 'Ski Admin',
-            setupLink: metadata?.setupLink || `${process.env.NEXT_PUBLIC_APP_URL}/setup-password`
+            firstName: metaStr('firstName'),
+            clubName: metaStr('clubName') || 'W110',
+            setupLink: metaStr('setupLink') || `${process.env.NEXT_PUBLIC_APP_URL}/setup-password`
           }
         )
         break
@@ -171,10 +175,10 @@ export async function POST(request: NextRequest) {
         })
     }
 
-    console.log('[OTP SEND] Notification result:', { success: notificationResult.success, error: notificationResult.error })
+    log.info('[OTP SEND] Notification result', { success: notificationResult.success, error: notificationResult.error })
 
     if (!notificationResult.success) {
-      console.log('[OTP SEND] Notification failed!', notificationResult.error)
+      log.warn('[OTP SEND] Notification failed!', { error: notificationResult.error })
       return NextResponse.json(
         { error: notificationResult.error || 'Failed to send OTP' },
         { status: 500 }
@@ -194,7 +198,7 @@ export async function POST(request: NextRequest) {
       responseData._devNote = 'Code included for development only'
     }
 
-    console.log('[OTP SEND] Success! Returning response')
+    log.info('[OTP SEND] Success! Returning response')
     return NextResponse.json(responseData)
   } catch (error) {
     console.error('OTP send error:', error)

@@ -23,6 +23,21 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status')
   const payment = searchParams.get('payment')
 
+  // Validate enum params to prevent unexpected filter values
+  const VALID_DATE_RANGES = ['custom', 'last-7', 'last-30', 'last-90']
+  const VALID_STATUSES = ['all', 'unpaid', 'partially_paid', 'paid', 'cancelled', 'refunded']
+  const VALID_PAYMENT_METHODS = ['all', 'stripe', 'check', 'cash', 'other']
+
+  if (dateRange && !VALID_DATE_RANGES.includes(dateRange)) {
+    return NextResponse.json({ error: 'Invalid dateRange value' }, { status: 400 })
+  }
+  if (status && !VALID_STATUSES.includes(status)) {
+    return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
+  }
+  if (payment && !VALID_PAYMENT_METHODS.includes(payment)) {
+    return NextResponse.json({ error: 'Invalid payment method value' }, { status: 400 })
+  }
+
   // Require admin authentication
   const authResult = await requireAdmin(req)
   if (authResult instanceof NextResponse) {

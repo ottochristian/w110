@@ -53,7 +53,7 @@ async function sendConfirmationEmail(
     })
     log.info('[Verify Payment] Confirmation email sent', { orderId, to: guardianEmail })
   } catch (err) {
-    log.warn('[Verify Payment] Failed to send confirmation email', { orderId, error: err })
+    log.warn('[Verify Payment] Failed to send confirmation email', { orderId, error: err instanceof Error ? err.message : String(err) })
   }
 }
 
@@ -127,7 +127,7 @@ export async function POST(
     // Check if there's a payment record
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
-      .select('*')
+      .select('id, order_id, amount, status, processed_at')
       .eq('order_id', orderId)
       .eq('status', 'succeeded')
       .single()

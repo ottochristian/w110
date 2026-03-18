@@ -115,7 +115,7 @@ export default function NewCoachPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invite Coach</h1>
+          <h1 className="page-title">Invite Coach</h1>
           <p className="text-muted-foreground">
             Send an invitation email to a new coach
           </p>
@@ -136,14 +136,14 @@ export default function NewCoachPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="bg-red-950/20 border border-red-800/40 rounded-md p-4">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
             {success && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <p className="text-sm text-green-800">{success}</p>
+              <div className="bg-green-950/30 border border-green-800/40 rounded-md p-4">
+                <p className="text-sm text-green-400">{success}</p>
               </div>
             )}
 

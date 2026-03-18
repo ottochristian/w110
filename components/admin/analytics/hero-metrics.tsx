@@ -19,7 +19,7 @@ function MetricCard({
   value,
   subtitle,
   icon,
-  iconColor = 'text-blue-600',
+  iconColor = 'text-orange-500',
   loading,
 }: MetricCardProps) {
   if (loading) {
@@ -42,15 +42,15 @@ function MetricCard({
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <div className={cn('p-2 rounded-full bg-gray-50', iconColor)}>
+        <div className={cn('p-2 rounded-full bg-secondary', iconColor)}>
           {icon}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold tracking-tight">{value}</div>
+        <div className="metric-value">{value}</div>
         {subtitle && (
           <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
         )}
@@ -98,7 +98,7 @@ export function HeroMetrics({ data, loading }: HeroMetricsProps) {
             : undefined
         }
         icon={<DollarSign className="h-5 w-5" />}
-        iconColor="text-green-600"
+        iconColor="text-green-500"
         loading={loading}
       />
 
@@ -112,7 +112,7 @@ export function HeroMetrics({ data, loading }: HeroMetricsProps) {
             : undefined
         }
         icon={<UserCheck className="h-5 w-5" />}
-        iconColor="text-blue-600"
+        iconColor="text-primary"
         loading={loading}
       />
 
@@ -124,7 +124,7 @@ export function HeroMetrics({ data, loading }: HeroMetricsProps) {
           data ? `${data.activeHouseholds} households` : undefined
         }
         icon={<Users className="h-5 w-5" />}
-        iconColor="text-purple-600"
+        iconColor="text-purple-400"
         loading={loading}
       />
 
@@ -136,7 +136,7 @@ export function HeroMetrics({ data, loading }: HeroMetricsProps) {
           data ? `${data.outstandingPayments} households` : undefined
         }
         icon={<AlertCircle className="h-5 w-5" />}
-        iconColor="text-amber-600"
+        iconColor="text-amber-400"
         loading={loading}
       />
     </div>

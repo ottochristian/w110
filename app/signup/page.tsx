@@ -1,827 +1,467 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { useClub } from '@/lib/club-context'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ChevronLeft, Check } from 'lucide-react'
+import { ClubPicker } from '@/components/club-picker'
+
+type Club = { id: string; name: string; slug: string }
+
+const STEPS = ['Your account', 'About you', 'Your club']
 
 export default function SignupPage() {
   const router = useRouter()
   const [supabase] = useState(() => createClient())
 
-  const { club } = useClub()
-  
-  // Check if signup is coming from invitation (has redirect to accept-guardian-invitation)
-  const [isInvitationSignup, setIsInvitationSignup] = useState(false)
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const redirect = urlParams.get('redirect')
-      if (redirect && redirect.includes('accept-guardian-invitation')) {
-        setIsInvitationSignup(true)
-      }
-    }
-  }, [])
+  const [step, setStep] = useState(1)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  // Form fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
-  const [addressLine1, setAddressLine1] = useState('')
-  const [addressLine2, setAddressLine2] = useState('')
-  const [city, setCity] = useState('')
-  const [state, setState] = useState('')
-  const [zipCode, setZipCode] = useState('')
-  const [emergencyContactName, setEmergencyContactName] = useState('')
-  const [emergencyContactPhone, setEmergencyContactPhone] = useState('')
-  const [selectedClubId, setSelectedClubId] = useState<string>('')
-  const [clubs, setClubs] = useState<Array<{ id: string; name: string; slug: string }>>([])
-  const [loading, setLoading] = useState(false)
-  const [loadingClubs, setLoadingClubs] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  // Initialize showClubSelection based on URL params to avoid race condition
-  const [clubFromInvitation, setClubFromInvitation] = useState<string | null>(null)
-  const [emailFromInvitation, setEmailFromInvitation] = useState<string | null>(null)
-  // Initialize to true, will be updated in useEffect to avoid hydration mismatch
-  const [showClubSelection, setShowClubSelection] = useState(true)
+  const [selectedClubId, setSelectedClubId] = useState('')
 
-  // Check for club_id and email from invitation in URL
+  // Invitation params
+  const [invitedClubId, setInvitedClubId] = useState<string | null>(null)
+  const [isInvitation, setIsInvitation] = useState(false)
+
+  const [clubs, setClubs] = useState<Club[]>([])
+  const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  // ── On mount: parse invite params + check for partial session ──
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const clubIdParam = urlParams.get('clubId')
-      const emailParam = urlParams.get('email')
-      
-      if (clubIdParam) {
-        setClubFromInvitation(clubIdParam)
-        setShowClubSelection(false) // Hide club selection when coming from invitation
-      }
-      
-      if (emailParam) {
-        setEmailFromInvitation(emailParam)
-        setEmail(emailParam) // Pre-fill email field
-      }
+    const params = new URLSearchParams(window.location.search)
+    const clubId = params.get('clubId')
+    const emailParam = params.get('email')
+    const redirect = params.get('redirect')
+    const invitation = !!(clubId || redirect?.includes('accept-guardian-invitation'))
+
+    if (invitation) {
+      setIsInvitation(true)
+      if (clubId) { setInvitedClubId(clubId); setSelectedClubId(clubId) }
+      if (emailParam) setEmail(emailParam)
     }
+
+    // Check if user already started signup (has session but no complete profile)
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { setCheckingSession(false); return }
+
+      // Has a session — check what's complete
+      const [{ data: profile }, { data: householdGuardian }] = await Promise.all([
+        supabase.from('profiles').select('first_name, last_name, club_id').eq('id', user.id).maybeSingle(),
+        supabase.from('household_guardians').select('household_id').eq('user_id', user.id).maybeSingle(),
+      ])
+
+      // Household exists = onboarding is truly done
+      if (householdGuardian) {
+        router.replace('/login')
+        return
+      }
+
+      // No profile yet (shouldn't happen after trigger fix, but handle it)
+      if (!profile) {
+        setUserId(user.id)
+        setEmail(user.email ?? '')
+        const meta = user.user_metadata ?? {}
+        if (meta.first_name) setFirstName(meta.first_name)
+        if (meta.last_name) setLastName(meta.last_name)
+        setStep(2)
+        setCheckingSession(false)
+        return
+      }
+
+      const nameComplete = profile.first_name.trim() !== '' && profile.last_name.trim() !== ''
+
+      setUserId(user.id)
+      setEmail(user.email ?? '')
+
+      if (!nameComplete) {
+        // Trigger created a stub with empty name — resume at step 2
+        setStep(2)
+      } else {
+        // Name done but no household yet — resume at step 3 (club → creates household)
+        setFirstName(profile.first_name)
+        setLastName(profile.last_name)
+        setStep(invitation ? 2 : 3)
+      }
+
+      setCheckingSession(false)
+    })
+  }, [supabase, router])
+
+  // Load clubs
+  useEffect(() => {
+    fetch('/api/clubs/public')
+      .then(r => r.json())
+      .then(j => setClubs(j?.clubs ?? []))
+      .catch(console.error)
   }, [])
 
-  // Load available clubs
-  useEffect(() => {
-    async function loadClubs() {
-      try {
-        // Check URL params directly to avoid race conditions
-        let urlClubId: string | null = null
-        if (typeof window !== 'undefined') {
-          const urlParams = new URLSearchParams(window.location.search)
-          urlClubId = urlParams.get('clubId')
-        }
-        
-        // Fetch clubs via public API (uses admin client server-side) to avoid RLS blocking anon users
-        const resp = await fetch('/api/clubs/public')
-        const json = await resp.json()
-        const data = json?.clubs as Array<{ id: string; name: string; slug: string }> | null
-        const clubsError = resp.ok ? null : new Error(json?.error || 'Failed to load clubs')
+  const totalSteps = isInvitation ? 2 : 3
 
-        if (clubsError) {
-          console.error('Error loading clubs:', clubsError)
-        } else {
-          setClubs(data || [])
-          
-          // Use URL clubId if available (most reliable), otherwise use state
-          const effectiveClubId = urlClubId || clubFromInvitation
-          
-          // Priority: club from invitation (URL) > club from context > first club
-          if (effectiveClubId) {
-            // CRITICAL: If we have a clubId from URL, ALWAYS hide club selection for invitations
-            // Don't wait for clubs to load - the URL param is authoritative
-            if (urlClubId) {
-              setSelectedClubId(effectiveClubId)
-              setShowClubSelection(false) // Always hide for invitations
-              
-              // Also update clubFromInvitation state if we got it from URL
-              if (!clubFromInvitation) {
-                setClubFromInvitation(urlClubId)
-              }
-            } else {
-              // Only verify club exists if we don't have URL param (using state)
-              const invitedClub = data?.find(c => c.id === effectiveClubId)
-              if (invitedClub) {
-                setSelectedClubId(effectiveClubId)
-                setShowClubSelection(false)
-              } else if (data && data.length > 0) {
-                // Clubs loaded but club not found - fallback
-                setShowClubSelection(true)
-                setSelectedClubId(data[0].id)
-              }
-              // If clubs haven't loaded yet (data is empty), don't change showClubSelection
-              // It should already be set to false by the URL check
-            }
-          } else {
-            // No invitation club - check if this is actually a regular signup
-            // Double-check URL params to be absolutely sure
-            let isActuallyInvitation = false
-            if (typeof window !== 'undefined') {
-              const urlParams = new URLSearchParams(window.location.search)
-              const urlClubIdCheck = urlParams.get('clubId')
-              const redirectParam = urlParams.get('redirect')
-              isActuallyInvitation = !!(urlClubIdCheck || (redirectParam && redirectParam.includes('accept-guardian-invitation')))
-            }
-            
-            // Only proceed with regular signup logic if NOT an invitation
-            if (!isActuallyInvitation) {
-              if (club?.id) {
-                setSelectedClubId(club.id)
-                setShowClubSelection(true) // Show selection for regular signups
-              } else if (data && data.length > 0) {
-                // Default to first club if no club in context
-                setSelectedClubId(data[0].id)
-                setShowClubSelection(true) // Show selection for regular signups
-              }
-            } else {
-              // This is an invitation - keep club selection hidden
-              setShowClubSelection(false)
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error loading clubs:', err)
-      } finally {
-        setLoadingClubs(false)
-      }
-    }
+  function goNext() { setError(null); setStep(s => s + 1) }
+  function goBack() { setError(null); setStep(s => s - 1) }
 
-    loadClubs()
-  }, [club, clubFromInvitation])
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true)
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (error) { setError(error.message); setGoogleLoading(false) }
+  }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  // ── Step 1: create the auth user immediately ──
+  async function handleStep1Continue() {
+    if (!email) return setError('Email is required.')
+    if (password.length < 6) return setError('Password must be at least 6 characters.')
+
     setLoading(true)
     setError(null)
 
-    // Validate required fields
-    if (!firstName || !lastName) {
-      setError('First name and last name are required')
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { first_name: '', last_name: '' } },
+    })
+
+    if (signUpError) {
+      // If already registered, try signing them in — they may have dropped off mid-flow
+      if (signUpError.message.toLowerCase().includes('already registered') ||
+          signUpError.message.toLowerCase().includes('already exists')) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) {
+          // Wrong password or other sign-in issue — send them to login
+          setLoading(false)
+          router.push(`/login?message=${encodeURIComponent('An account with this email already exists. Please sign in.')}`)
+          return
+        }
+        // Signed in — they were mid-onboarding. The mount effect will resume them,
+        // but we can fast-path here since we have the user.
+        setUserId(signInData.user.id)
+        setLoading(false)
+        goNext()
+        return
+      }
+      setError(signUpError.message)
       setLoading(false)
       return
     }
 
+    if (!data.user) {
+      setError('Could not create account. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    setUserId(data.user.id)
+    setLoading(false)
+    goNext()
+  }
+
+  // ── Final submit (called from step 2 for invitations, step 3 for regular) ──
+  async function handleSubmit() {
+    setLoading(true)
+    setError(null)
+
+    const uid = userId
+    if (!uid) { setError('Session lost — please start again.'); setLoading(false); return }
+
+    const clubId = invitedClubId ?? selectedClubId
+
     try {
-      // 1. Sign up the user (try without metadata first to isolate the issue)
-      let authData, signUpError
-      
+      // Store signup data (updates the profile stub created by the trigger)
       try {
-        // Add timeout wrapper for signUp call
-        // NOTE: We do NOT set emailRedirectTo here because we use our custom OTP verification
-        // system instead of Supabase's native email confirmation
-        const signUpPromise = supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            // Do NOT add emailRedirectTo - it triggers Supabase native emails
-            // Our OTP system handles verification instead
-            data: {
-              first_name: firstName || '',
-              last_name: lastName || '',
-            },
-          },
-        })
-        
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Signup timeout')), 10000)
-        )
-        
-        const result = await Promise.race([signUpPromise, timeoutPromise]) as any
-        authData = result.data
-        signUpError = result.error
-      } catch (err: any) {
-        console.error('Signup exception:', err)
-        if (err.message === 'Signup timeout') {
-          setError('Signup is taking longer than expected. Please check your internet connection and try again.')
-        } else {
-          setError(`Signup failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
-        }
-        setLoading(false)
-        return
-      }
-
-      if (signUpError) {
-        console.error('Signup error details:', signUpError)
-        // Handle specific error cases
-        if (
-          signUpError.message.includes('already registered') ||
-          signUpError.message.includes('already exists') ||
-          signUpError.message.includes('User already registered')
-        ) {
-          setError('An account with this email already exists. Please log in instead, or check your email for a confirmation link.')
-          setLoading(false)
-          setTimeout(() => {
-            router.push('/login?message=Account already exists. Please log in or check your email for a confirmation link.')
-          }, 2000)
-          return
-        } else {
-          // Show the actual error message with full details
-          setError(`Signup failed: ${signUpError.message}. Check console for details.`)
-          console.error('Full signup error:', JSON.stringify(signUpError, null, 2))
-        }
-        setLoading(false)
-        return
-      }
-
-      // Check if this is a repeated signup (user already exists)
-      // Supabase returns success but no user if email already exists and confirmation is pending
-      if (!authData.user) {
-        // User already exists - redirect to login
-        setError('An account with this email already exists. Redirecting to login...')
-        setLoading(false)
-        setTimeout(() => {
-          router.push('/login?message=Account already exists. Please log in or check your email for a confirmation link.')
-        }, 2000)
-        return
-      }
-
-      // 2. Get club ID (priority: invitation > selection > context > default)
-      let clubId = clubFromInvitation || selectedClubId || club?.id
-      if (!clubId) {
-        const { data: defaultClub } = await supabase
-          .from('clubs')
-          .select('id')
-          .eq('slug', 'default')
-          .single()
-        clubId = defaultClub?.id || null
-      }
-
-      if (!clubId) {
-        // Only show error for regular signups, not invitation signups
-        if (!clubFromInvitation) {
-          setError('Please select a club to register with.')
-        } else {
-          setError('Invalid invitation. Please contact support.')
-        }
-        setLoading(false)
-        return
-      }
-
-      // Store signup form data in temporary table (avoids metadata size limits)
-      // This data will be used when user confirms email and logs in
-      // Use a function that bypasses RLS (works even without session)
-      try {
-        const { error: signupDataError } = await supabase.rpc('store_signup_data', {
-          p_user_id: authData.user.id,
-          p_email: email,
+        await supabase.rpc('store_signup_data', {
+          p_user_id: uid,
+          p_email: email.toLowerCase(),
           p_first_name: firstName,
           p_last_name: lastName,
           p_phone: phone || null,
-          p_address_line1: addressLine1 || null,
-          p_address_line2: addressLine2 || null,
-          p_city: city || null,
-          p_state: state || null,
-          p_zip_code: zipCode || null,
-          p_emergency_contact_name: emergencyContactName || null,
-          p_emergency_contact_phone: emergencyContactPhone || null,
+          p_address_line1: null, p_address_line2: null,
+          p_city: null, p_state: null, p_zip_code: null,
+          p_emergency_contact_name: null, p_emergency_contact_phone: null,
           p_club_id: clubId,
         })
+      } catch { /* non-fatal */ }
 
-        // If function doesn't exist or fails, that's OK - we'll use metadata fallback
-        if (signupDataError) {
-          console.warn('Could not store signup data (function may not exist):', signupDataError.message)
-          // Don't fail the signup - we can still use metadata
-        }
-      } catch (err) {
-        // Function might not exist - that's fine, continue with signup
-        console.warn('store_signup_data function may not exist:', err)
-      }
+      // OAuth users (Google etc.) — email already verified, create household directly
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      const isOAuth = currentUser?.app_metadata?.provider !== 'email'
 
-      // Check if this is an invitation signup (skip email verification)
-      if (isInvitationSignup) {
-        console.log('[SIGNUP] Invitation signup detected - skipping email verification')
-        
-        // Complete signup directly (confirm email, create profile, create household)
-        try {
-          const completeResponse = await fetch('/api/auth/complete-invitation-signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: authData.user.id,
-              email: email.toLowerCase(),
-              firstName: firstName || null,
-              lastName: lastName || null,
-              phone: phone || null,
-              addressLine1: addressLine1 || null,
-              addressLine2: addressLine2 || null,
-              city: city || null,
-              state: state || null,
-              zipCode: zipCode || null,
-              emergencyContactName: emergencyContactName || null,
-              emergencyContactPhone: emergencyContactPhone || null,
-              clubId: clubId,
-            })
-          })
-
-          const completeData = await completeResponse.json()
-
-          if (!completeResponse.ok || !completeData.success) {
-            console.error('Failed to complete invitation signup:', completeData.error)
-            setError(completeData.error || 'Failed to complete account setup. Please contact support.')
-            setLoading(false)
-            return
-          }
-
-          console.log('[SIGNUP] Invitation signup completed - redirecting to accept invitation')
-          
-          // Get redirect URL from query params
-          const urlParams = new URLSearchParams(window.location.search)
-          const redirectTo = urlParams.get('redirect')
-          
-          if (redirectTo) {
-            router.push(redirectTo)
-          } else {
-            router.push('/login?message=Account created! Please log in.')
-          }
-        } catch (err) {
-          console.error('Error completing invitation signup:', err)
-          setError('Failed to complete account setup. Please contact support.')
-        }
-        
-        setLoading(false)
+      if (isOAuth) {
+        const resp = await fetch('/api/auth/complete-google-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName, lastName, phone: phone || null, clubId }),
+        })
+        const data = await resp.json()
+        if (!resp.ok) throw new Error(data.error || 'Failed to complete signup.')
+        router.push(data.clubSlug ? `/clubs/${data.clubSlug}/parent/dashboard` : '/login')
         return
       }
 
-      // Regular signup flow - send OTP for verification
-      // ALWAYS send OTP for verification (regardless of Supabase confirmation settings)
-      // This gives us full control over the verification flow
-      console.log('[SIGNUP] Regular signup - sending OTP verification email...')
-      {
-        // Send OTP verification email
-        try {
-          const otpResponse = await fetch('/api/otp/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: authData.user.id,
-              type: 'email_verification',
-              contact: email.toLowerCase(),
-              metadata: {
-                firstName: firstName,
-                clubName: clubs.find(c => c.id === clubId)?.name || 'Ski Club'
-              }
-            })
-          })
-
-          const otpData = await otpResponse.json()
-          console.log('[SIGNUP] OTP send result:', { ok: otpResponse.ok, success: otpData.success })
-
-          if (!otpResponse.ok || !otpData.success) {
-            console.error('Failed to send verification email:', otpData.error)
-            setError('Account created but failed to send verification email. Please contact support.')
-            setLoading(false)
-            return
-          }
-
-          console.log('[SIGNUP] Redirecting to verify-email page')
-          // Success! Redirect to email verification page
-          router.push(`/verify-email?email=${encodeURIComponent(email.toLowerCase())}`)
-        } catch (err) {
-          console.error('Error sending verification email:', err)
-          setError('Account created but failed to send verification email. Please contact support.')
-        }
-        
-        setLoading(false)
-        return
-      }
-
-      // ========================================================================
-      // NOTE: The code below (lines 240-350) is LEGACY and will be removed
-      // after Supabase email confirmations are disabled.
-      //
-      // NEW FLOW (Option A):
-      // 1. Signup → Store in signup_data → Send OTP
-      // 2. Verify OTP → Create profile + household
-      // 3. Login → Access portal
-      //
-      // This block will be deleted after testing confirms the new flow works.
-      // ========================================================================
-      /*
-      // Session exists - email confirmation is disabled, proceed with profile creation immediately
-      // Wait a moment for user to be committed to auth.users
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      if (!clubId) {
-        setError('No club found. Please contact support.')
-        setLoading(false)
-        return
-      }
-
-      // 3. Create profile with parent role using database function (bypasses RLS)
-      const { error: profileError } = await supabase.rpc('create_user_profile', {
-        p_user_id: authData.user.id,
-        p_email: email,
-        p_first_name: firstName,
-        p_last_name: lastName,
-        p_role: 'parent',
-        p_club_id: clubId,
-      })
-
-      if (profileError) {
-        // If profile creation fails, log it but continue
-        // Profile will be created on first login if it doesn't exist
-        console.warn('Profile creation warning:', profileError.message)
-      }
-
-      // 4. Create household (or family as fallback) with full details
-      const { data: householdData, error: householdError } = await supabase
-        .from('households')
-        .insert([
-          {
-            club_id: clubId,
-            primary_email: email,
+      // Invitation → complete directly (no OTP)
+      if (isInvitation) {
+        const redirect = new URLSearchParams(window.location.search).get('redirect')
+        const resp = await fetch('/api/auth/complete-invitation-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: uid,
+            email: email.toLowerCase(),
+            firstName, lastName,
             phone: phone || null,
-            address_line1: addressLine1 || null,
-            address_line2: addressLine2 || null,
-            city: city || null,
-            state: state || null,
-            zip_code: zipCode || null,
-            emergency_contact_name: emergencyContactName || null,
-            emergency_contact_phone: emergencyContactPhone || null,
-          },
-        ])
-        .select()
-        .single()
-
-      if (householdError) {
-        setError(`Failed to create household: ${householdError.message}`)
-        setLoading(false)
+            addressLine1: null, addressLine2: null,
+            city: null, state: null, zipCode: null,
+            emergencyContactName: null, emergencyContactPhone: null,
+            clubId,
+          }),
+        })
+        const data = await resp.json()
+        if (!resp.ok) throw new Error(data.error || 'Failed to complete signup.')
+        router.push(redirect || '/login?message=Account created! Please log in.')
         return
       }
 
-      // 5. Link user to household via household_guardians
-      const { error: guardianError } = await supabase
-        .from('household_guardians')
-        .insert([
-          {
-            household_id: householdData.id,
-            user_id: authData.user.id,
-            is_primary: true,
-          },
-        ])
+      // Regular → send OTP verification
+      const clubName = clubs.find(c => c.id === clubId)?.name ?? 'Ski Club'
+      const otpResp = await fetch('/api/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: uid,
+          type: 'email_verification',
+          contact: email.toLowerCase(),
+          metadata: { firstName, clubName },
+        }),
+      })
+      const otpData = await otpResp.json()
+      if (!otpResp.ok || !otpData.success) throw new Error('Account created but failed to send verification email. Please contact support.')
 
-      if (guardianError) {
-        console.error('Error creating household guardian:', guardianError)
-        // Not fatal - continue
-      }
-
-      // 6. Redirect based on whether session exists
-      if (authData.session) {
-        // User is logged in immediately (email confirmation disabled)
-        const clubSlug = club?.slug || 'default'
-        router.push(`/clubs/${clubSlug}/parent/dashboard`)
-      } else {
-        // Email confirmation might be required (but emails might not be configured)
-        // Redirect to login - profile will be created when they log in
-        router.push('/login?message=Account created! You can now log in.')
-      }
-      */
-      // END LEGACY CODE - TO BE REMOVED
+      router.push(`/verify-email?email=${encodeURIComponent(email.toLowerCase())}`)
     } catch (err) {
-      console.error('Signup error:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setLoading(false)
     }
   }
 
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <p className="text-zinc-500 text-sm">Loading…</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-        <h1 className="mb-4 text-xl font-semibold text-gray-900">
-          Create Parent Account & Household
-        </h1>
-        <p className="mb-6 text-sm text-gray-600">
-          Create your account and set up your household information
-        </p>
+    <div className="min-h-screen flex">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Only show club selection for regular signups, not invitation signups */}
-          {/* Check URL params directly during render to avoid state race conditions */}
-          {(() => {
-            // Check URL params directly - most reliable way to determine if this is an invitation
-            let isInvitationFromUrl = false
-            let urlClubIdCheck: string | null = null
-            if (typeof window !== 'undefined') {
-              const urlParams = new URLSearchParams(window.location.search)
-              urlClubIdCheck = urlParams.get('clubId')
-              const redirectParam = urlParams.get('redirect')
-              // Check for both clubId param OR redirect to accept-guardian-invitation
-              isInvitationFromUrl = !!(urlClubIdCheck || (redirectParam && redirectParam.includes('accept-guardian-invitation')))
-            }
-            
-            // CRITICAL: If URL has clubId or redirect to invitation, NEVER show club selection
-            // This check happens during render, so it's always accurate
-            const shouldShowClubSelection = !isInvitationFromUrl && showClubSelection
-            
-            return shouldShowClubSelection ? (
-              <div className="space-y-4 border-b border-gray-200 pb-4">
-                <h2 className="text-sm font-semibold text-gray-900">Club Selection</h2>
-                
-                {loadingClubs ? (
-                  <p className="text-sm text-gray-600">Loading clubs...</p>
-                ) : (
-                  <div className="space-y-2 relative z-0">
-                    <Label htmlFor="club" className="text-gray-700">
-                      Select Club *
-                    </Label>
-                    <Select
-                      value={selectedClubId || ''}
-                      onValueChange={setSelectedClubId}
-                      required
-                    >
-                      <SelectTrigger id="club" className="w-full">
-                        <SelectValue placeholder="Select a club" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[100] bg-white text-gray-900 border border-gray-200 shadow-lg">
-                        {clubs.map(clubOption => (
-                          <SelectItem 
-                            key={clubOption.id} 
-                            value={clubOption.id}
-                          >
-                            {clubOption.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+      {/* ── Left panel ── */}
+      <div className="hidden lg:flex lg:w-[360px] flex-shrink-0 bg-zinc-950 flex-col justify-between p-12">
+        <div className="flex items-center gap-2.5">
+          <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto" />
+        </div>
+
+        <div>
+          <p className="text-zinc-500 text-[11px] uppercase tracking-widest font-medium mb-7">Create your account</p>
+          <div className="space-y-5">
+            {STEPS.slice(0, totalSteps).map((label, i) => {
+              const n = i + 1
+              const done = step > n
+              const active = step === n
+              return (
+                <div key={n} className="flex items-center gap-3.5">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold transition-colors
+                    ${done ? 'bg-orange-600 text-foreground' : active ? 'bg-foreground text-background' : 'bg-zinc-800 text-zinc-500'}`}>
+                    {done ? <Check className="w-3.5 h-3.5" /> : n}
                   </div>
-                )}
-              </div>
-            ) : null
-          })()}
-          
-          {/* Legacy code - keeping for reference but should not render */}
-          {false && showClubSelection && (
-            <div className="space-y-4 border-b border-zinc-700 pb-4">
-              <h2 className="text-sm font-semibold text-zinc-200">Club Selection</h2>
-              
-              {loadingClubs ? (
-                <p className="text-sm text-zinc-400">Loading clubs...</p>
-              ) : (
-                <div>
-                  <Label htmlFor="club" className="text-zinc-300">
-                    Select Club *
-                  </Label>
-                  <Select
-                    value={selectedClubId}
-                    onValueChange={setSelectedClubId}
-                    required
-                  >
-                    <SelectTrigger className="mt-1 bg-zinc-800 text-zinc-100 border-zinc-700">
-                      <SelectValue placeholder="Select a club" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      {clubs.map(clubOption => (
-                        <SelectItem 
-                          key={clubOption.id} 
-                          value={clubOption.id}
-                          className="text-zinc-100 focus:bg-zinc-700 focus:text-zinc-50"
-                        >
-                          {clubOption.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <span className={`text-sm transition-colors ${active ? 'text-foreground font-medium' : done ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                    {label}
+                  </span>
                 </div>
-              )}
-            </div>
-          )}
-          
-          {/* Club info is hidden for invitation signups - set automatically in background */}
+              )
+            })}
+          </div>
+        </div>
 
-          <div className="space-y-4 border-b border-gray-200 pb-4">
-            <h2 className="text-sm font-semibold text-gray-900">Account Information</h2>
-            
-            <div>
-              <Label htmlFor="firstName" className="text-gray-700">
-                First Name *
-              </Label>
-              <Input
-                id="firstName"
-                type="text"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
+        <p className="text-zinc-700 text-xs">© {new Date().getFullYear()} W110</p>
+      </div>
 
-            <div>
-              <Label htmlFor="lastName" className="text-gray-700">
-                Last Name *
-              </Label>
-              <Input
-                id="lastName"
-                type="text"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
+      {/* ── Right panel ── */}
+      <div className="flex-1 flex items-center justify-center bg-zinc-950 px-6 py-12">
+        <div className="w-full max-w-sm">
 
-            {/* Hide email field for invitation signups - we already have it */}
-            {!emailFromInvitation && (
-              <div>
-                <Label htmlFor="email" className="text-gray-700">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            )}
-            {/* Show read-only email for invitation signups */}
-            {emailFromInvitation && (
-              <div>
-                <Label htmlFor="email" className="text-gray-700">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  disabled
-                  className="mt-1 bg-gray-100 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  This email address is from your invitation.
-                </p>
-              </div>
-            )}
-
-            <div>
-              <Label htmlFor="password" className="text-gray-700">
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="mt-1"
-              />
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <div className="w-6 h-6 rounded bg-orange-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-foreground text-xs font-bold leading-none">S</span>
             </div>
+            <span className="text-foreground text-sm font-semibold tracking-tight">Ski Admin</span>
           </div>
 
-          <div className="space-y-4 border-b border-gray-200 pb-4">
-            <h2 className="text-sm font-semibold text-gray-900">Contact Information</h2>
-            
-            <div>
-              <Label htmlFor="phone" className="text-gray-700">
-                Phone Number
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                className="mt-1"
-                placeholder="(555) 123-4567"
-              />
-            </div>
+          {/* Mobile progress bar */}
+          <div className="flex gap-1.5 mb-8 lg:hidden">
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <div key={i} className={`h-1 rounded-full flex-1 transition-colors ${step > i ? 'bg-orange-600' : 'bg-zinc-700'}`} />
+            ))}
           </div>
 
-          <div className="space-y-4 border-b border-gray-200 pb-4">
-            <h2 className="text-sm font-semibold text-gray-900">Address (Optional)</h2>
-            
-            <div>
-              <Label htmlFor="addressLine1" className="text-gray-700">
-                Street Address
-              </Label>
-              <Input
-                id="addressLine1"
-                type="text"
-                value={addressLine1}
-                onChange={e => setAddressLine1(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="addressLine2" className="text-gray-700">
-                Apartment, suite, etc.
-              </Label>
-              <Input
-                id="addressLine2"
-                type="text"
-                value={addressLine2}
-                onChange={e => setAddressLine2(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="city" className="text-gray-700">
-                  City
-                </Label>
-                <Input
-                  id="city"
-                  type="text"
-                  value={city}
-                  onChange={e => setCity(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="state" className="text-gray-700">
-                  State
-                </Label>
-                <Input
-                  id="state"
-                  type="text"
-                  value={state}
-                  onChange={e => setState(e.target.value)}
-                  maxLength={2}
-                  className="mt-1"
-                  placeholder="CO"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="zipCode" className="text-gray-700">
-                ZIP Code
-              </Label>
-              <Input
-                id="zipCode"
-                type="text"
-                value={zipCode}
-                onChange={e => setZipCode(e.target.value)}
-                className="mt-1"
-                placeholder="80401"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Emergency Contact (Optional)</h2>
-            
-            <div>
-              <Label htmlFor="emergencyContactName" className="text-gray-700">
-                Emergency Contact Name
-              </Label>
-              <Input
-                id="emergencyContactName"
-                type="text"
-                value={emergencyContactName}
-                onChange={e => setEmergencyContactName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="emergencyContactPhone" className="text-gray-700">
-                Emergency Contact Phone
-              </Label>
-              <Input
-                id="emergencyContactPhone"
-                type="tel"
-                value={emergencyContactPhone}
-                onChange={e => setEmergencyContactPhone(e.target.value)}
-                className="mt-1"
-                placeholder="(555) 123-4567"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600">{error}</p>
+          {/* Back — only show on step 2 when they came from step 1 (not resumed) */}
+          {step > 1 && !userId && (
+            <button type="button" onClick={goBack}
+              className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-600 mb-6 transition-colors">
+              <ChevronLeft className="w-4 h-4" /> Back
+            </button>
           )}
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-sky-500 hover:bg-sky-400 text-white font-medium shadow-md border border-sky-500"
-          >
-            {loading ? 'Creating account…' : 'Sign Up'}
-          </Button>
-        </form>
+          {/* ══════════════ STEP 1: Account ══════════════ */}
+          {step === 1 && (
+            <div>
+              <h1 className="page-title text-foreground">Create your account</h1>
+              <p className="mt-1.5 text-sm text-zinc-400">
+                {isInvitation ? "You've been invited — set up your account to continue." : 'Get started with W110.'}
+              </p>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link href="/login" className="text-sky-600 hover:text-sky-700">
-            Log in
-          </Link>
-        </p>
+              <button type="button" onClick={handleGoogleSignIn} disabled={googleLoading}
+                className="mt-8 w-full flex items-center justify-center gap-2.5 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 hover:bg-zinc-800 disabled:opacity-60 transition-colors shadow-sm">
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"/>
+                  <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332Z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58Z"/>
+                </svg>
+                {googleLoading ? 'Redirecting…' : 'Continue with Google'}
+              </button>
+
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-zinc-800" />
+                <span className="text-xs text-zinc-500">or</span>
+                <div className="flex-1 h-px bg-zinc-800" />
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-zinc-300">Email</label>
+                  <input type="email" value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleStep1Continue()}
+                    disabled={isInvitation && !!email}
+                    placeholder="you@example.com"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-zinc-800 disabled:text-zinc-500 transition-shadow" />
+                  {isInvitation && <p className="text-xs text-zinc-400">Pre-filled from your invitation.</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-zinc-300">Password</label>
+                  <input type="password" value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleStep1Continue()}
+                    placeholder="Min. 6 characters"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow" />
+                </div>
+              </div>
+
+              {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+              <button type="button" onClick={handleStep1Continue} disabled={loading}
+                className="mt-6 w-full rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:opacity-60 transition-colors">
+                {loading ? 'Creating account…' : 'Continue'}
+              </button>
+
+              <p className="mt-6 text-center text-sm text-zinc-400">
+                Already have an account?{' '}
+                <Link href="/login" className="text-orange-500 hover:text-orange-400 font-medium">Sign in</Link>
+              </p>
+            </div>
+          )}
+
+          {/* ══════════════ STEP 2: About you ══════════════ */}
+          {step === 2 && (
+            <div>
+              <h1 className="page-title text-foreground">About you</h1>
+              <p className="mt-1.5 text-sm text-zinc-400">
+                {userId ? `Welcome back! Just a couple more details to finish up.` : 'A couple of details to set up your profile.'}
+              </p>
+
+              <div className="mt-8 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-zinc-300">First name</label>
+                    <input type="text" value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      placeholder="Jane"
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-zinc-300">Last name</label>
+                    <input type="text" value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-zinc-300">
+                    Phone <span className="text-zinc-500 font-normal">(optional)</span>
+                  </label>
+                  <input type="tel" value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="(555) 123-4567"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-shadow" />
+                </div>
+              </div>
+
+              {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+              <button type="button"
+                onClick={() => {
+                  if (!firstName.trim() || !lastName.trim()) return setError('First and last name are required.')
+                  isInvitation ? handleSubmit() : goNext()
+                }}
+                disabled={loading}
+                className="mt-6 w-full rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:opacity-60 transition-colors">
+                {loading ? 'Saving…' : isInvitation ? 'Create account' : 'Continue'}
+              </button>
+            </div>
+          )}
+
+          {/* ══════════════ STEP 3: Club ══════════════ */}
+          {step === 3 && (
+            <div>
+              <h1 className="page-title text-foreground">Your club</h1>
+              <p className="mt-1.5 text-sm text-zinc-400">Search for the club you're registering with.</p>
+
+              <div className="mt-8">
+                {clubs.length === 0
+                  ? <p className="text-sm text-zinc-400">Loading clubs…</p>
+                  : <ClubPicker clubs={clubs} value={selectedClubId} onChange={setSelectedClubId} />
+                }
+              </div>
+
+              {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+              <button type="button"
+                onClick={() => {
+                  if (!selectedClubId) return setError('Please select a club to continue.')
+                  handleSubmit()
+                }}
+                disabled={loading}
+                className="mt-6 w-full rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:opacity-60 transition-colors">
+                {loading ? 'Creating account…' : 'Create account'}
+              </button>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   )

@@ -66,10 +66,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'clubId is required for system admins' }, { status: 400 })
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run13',hypothesisId:'R',location:'app/api/admin/registrations/program-timeseries/route.ts:44',message:'program timeseries start',data:{seasonId,clubId:clubIdToUse,isSystemAdmin},timestamp:Date.now()})}).catch(()=>{})
-    // #endregion
-
     const admin = createAdminClient()
 
     const { data, error } = await admin
@@ -87,9 +83,6 @@ export async function GET(req: NextRequest) {
       .eq('seasons.club_id', clubIdToUse)
 
     if (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run13',hypothesisId:'S',location:'app/api/admin/registrations/program-timeseries/route.ts:70',message:'program timeseries fetch error',data:{error:error.message},timestamp:Date.now()})}).catch(()=>{})
-      // #endregion
       return NextResponse.json(
         { error: error.message || 'Failed to load program timeseries' },
         { status: 500 }
@@ -133,15 +126,8 @@ export async function GET(req: NextRequest) {
       a.date === b.date ? a.programName.localeCompare(b.programName) : a.date.localeCompare(b.date)
     )
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run13',hypothesisId:'R',location:'app/api/admin/registrations/program-timeseries/route.ts:96',message:'program timeseries success',data:{signups:signups.length,revenue:revenue.length},timestamp:Date.now()})}).catch(()=>{})
-    // #endregion
-
     return NextResponse.json({ signups, revenue })
-  } catch (err: any) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/3aef41da-a86e-401e-9528-89856938cb09',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run13',hypothesisId:'T',location:'app/api/admin/registrations/program-timeseries/route.ts:106',message:'program timeseries unexpected error',data:{error:err?.message || String(err)},timestamp:Date.now()})}).catch(()=>{})
-    // #endregion
+  } catch (err: unknown) {
     return NextResponse.json(
       { error: 'Unexpected error loading program timeseries' },
       { status: 500 }

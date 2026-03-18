@@ -106,7 +106,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-8 w-24 animate-pulse rounded bg-gray-200" />
+              <div className="h-8 w-24 animate-pulse rounded bg-secondary" />
             ) : (
               <div className="text-2xl font-bold">
                 ${totals.revenue.toFixed(2)}
@@ -124,7 +124,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-8 w-16 animate-pulse rounded bg-gray-200" />
+              <div className="h-8 w-16 animate-pulse rounded bg-secondary" />
             ) : (
               <div className="text-2xl font-bold">{totals.registrations}</div>
             )}
@@ -140,7 +140,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-8 w-12 animate-pulse rounded bg-gray-200" />
+              <div className="h-8 w-12 animate-pulse rounded bg-secondary" />
             ) : (
               <div className="text-2xl font-bold">
                 {programsWithRegistrations.length}
@@ -165,15 +165,15 @@ export default function ReportsPage() {
                 <div key={i} className="border-b pb-4 last:border-0">
                   <div className="animate-pulse space-y-3">
                     <div className="flex justify-between">
-                      <div className="h-5 w-32 rounded bg-gray-200" />
-                      <div className="h-5 w-20 rounded bg-gray-200" />
+                      <div className="h-5 w-32 rounded bg-secondary" />
+                      <div className="h-5 w-20 rounded bg-secondary" />
                     </div>
-                    <div className="h-4 w-64 rounded bg-gray-200" />
+                    <div className="h-4 w-64 rounded bg-secondary" />
                     <div className="grid grid-cols-4 gap-4">
-                      <div className="h-10 rounded bg-gray-200" />
-                      <div className="h-10 rounded bg-gray-200" />
-                      <div className="h-10 rounded bg-gray-200" />
-                      <div className="h-10 rounded bg-gray-200" />
+                      <div className="h-10 rounded bg-secondary" />
+                      <div className="h-10 rounded bg-secondary" />
+                      <div className="h-10 rounded bg-secondary" />
+                      <div className="h-10 rounded bg-secondary" />
                     </div>
                   </div>
                 </div>

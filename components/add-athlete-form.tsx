@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { createBrowserSupabaseClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ interface AddAthleteFormProps {
 
 export function AddAthleteForm({ householdId, clubId }: AddAthleteFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -58,8 +60,9 @@ export function AddAthleteForm({ householdId, clubId }: AddAthleteFormProps) {
 
       if (error) throw error;
 
-      router.push("/dashboard");
-      router.refresh();
+      // Invalidate all athlete-related queries so UI updates instantly
+      await queryClient.invalidateQueries({ queryKey: ['athletes-by-household'] })
+      await queryClient.invalidateQueries({ queryKey: ['athletes'] })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent, useEffect } from 'react'
+import { colors } from '@/lib/colors'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSystemAdmin } from '@/lib/use-system-admin'
@@ -27,16 +28,11 @@ export default function EditClubPage() {
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
-  const [primaryColor, setPrimaryColor] = useState('#3B82F6')
+  const [primaryColor, setPrimaryColor] = useState<string>(colors.primary)
   const [address, setAddress] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [timezone, setTimezone] = useState('America/Denver')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-
-  // Debug: Log logoUrl changes
-  useEffect(() => {
-    console.log('logoUrl state changed to:', logoUrl)
-  }, [logoUrl])
 
   // Load existing club data
   useEffect(() => {
@@ -68,7 +64,7 @@ export default function EditClubPage() {
         // Populate form with existing data
         setName(clubData.name || '')
         setSlug(clubData.slug || '')
-        setPrimaryColor(clubData.primary_color || '#3B82F6')
+        setPrimaryColor(clubData.primary_color || colors.primary)
         setAddress(clubData.address || '')
         setContactEmail(clubData.contact_email || '')
         setTimezone(clubData.timezone || 'America/Denver')
@@ -104,18 +100,6 @@ export default function EditClubPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
-    // Debug: Log current state before submission
-    console.log('Form submission - Current logoUrl state:', logoUrl)
-    console.log('Form submission - All form state:', {
-      name,
-      slug,
-      primaryColor,
-      address,
-      contactEmail,
-      timezone,
-      logoUrl,
-    })
 
     // Validation
     if (!name.trim()) {
@@ -186,9 +170,7 @@ export default function EditClubPage() {
         timezone: timezone.trim() || 'America/Denver',
         logo_url: logoUrl?.trim() || null,
       }
-      console.log('Updating club with data:', updateData)
-      console.log('logoUrl state value:', logoUrl)
-      
+
       const { data: updatedClub, error: updateError } = await supabase
         .from('clubs')
         .update(updateData)
@@ -202,9 +184,6 @@ export default function EditClubPage() {
         setLoading(false)
         return
       }
-
-      console.log('Club updated successfully:', updatedClub)
-      console.log('Updated logo_url:', updatedClub?.logo_url)
 
       showToast({
         title: 'Club updated',
@@ -245,7 +224,7 @@ export default function EditClubPage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-zinc-900">Edit Club</h2>
+          <h1 className="page-title">Edit Club</h1>
           <p className="text-muted-foreground">Update club information</p>
         </div>
       </div>
@@ -258,8 +237,8 @@ export default function EditClubPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md bg-destructive/10 border border-destructive/30 p-4">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
@@ -347,13 +326,7 @@ export default function EditClubPage() {
                 <ImageUpload
                   value={logoUrl}
                   onChange={(url) => {
-                    console.log('ImageUpload onChange called with URL:', url)
-                    console.log('Setting logoUrl state to:', url)
                     setLogoUrl(url)
-                    // Verify state was set
-                    setTimeout(() => {
-                      console.log('logoUrl state after update:', logoUrl)
-                    }, 100)
                   }}
                   bucket="club-logos"
                   folder="logos"

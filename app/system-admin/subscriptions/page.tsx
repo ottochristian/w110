@@ -125,7 +125,7 @@ export default function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-900 tracking-tight">Subscriptions</h2>
+        <h2 className="text-xl font-semibold text-foreground tracking-tight">Subscriptions</h2>
         <p className="text-muted-foreground">Manage subscription tiers and feature flags</p>
       </div>
 

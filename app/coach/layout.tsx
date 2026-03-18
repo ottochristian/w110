@@ -97,8 +97,8 @@ export default function CoachLayout({
     <SeasonProvider>
       <div className="flex min-h-screen">
         <CoachSidebar profile={profile} />
-        <main className="flex-1 ml-64 flex flex-col bg-zinc-50">
-          <div className="fixed top-0 right-0 left-64 border-b border-zinc-200 bg-white px-8 py-3 z-10">
+        <main className="flex-1 ml-64 flex flex-col">
+          <div className="fixed top-0 right-0 left-64 border-b border-orange-800/40 bg-background/80 backdrop-blur-sm px-8 py-3 z-10">
             <div className="flex items-center justify-end gap-4">
               <UnifiedSeasonSelector />
               <ProfileMenu profile={profile} />

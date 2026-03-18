@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     // Use RPC result if available; fallback to empty (run migration 61 for accurate counts)
     let athleteCounts: Record<string, number> = {}
     if (athleteCountsResult.data && !athleteCountsResult.error) {
-      athleteCounts = (athleteCountsResult.data || []).reduce((acc, row) => {
+      athleteCounts = (athleteCountsResult.data || []).reduce((acc: Record<string, number>, row: { club_id: string; athlete_count: number }) => {
         acc[row.club_id] = Number(row.athlete_count) || 0
         return acc
       }, {} as Record<string, number>)

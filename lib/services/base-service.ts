@@ -45,7 +45,7 @@ export type QueryResult<T> = {
  * Helper to convert Supabase errors to standard Error objects
  */
 export function handleSupabaseError<T>(
-  result: { data: T | null; error: any }
+  result: { data: T | null; error: import('@supabase/supabase-js').PostgrestError | null }
 ): QueryResult<T> {
   if (result.error) {
     return {

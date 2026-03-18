@@ -106,7 +106,7 @@ export async function requireAuth(
 export async function requireAdmin(
   request: NextRequest
 ): Promise<
-  | (AuthenticatedRequest & { profile: { role: string; club_id: string | null } })
+  | (AuthenticatedRequest & { profile: { id: string; role: string; club_id: string | null } })
   | NextResponse
 > {
   const authResult = await requireAuth(request)
@@ -120,7 +120,7 @@ export async function requireAdmin(
   // Get profile and check role
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('role, club_id')
+    .select('id, role, club_id')
     .eq('id', user.id)
     .single()
 
@@ -177,6 +177,42 @@ export async function requireSystemAdmin(
  * const clubId = request.nextUrl.searchParams.get('clubId')
  * const authResult = await requireClubAccess(request, clubId)
  */
+/**
+ * Middleware helper to require coach role.
+ * Returns the coach's profile (including club_id) if authenticated as a coach.
+ */
+export async function requireCoach(
+  request: NextRequest
+): Promise<
+  | (AuthenticatedRequest & { profile: { role: string; club_id: string; first_name: string; last_name: string } })
+  | NextResponse
+> {
+  const authResult = await requireAuth(request)
+  if (authResult instanceof NextResponse) return authResult
+
+  const { user, supabase } = authResult
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role, club_id, first_name, last_name')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || !profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+  }
+
+  if (profile.role !== 'coach') {
+    return NextResponse.json({ error: 'Forbidden: coach role required' }, { status: 403 })
+  }
+
+  if (!profile.club_id) {
+    return NextResponse.json({ error: 'Coach has no associated club' }, { status: 403 })
+  }
+
+  return { user, supabase, profile: profile as { role: string; club_id: string; first_name: string; last_name: string } }
+}
+
 export async function requireClubAccess(
   request: NextRequest,
   clubId: string | null

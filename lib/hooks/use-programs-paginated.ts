@@ -9,7 +9,7 @@ export interface ProgramsPaginationParams {
 }
 
 export interface PaginatedPrograms {
-  data: any[]
+  data: Record<string, unknown>[]
   total: number
   page: number
   pageSize: number
@@ -68,9 +68,15 @@ export function useProgramsPaginated(
       if (error) throw error
       
       // Calculate enrollment counts for each program
-      const programsWithCounts = (data || []).map((program: any) => {
-        const totalEnrollment = program.sub_programs?.reduce((sum: number, sp: any) => {
-          return sum + (sp.registrations?.filter((r: any) => r.status !== 'cancelled').length || 0)
+      interface ProgramRow {
+        sub_programs?: Array<{
+          registrations?: Array<{ status: string }>
+        }>
+        [key: string]: unknown
+      }
+      const programsWithCounts = (data || []).map((program: ProgramRow) => {
+        const totalEnrollment = program.sub_programs?.reduce((sum: number, sp) => {
+          return sum + (sp.registrations?.filter((r) => r.status !== 'cancelled').length || 0)
         }, 0) || 0
         
         return {

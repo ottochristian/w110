@@ -9,8 +9,7 @@ import { useClub } from '@/lib/club-context'
 import { useSelectedSeason } from '@/lib/contexts/season-context'
 import { useProgramsAnalytics } from '@/lib/hooks/use-program-analytics'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
-
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
+import { CHART_PALETTE, CHART_COLORS, GRID_PROPS, AXIS_STYLE, TOOLTIP_STYLE, LEGEND_STYLE } from '@/lib/chart-theme'
 
 type SortOption = 'name' | 'enrollment' | 'revenue' | 'enrollmentRate'
 
@@ -19,21 +18,11 @@ export default function ProgramsPage() {
   const selectedSeason = useSelectedSeason()
   const [sortBy, setSortBy] = useState<SortOption>('name')
 
-  // Debug logging
-  console.log('Programs Analytics - Club ID:', club?.id)
-  console.log('Programs Analytics - Season ID:', selectedSeason?.id)
-  console.log('Programs Analytics - Club:', club)
-  console.log('Programs Analytics - Season:', selectedSeason)
-
   // Fetch data
   const { data, isLoading, error } = useProgramsAnalytics(
     club?.id || null,
     selectedSeason?.id || null
   )
-
-  console.log('Programs Analytics - Loading:', isLoading)
-  console.log('Programs Analytics - Error:', error)
-  console.log('Programs Analytics - Data:', data)
 
   const summary = data?.summary
   const programs = data?.programs || []
@@ -125,7 +114,7 @@ export default function ProgramsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Programs</h1>
+          <h1 className="page-title">Programs</h1>
           <p className="text-muted-foreground mt-2">
             Program performance, enrollment, and revenue analytics
           </p>
@@ -147,12 +136,12 @@ export default function ProgramsPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="metric-value text-blue-600">
                   {summary?.totalPrograms || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -173,12 +162,12 @@ export default function ProgramsPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-32 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="metric-value text-purple-600">
                   {summary?.avgEnrollmentRate !== null ? `${summary?.avgEnrollmentRate}%` : 'N/A'}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -199,12 +188,12 @@ export default function ProgramsPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-24 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-xl font-bold text-yellow-600">
+                <div className="metric-value-sm text-yellow-600">
                   {summary?.mostPopularProgram?.enrollment || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">
@@ -225,12 +214,12 @@ export default function ProgramsPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-24 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="metric-value text-green-600">
                   ${(summary?.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -251,12 +240,12 @@ export default function ProgramsPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">
-                <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-8 w-24 bg-secondary rounded animate-pulse" />
+                <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-indigo-600">
+                <div className="metric-value text-indigo-600">
                   ${(summary?.avgRevenuePerProgram || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -290,19 +279,19 @@ export default function ProgramsPage() {
             ) : (
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={enrollmentChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid {...GRID_PROPS} />
                   <XAxis
                     dataKey="name"
                     angle={-45}
                     textAnchor="end"
                     height={100}
-                    style={{ fontSize: '12px' }}
+                    {...AXIS_STYLE}
                   />
-                  <YAxis label={{ value: 'Athletes', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="enrolled" stackId="a" fill="#3b82f6" name="Enrolled" />
-                  <Bar dataKey="remaining" stackId="a" fill="#e5e7eb" name="Remaining Capacity" />
+                  <YAxis {...AXIS_STYLE} label={{ value: 'Athletes', angle: -90, position: 'insideLeft', fill: CHART_COLORS.axis }} />
+                  <Tooltip {...TOOLTIP_STYLE} />
+                  <Legend {...LEGEND_STYLE} />
+                  <Bar dataKey="enrolled" stackId="a" fill={CHART_COLORS.primary} name="Enrolled" />
+                  <Bar dataKey="remaining" stackId="a" fill={CHART_COLORS.grid} name="Remaining Capacity" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -336,15 +325,15 @@ export default function ProgramsPage() {
                     labelLine={false}
                     label={(entry) => `$${(entry.value / 1000).toFixed(1)}k`}
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill={CHART_PALETTE[0]}
                     dataKey="value"
                   >
                     {revenueChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
-                  <Legend />
+                  <Tooltip {...TOOLTIP_STYLE} formatter={(value: number) => `$${value.toFixed(2)}`} />
+                  <Legend {...LEGEND_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -383,15 +372,15 @@ export default function ProgramsPage() {
                 <div key={i} className="border rounded-lg p-4">
                   <div className="animate-pulse space-y-3">
                     <div className="flex justify-between">
-                      <div className="h-6 w-40 rounded bg-gray-200" />
-                      <div className="h-6 w-24 rounded bg-gray-200" />
+                      <div className="h-6 w-40 rounded bg-secondary" />
+                      <div className="h-6 w-24 rounded bg-secondary" />
                     </div>
-                    <div className="h-4 w-full rounded bg-gray-200" />
+                    <div className="h-4 w-full rounded bg-secondary" />
                     <div className="grid grid-cols-4 gap-4">
-                      <div className="h-12 rounded bg-gray-200" />
-                      <div className="h-12 rounded bg-gray-200" />
-                      <div className="h-12 rounded bg-gray-200" />
-                      <div className="h-12 rounded bg-gray-200" />
+                      <div className="h-12 rounded bg-secondary" />
+                      <div className="h-12 rounded bg-secondary" />
+                      <div className="h-12 rounded bg-secondary" />
+                      <div className="h-12 rounded bg-secondary" />
                     </div>
                   </div>
                 </div>
@@ -417,7 +406,7 @@ export default function ProgramsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-lg">{program.name}</h3>
+                          <h3 className="card-title">{program.name}</h3>
                           {isFull && (
                             <Badge variant="destructive">Full</Badge>
                           )}
@@ -432,7 +421,7 @@ export default function ProgramsPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-green-600">
+                        <div className="metric-value text-green-600">
                           ${program.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                         <div className="text-xs text-muted-foreground">Total Revenue</div>
@@ -451,7 +440,7 @@ export default function ProgramsPage() {
                           </span>
                         )}
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div className="w-full bg-secondary rounded-full h-2.5">
                         <div
                           className={`h-2.5 rounded-full transition-all ${getEnrollmentBgColor(enrollmentRate)}`}
                           style={{ width: `${Math.min(enrollmentRate || 0, 100)}%` }}
@@ -463,25 +452,25 @@ export default function ProgramsPage() {
                     <div className="grid grid-cols-4 gap-4 pt-2 border-t">
                       <div>
                         <div className="text-xs text-muted-foreground">Paid</div>
-                        <div className="text-lg font-semibold text-green-600">
+                        <div className="metric-value-sm text-green-600">
                           {program.paidCount}
                         </div>
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground">Unpaid</div>
-                        <div className="text-lg font-semibold text-red-600">
+                        <div className="metric-value-sm text-red-600">
                           {program.unpaidCount}
                         </div>
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground">Total Enrolled</div>
-                        <div className="text-lg font-semibold">
+                        <div className="metric-value-sm">
                           {program.currentEnrollment}
                         </div>
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground">Avg Rev/Athlete</div>
-                        <div className="text-lg font-semibold">
+                        <div className="metric-value-sm">
                           ${program.avgRevenuePerAthlete.toFixed(0)}
                         </div>
                       </div>

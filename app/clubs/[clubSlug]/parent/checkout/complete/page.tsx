@@ -107,7 +107,7 @@ export default function CheckoutCompletePage() {
   if (state === 'loading' || (state === 'processing' && attemptCount <= 1)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <h2 className="text-xl font-semibold">Confirming your payment...</h2>
         <p className="text-muted-foreground text-sm">This will only take a moment.</p>
       </div>
@@ -117,7 +117,7 @@ export default function CheckoutCompletePage() {
   if (state === 'processing') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <h2 className="text-xl font-semibold">Confirming your payment...</h2>
         <p className="text-muted-foreground text-sm">
           Attempt {attemptCount} of {MAX_ATTEMPTS}. Please wait.
@@ -131,15 +131,15 @@ export default function CheckoutCompletePage() {
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-6">
         <div className="flex flex-col items-center gap-3">
           <CheckCircle className="h-16 w-16 text-green-500" />
-          <h1 className="text-3xl font-bold text-green-700">Payment Successful!</h1>
+          <h1 className="text-3xl font-bold text-green-400">Payment Successful!</h1>
           <p className="text-muted-foreground text-center max-w-md">
             Your registration is confirmed. You will receive a confirmation email shortly.
           </p>
         </div>
 
-        <Card className="w-full max-w-sm border-green-200 bg-green-50">
+        <Card className="w-full max-w-sm border-green-800/40 bg-green-950/20">
           <CardContent className="pt-6 pb-4 text-center">
-            <p className="text-sm text-green-800">
+            <p className="text-sm text-green-400">
               Order <span className="font-mono font-semibold">#{orderId?.slice(0, 8)}</span> has been processed.
             </p>
           </CardContent>
@@ -162,7 +162,7 @@ export default function CheckoutCompletePage() {
     <div className="flex flex-col items-center justify-center min-h-[50vh] gap-6">
       <div className="flex flex-col items-center gap-3">
         <XCircle className="h-16 w-16 text-red-500" />
-        <h1 className="text-3xl font-bold text-red-700">Payment Not Confirmed</h1>
+        <h1 className="text-3xl font-bold text-red-400">Payment Not Confirmed</h1>
         <p className="text-muted-foreground text-center max-w-md">
           We could not confirm your payment. If you were charged, please contact support. Otherwise,
           you can return to your cart and try again.

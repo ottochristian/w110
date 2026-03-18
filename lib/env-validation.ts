@@ -137,7 +137,7 @@ export function validateEnvironment(): EnvConfig {
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET!,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL!,
-    NODE_ENV: (process.env.NODE_ENV as any) || 'development',
+    NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
     SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
     TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,

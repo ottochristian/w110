@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/nextjs'
 export type MetricSeverity = 'info' | 'warning' | 'error' | 'critical'
 
 export interface MetricMetadata {
-  [key: string]: any
+  [key: string]: string | number | boolean
 }
 
 /**
@@ -95,8 +95,8 @@ export function trackApiCall(
   duration: number,
   statusCode: number,
   metadata?: MetricMetadata
-): Promise<void> {
-  const severity: MetricSeverity = 
+): void {
+  const severity: MetricSeverity =
     duration > 5000 ? 'error' :
     duration > 2000 ? 'warning' :
     'info'
@@ -136,7 +136,7 @@ export async function trackError(
     {
       source,
       message: error.message,
-      stack: error.stack,
+      stack: error.stack || '',
       ...metadata
     },
     'error'
@@ -258,7 +258,7 @@ export async function trackSMS(
  */
 export async function getMetricsSummary(metricName?: string) {
   try {
-    const supabase = createClient()
+    const supabase = createAdminClient()
     
     let query = supabase
       .from('application_metrics')
@@ -289,7 +289,7 @@ export async function getMetricsSummary(metricName?: string) {
  */
 export async function getAggregatedMetrics() {
   try {
-    const supabase = createClient()
+    const supabase = createAdminClient()
     
     const { data, error } = await supabase
       .from('metrics_last_24h')

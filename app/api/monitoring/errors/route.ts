@@ -49,7 +49,9 @@ export async function GET(request: NextRequest) {
 
   try {
     // Fetch issues from Sentry API
-    const sentryUrl = `https://sentry.io/api/0/projects/skiadmin-9z/javascript-nextjs/issues/?limit=${limit}&statsPeriod=24h`
+    const sentryOrg = process.env.SENTRY_ORG || 'skiadmin-9z'
+    const sentryProject = process.env.SENTRY_PROJECT || 'javascript-nextjs'
+    const sentryUrl = `https://sentry.io/api/0/projects/${sentryOrg}/${sentryProject}/issues/?limit=${limit}&statsPeriod=24h`
     
     const sentryResponse = await fetch(sentryUrl, {
       headers: {
@@ -71,7 +73,21 @@ export async function GET(request: NextRequest) {
     const sentryIssues = await sentryResponse.json()
 
     // Transform Sentry issues to our format
-    const errors = sentryIssues.map((issue: any) => ({
+    interface SentryIssue {
+      id: string
+      title: string
+      culprit?: string
+      metadata?: { value?: string }
+      level: string
+      count: number
+      userCount: number
+      firstSeen: string
+      lastSeen: string
+      status: string
+      permalink: string
+      project?: { name: string }
+    }
+    const errors = (sentryIssues as SentryIssue[]).map((issue) => ({
       id: issue.id,
       title: issue.title,
       message: issue.culprit || issue.metadata?.value || '',
@@ -95,12 +111,13 @@ export async function GET(request: NextRequest) {
     trackApiCall(request.nextUrl.pathname, Date.now() - start, 200)
     return jsonResponse
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Monitoring] Failed to fetch Sentry errors:', error)
+    const message = error instanceof Error ? error.message : String(error)
     return NextResponse.json({
       configured: true,
       error: 'Failed to fetch errors',
-      details: error.message,
+      details: message,
       errors: []
     }, { status: 500 })
   }

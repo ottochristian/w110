@@ -26,22 +26,21 @@ export default function HomePage() {
             setTimeout(() => reject(new Error('getSession timeout')), 3000)
           )
           
-          const sessionData = await Promise.race([sessionPromise, sessionTimeoutPromise]) as any
+          const sessionData = await Promise.race([sessionPromise, sessionTimeoutPromise]) as Awaited<typeof sessionPromise>
           const { data: { session } } = sessionData
-          
+
           if (!session) {
             // No session - show landing page
             setCheckingAuth(false)
             return
           }
-        } catch (sessionError: any) {
-          if (sessionError.message === 'getSession timeout') {
-            console.log('getSession timed out - showing landing page')
+        } catch (sessionError: unknown) {
+          const sessionMessage = sessionError instanceof Error ? sessionError.message : String(sessionError)
+          if (sessionMessage === 'getSession timeout') {
             setCheckingAuth(false)
             return
           }
           // Other errors - continue to try getUser
-          console.log('Session check error:', sessionError)
         }
 
         // Check if user is logged in (with timeout)
@@ -53,10 +52,10 @@ export default function HomePage() {
         
         let userData
         try {
-          userData = await Promise.race([authPromise, timeoutPromise]) as any
-        } catch (raceError: any) {
-          if (raceError.message === 'Auth check timeout') {
-            console.log('getUser timed out - showing landing page')
+          userData = await Promise.race([authPromise, timeoutPromise]) as Awaited<typeof authPromise>
+        } catch (raceError: unknown) {
+          const raceMessage = raceError instanceof Error ? raceError.message : String(raceError)
+          if (raceMessage === 'Auth check timeout') {
             setCheckingAuth(false)
             return
           }
@@ -143,94 +142,143 @@ export default function HomePage() {
     checkAuthAndRedirect()
   }, [router])
 
-  // Show loading state while checking auth
   if (checkingAuth) {
     return (
-      <div className="flex min-h-svh items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center bg-background">
         <div className="text-center">
-          <Snowflake className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mx-auto mb-4" />
+          <p className="text-zinc-500 text-sm">Checking your session…</p>
         </div>
       </div>
     )
   }
 
-  // Show landing page for unauthenticated users
   return (
-    <div className="flex min-h-svh flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Snowflake className="h-6 w-6" />
-            <span className="text-lg font-semibold">Ski Club Admin</span>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
+    <div className="flex min-h-svh flex-col bg-background text-foreground relative">
+      {/* Topo background */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <img src="/topo-bg.svg" alt="" className="w-full h-full object-cover opacity-[0.055]" />
+      </div>
+
+      {/* Nav */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/60 bg-background/90 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+          <img src="/w110-logo-dark.svg" alt="W110" className="h-6 w-auto" />
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="text-sm text-zinc-400 hover:text-foreground transition-colors px-3 py-1.5">
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              className="text-sm font-medium bg-orange-600 hover:bg-orange-500 text-foreground px-4 py-1.5 rounded-md transition-colors"
+            >
+              Get started
+            </Link>
           </div>
         </div>
       </header>
 
+      {/* Hero */}
       <main className="flex-1">
-        <section className="container mx-auto px-4 py-16 md:py-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl text-balance">
-              Welcome to Ski Club Management
+        <section className="relative flex min-h-svh flex-col items-center justify-center px-6 pt-16 text-center">
+          {/* Background glow */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-[600px] w-[600px] rounded-full bg-orange-600/10 blur-[120px]" />
+          </div>
+
+          <div className="relative max-w-4xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-600/30 bg-orange-600/10 px-4 py-1.5 text-xs font-medium text-orange-400">
+              Ski club management, reimagined
+            </div>
+
+            <h1 className="text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl text-balance leading-[1.05]">
+              Run your club.<br />
+              <span className="text-orange-500">Not spreadsheets.</span>
             </h1>
-            <p className="mt-6 text-lg text-muted-foreground text-balance">
-              Register your athletes, manage programs, and track registrations all in one place.
+
+            <p className="mt-6 text-lg text-zinc-400 max-w-2xl mx-auto text-balance">
+              Registrations, payments, athlete management, AI-powered coaching tools — everything your ski program needs in one platform.
             </p>
-            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button size="lg" asChild>
-                <Link href="/signup">Get Started</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/login">Parent Portal</Link>
-              </Button>
+
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-foreground font-semibold px-8 py-3 text-sm transition-colors"
+              >
+                Start free trial
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-foreground font-medium px-8 py-3 text-sm transition-colors"
+              >
+                Sign in to your club
+              </Link>
+            </div>
+          </div>
+
+          {/* Scroll hint */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+            <div className="h-6 w-px bg-gradient-to-b from-zinc-600 to-transparent mx-auto" />
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="border-t border-zinc-800 py-24 px-6">
+          <div className="mx-auto max-w-6xl">
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-16">
+              Everything your program needs
+            </p>
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  icon: Users,
+                  title: 'Athlete & Family Management',
+                  desc: 'Households, guardians, athletes, waivers — all linked together. No more chasing paperwork.',
+                },
+                {
+                  icon: Trophy,
+                  title: 'Programs & Registration',
+                  desc: 'Build programs, set pricing, open registration. Parents enroll and pay in minutes.',
+                },
+                {
+                  icon: Snowflake,
+                  title: 'AI Coaching Tools',
+                  desc: 'Generate weekly training plans, daily briefings, and scheduling insights powered by Claude AI.',
+                },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+                  <div className="mb-4 inline-flex rounded-lg bg-orange-600/10 p-2.5">
+                    <Icon className="h-5 w-5 text-orange-500" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">{title}</h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="border-t bg-muted/50">
-          <div className="container mx-auto px-4 py-16">
-            <div className="grid gap-8 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <Users className="h-10 w-10 text-primary mb-2" />
-                  <CardTitle>Easy Registration</CardTitle>
-                  <CardDescription>
-                    Register multiple athletes and manage their information in one place
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <Trophy className="h-10 w-10 text-primary mb-2" />
-                  <CardTitle>Program Management</CardTitle>
-                  <CardDescription>Browse available programs and enroll your athletes with ease</CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <Snowflake className="h-10 w-10 text-primary mb-2" />
-                  <CardTitle>Secure Payments</CardTitle>
-                  <CardDescription>Pay for registrations securely with Stripe integration</CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
+        {/* CTA strip */}
+        <section className="border-t border-zinc-800 py-20 px-6 text-center">
+          <div className="mx-auto max-w-xl">
+            <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
+            <p className="text-zinc-400 mb-8 text-sm">Set up your club in minutes. No credit card required.</p>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center rounded-lg bg-orange-600 hover:bg-orange-500 text-foreground font-semibold px-8 py-3 text-sm transition-colors"
+            >
+              Create your club
+            </Link>
           </div>
         </section>
       </main>
 
-      <footer className="border-t">
-        <div className="container mx-auto px-4 py-6">
-          <p className="text-center text-sm text-muted-foreground">© 2025 Ski Club Admin. All rights reserved.</p>
+      <footer className="border-t border-zinc-800 py-8 px-6">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-foreground/10 rounded px-2 py-0.5">
+            <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto opacity-60" />
+          </div>
+          <p className="text-xs text-zinc-600">© {new Date().getFullYear()} West 110. All rights reserved.</p>
         </div>
       </footer>
     </div>

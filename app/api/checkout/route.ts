@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe()
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems && orderItems.length > 0
-      ? orderItems.map((item) => ({
+      ? orderItems.map((item: { description: string; amount: number }) => ({
           price_data: {
             currency: 'usd',
             product_data: { name: item.description },
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         }]
 
-    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+    const sessionParams: Stripe.Checkout.SessionCreateParams & { on_behalf_of?: string; transfer_data?: { destination: string }; application_fee_amount?: number } = {
       line_items: lineItems,
       mode: 'payment',
       ui_mode: 'embedded',

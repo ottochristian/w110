@@ -8,7 +8,7 @@ import * as Sentry from '@sentry/nextjs'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
 interface LogContext {
-  [key: string]: any
+  [key: string]: string | number | boolean | object | null | undefined
 }
 
 interface LogEntry {

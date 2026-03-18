@@ -52,9 +52,9 @@ function PlanDisplay({ text }: { text: string }) {
         if (/^#{1,3} /.test(section)) {
           const level = (section.match(/^(#+)/) || ['', ''])[1].length
           const title = section.replace(/^#+\s*/, '')
-          if (level === 1) return <h2 key={i} className="text-xl font-bold text-zinc-900 mt-6 first:mt-0">{title}</h2>
-          if (level === 2) return <h3 key={i} className="text-base font-semibold text-zinc-800 mt-5 border-b pb-1">{title}</h3>
-          return <h4 key={i} className="text-sm font-semibold text-blue-700 mt-4">{title}</h4>
+          if (level === 1) return <h2 key={i} className="text-xl font-bold mt-6 first:mt-0">{title}</h2>
+          if (level === 2) return <h3 key={i} className="text-base font-semibold mt-5 border-b border-border pb-1">{title}</h3>
+          return <h4 key={i} className="text-sm font-semibold text-blue-400 mt-4">{title}</h4>
         }
         // Render content lines
         const lines = section.split('\n').filter((l) => l.trim())
@@ -62,18 +62,18 @@ function PlanDisplay({ text }: { text: string }) {
           <div key={i} className="space-y-1.5">
             {lines.map((line, j) => {
               if (/^\*\*(.+)\*\*$/.test(line.trim())) {
-                return <p key={j} className="font-semibold text-zinc-800">{line.replace(/\*\*/g, '')}</p>
+                return <p key={j} className="font-semibold">{line.replace(/\*\*/g, '')}</p>
               }
               if (line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
                 return (
                   <div key={j} className="flex gap-2">
-                    <span className="text-blue-500 mt-1 shrink-0">•</span>
-                    <span className="text-zinc-700">{line.replace(/^[-•]\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1')}</span>
+                    <span className="text-blue-400 mt-1 shrink-0">•</span>
+                    <span className="text-foreground">{line.replace(/^[-•]\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1')}</span>
                   </div>
                 )
               }
-              if (line.trim() === '---') return <hr key={j} className="my-3 border-zinc-200" />
-              return <p key={j} className="text-zinc-700">{line.replace(/\*\*(.+?)\*\*/g, '$1')}</p>
+              if (line.trim() === '---') return <hr key={j} className="my-3 border-border" />
+              return <p key={j} className="text-foreground">{line.replace(/\*\*(.+?)\*\*/g, '$1')}</p>
             })}
           </div>
         )
@@ -102,11 +102,11 @@ function Select({
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled || options.length === 0}
           className={cn(
-            'w-full appearance-none rounded-md border bg-white px-3 py-2 pr-8 text-sm transition-colors',
+            'w-full appearance-none rounded-md border border-border bg-card px-3 py-2 pr-8 text-sm transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
             disabled || options.length === 0
-              ? 'text-muted-foreground cursor-not-allowed bg-zinc-50'
-              : 'text-zinc-900 cursor-pointer hover:border-zinc-400'
+              ? 'text-muted-foreground cursor-not-allowed bg-secondary'
+              : 'cursor-pointer hover:border-zinc-500'
           )}
         >
           <option value="">{options.length === 0 ? 'None available' : placeholder}</option>
@@ -195,11 +195,11 @@ function HistoryTab({
     return (
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-          <div className="rounded-full bg-zinc-100 p-4">
-            <History className="h-8 w-8 text-zinc-400" />
+          <div className="rounded-full bg-secondary p-4">
+            <History className="h-8 w-8 text-muted-foreground" />
           </div>
           <div>
-            <p className="font-medium text-zinc-700">No past plans yet</p>
+            <p className="font-medium">No past plans yet</p>
             <p className="text-sm text-muted-foreground mt-1">
               Generated plans will appear here after you create them.
             </p>
@@ -256,7 +256,7 @@ function HistoryTab({
                 variant="outline" size="sm"
                 onClick={() => handleSave(selected)}
                 disabled={saving}
-                className="gap-1.5 border-green-400 text-green-700 hover:bg-green-50"
+                className="gap-1.5 border-green-700 text-green-400 hover:bg-green-950/30"
               >
                 <Check className="h-3.5 w-3.5" />
                 {saving ? 'Saving…' : 'Save'}
@@ -299,7 +299,7 @@ function HistoryTab({
               <Sparkles className="h-4 w-4 text-purple-500" />
               Training Plan
               {selected.edited_plan && !editing && (
-                <Badge variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50 ml-1">
+                <Badge variant="outline" className="text-xs border-green-700 text-green-400 bg-green-950/30 ml-1">
                   Edited
                 </Badge>
               )}
@@ -347,7 +347,7 @@ function HistoryTab({
           <button
             key={p.id}
             onClick={() => onSelect(p)}
-            className="w-full text-left rounded-lg border bg-white hover:bg-zinc-50 hover:border-zinc-300 transition-colors p-4"
+            className="w-full text-left rounded-lg border border-border bg-card hover:bg-secondary/50 hover:border-zinc-600 transition-colors p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -358,7 +358,7 @@ function HistoryTab({
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {p.edited_plan && (
-                  <Badge variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
+                  <Badge variant="outline" className="text-xs border-green-700 text-green-400 bg-green-950/30">
                     Edited
                   </Badge>
                 )}
@@ -628,15 +628,34 @@ export default function TrainingPlanPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      // If this plan was already pushed, delete those events first so re-pushing
+      // replaces them instead of duplicating.
+      let replaced = false
+      if (planId) {
+        const { error: deleteError } = await supabase
+          .from('events')
+          .delete()
+          .eq('ai_plan_id', planId)
+        if (deleteError) {
+          console.error('Failed to remove previous events:', deleteError)
+          throw deleteError
+        }
+        replaced = true
+      }
+
+      const scopeLabel = [plan.context.sub_program, plan.context.group].filter(Boolean).join(' › ') || plan.context.program
+
       const events = trainingDays.map((d) => {
         const dateObj = new Date(d.date + 'T' + startTime + ':00')
         const endObj = new Date(dateObj.getTime() + (d.hours || 2) * 60 * 60 * 1000)
         return {
           club_id: club?.id,
           season_id: currentSeason.id,
+          program_id: programId,
           sub_program_id: subProgramId || null,
           group_id: groupId || null,
-          title: `${d.sessionType} — ${[plan.context.sub_program, plan.context.group].filter(Boolean).join(' › ') || plan.context.program}`,
+          ai_plan_id: planId ?? null,
+          title: `${d.sessionType} — ${scopeLabel}`,
           event_type: (d.sessionType.toLowerCase().includes('race') ? 'race' : 'training') as 'race' | 'training',
           start_at: dateObj.toISOString(),
           end_at: endObj.toISOString(),
@@ -652,7 +671,10 @@ export default function TrainingPlanPage() {
       }
 
       setPushedToSchedule(true)
-      toast.success(`${events.length} sessions added to schedule`, { description: 'View them in the Schedule tab' })
+      toast.success(
+        replaced ? `Schedule updated — ${events.length} sessions replaced` : `${events.length} sessions added to schedule`,
+        { description: 'View them in the Schedule tab' }
+      )
     } catch (err) {
       const e = err as { message?: string }
       console.error('Push to schedule error:', e?.message ?? String(err))
@@ -681,6 +703,16 @@ export default function TrainingPlanPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      // Delete any existing events for this plan first (replace, not duplicate)
+      const { error: deleteError } = await supabase
+        .from('events')
+        .delete()
+        .eq('ai_plan_id', pastPlan.id)
+      if (deleteError) {
+        console.error('Failed to remove previous events:', deleteError)
+        throw deleteError
+      }
+
       const ctx = pastPlan.plan_context ?? {}
       const scopeLabel = [ctx.sub_program, ctx.group].filter(Boolean).join(' › ') || ctx.program || 'Training'
 
@@ -690,8 +722,10 @@ export default function TrainingPlanPage() {
         return {
           club_id: club.id,
           season_id: pastPlan.season_id,
+          program_id: pastPlan.program_id,
           sub_program_id: pastPlan.sub_program_id,
           group_id: pastPlan.group_id,
+          ai_plan_id: pastPlan.id,
           title: `${d.sessionType} — ${scopeLabel}`,
           event_type: (d.sessionType.toLowerCase().includes('race') ? 'race' : 'training') as 'race' | 'training',
           start_at: dateObj.toISOString(),
@@ -707,7 +741,7 @@ export default function TrainingPlanPage() {
         throw error
       }
 
-      toast.success(`${events.length} sessions added to schedule`, { description: 'View them in the Schedule tab' })
+      toast.success(`Schedule updated — ${events.length} sessions replaced`, { description: 'View them in the Schedule tab' })
     } catch (err) {
       const e = err as { message?: string }
       console.error('Push past plan error:', e?.message ?? String(err))
@@ -727,11 +761,11 @@ export default function TrainingPlanPage() {
         </div>
         <Card className="max-w-lg">
           <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-            <div className="rounded-full bg-zinc-100 p-4">
-              <Lock className="h-8 w-8 text-zinc-400" />
+            <div className="rounded-full bg-secondary p-4">
+              <Lock className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-semibold text-zinc-800">AI features are not enabled</p>
+              <p className="font-semibold">AI features are not enabled</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Ask your club administrator to enable AI features under Settings → AI & Intelligence.
               </p>
@@ -743,13 +777,13 @@ export default function TrainingPlanPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold">AI Training Plan</h1>
-            <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs">Beta</Badge>
+            <Badge className="bg-purple-900/30 text-purple-400 border-purple-700 text-xs">Beta</Badge>
           </div>
           <p className="text-muted-foreground mt-1">
             Generate weekly training plans with Claude AI.
@@ -765,7 +799,7 @@ export default function TrainingPlanPage() {
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
             activeTab === 'generate'
               ? 'border-purple-600 text-purple-700'
-              : 'border-transparent text-muted-foreground hover:text-zinc-800'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           )}
         >
           <Sparkles className="h-4 w-4" />
@@ -777,7 +811,7 @@ export default function TrainingPlanPage() {
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
             activeTab === 'history'
               ? 'border-purple-600 text-purple-700'
-              : 'border-transparent text-muted-foreground hover:text-zinc-800'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           )}
         >
           <History className="h-4 w-4" />
@@ -811,7 +845,7 @@ export default function TrainingPlanPage() {
             {/* Season (read-only) */}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Season</Label>
-              <div className="rounded-md border bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+              <div className="rounded-md border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
                 {currentSeason?.name ?? 'No active season'}
               </div>
             </div>
@@ -926,11 +960,11 @@ export default function TrainingPlanPage() {
           {!plan && !generating && !streamingText && (
             <Card className="h-full min-h-[400px] border-dashed">
               <CardContent className="flex flex-col items-center justify-center h-full min-h-[400px] gap-3 text-center">
-                <div className="rounded-full bg-purple-50 p-4">
+                <div className="rounded-full bg-purple-950/30 p-4">
                   <Sparkles className="h-8 w-8 text-purple-400" />
                 </div>
                 <div>
-                  <p className="font-medium text-zinc-700">Your plan will appear here</p>
+                  <p className="font-medium">Your plan will appear here</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Select a program and click Generate Plan
                   </p>
@@ -969,7 +1003,7 @@ export default function TrainingPlanPage() {
                           Edit
                         </Button>
                       ) : (
-                        <Button variant="outline" size="sm" onClick={handleSaveEdit} disabled={savingEdit} className="gap-1.5 border-green-400 text-green-700 hover:bg-green-50">
+                        <Button variant="outline" size="sm" onClick={handleSaveEdit} disabled={savingEdit} className="gap-1.5 border-green-700 text-green-400 hover:bg-green-950/30">
                           <Check className="h-3.5 w-3.5" />
                           {savingEdit ? 'Saving…' : 'Save edits'}
                         </Button>

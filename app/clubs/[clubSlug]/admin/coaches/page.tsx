@@ -110,7 +110,7 @@ export default function CoachesPage() {
                 return (
                   <div
                     key={coach.id}
-                    className="flex items-center justify-between border-b pb-4 last:border-0"
+                    className="flex items-center justify-between border-b border-border pb-4 last:border-0"
                   >
                     <div className="flex-1">
                       <p className="font-medium">
@@ -130,11 +130,11 @@ export default function CoachesPage() {
                             const displayName = getAssignmentDisplayName(assignment)
                             const isHeadCoach = assignment.role === 'head_coach'
                             const isSubstitute = assignment.role === 'substitute_coach'
-                            const bgColor = isHeadCoach 
-                              ? 'bg-green-100 text-green-800'
+                            const bgColor = isHeadCoach
+                              ? 'bg-green-900/30 text-green-400'
                               : isSubstitute
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-yellow-900/30 text-yellow-400'
+                              : 'bg-blue-900/30 text-blue-400'
                             return (
                               <span
                                 key={assignment.id}
@@ -145,7 +145,7 @@ export default function CoachesPage() {
                             )
                           })}
                           {assignments.length > 3 && (
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                            <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
                               +{assignments.length - 3} more
                             </span>
                           )}
