@@ -5,9 +5,10 @@ const VALID_ROLES = ['parent', 'coach', 'admin', 'system_admin']
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -31,7 +32,7 @@ export async function PATCH(
     }
 
     // Prevent self-demotion
-    if (params.userId === user.id) {
+    if (userId === user.id) {
       return NextResponse.json({ error: 'Cannot change your own role' }, { status: 400 })
     }
 
@@ -39,7 +40,7 @@ export async function PATCH(
     const { error: updateError } = await adminClient
       .from('profiles')
       .update({ role })
-      .eq('id', params.userId)
+      .eq('id', userId)
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
