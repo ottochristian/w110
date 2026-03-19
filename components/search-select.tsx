@@ -88,7 +88,11 @@ export function SearchSelect({
         <div className="flex items-center gap-1 flex-shrink-0">
           {clearable && selected && (
             <span
+              role="button"
+              tabIndex={0}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleClear}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClear(e as any) }}
               className="p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300 cursor-pointer"
             >
               <X className="h-3 w-3" />

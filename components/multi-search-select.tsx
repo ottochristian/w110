@@ -90,14 +90,16 @@ export function MultiSearchSelect({
           {label ? (
             <>
               <span className="text-foreground truncate">{label}</span>
-              <button
-                type="button"
+              <span
+                role="button"
+                tabIndex={0}
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); clearAll() }}
-                className="p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300 flex-shrink-0"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); clearAll() }}}
+                className="p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300 flex-shrink-0 cursor-pointer"
               >
                 <X className="h-3 w-3" />
-              </button>
+              </span>
             </>
           ) : (
             <span className="text-zinc-500">{placeholder}</span>
