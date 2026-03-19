@@ -10,7 +10,7 @@ import { colors } from '@/lib/colors'
 
 interface CoachSidebarProps {
   profile: Profile
-  clubSlug?: string
+  clubSlug: string
 }
 
 export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
@@ -19,7 +19,7 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
   const [logoError, setLogoError] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
-  const basePath = clubSlug ? `/clubs/${clubSlug}/coach` : '/coach'
+  const basePath = `/clubs/${clubSlug}/coach`
 
   const menuItems = [
     { label: 'Dashboard', href: basePath, icon: LayoutDashboard },
@@ -34,7 +34,7 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
       .then((r) => r.json())
       .then((d) => setUnreadCount(d.unread_count ?? 0))
       .catch(() => {})
-  }, [pathname]) // Re-fetch when navigating (marks read clears badge)
+  }, [pathname]) // Re-fetch when navigating so badge clears after reading
 
   const initial = club?.name?.charAt(0).toUpperCase() || 'C'
 
@@ -42,7 +42,6 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
     <aside className="w-64 bg-zinc-950 flex flex-col h-screen fixed left-0 top-0">
       {/* Header — club identity */}
       <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
-        {/* Club logo + name */}
         {club && !clubLoading ? (
           <div className="flex items-center gap-3">
             {club.logo_url && !logoError ? (
