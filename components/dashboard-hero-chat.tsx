@@ -17,17 +17,16 @@ const CHIPS = [
   { label: "Who hasn't paid?", q: 'Which athletes have unpaid registrations?' },
 ]
 
-function renderLines(text: string) {
+function renderContent(text: string) {
   return text.split('\n').map((line, i) => {
     if (!line.trim()) return <div key={i} className="h-1" />
-    if (/^#{1,2} /.test(line)) return <p key={i} className="font-semibold text-zinc-200 mt-2 first:mt-0">{line.replace(/^#{1,2} /, '')}</p>
-    if (/^### /.test(line)) return <p key={i} className="font-medium text-zinc-300 mt-1">{line.replace(/^### /, '')}</p>
+    if (/^#{1,2} /.test(line)) return <p key={i} className="font-semibold text-zinc-200 mt-3 first:mt-0">{line.replace(/^#{1,2} /, '')}</p>
+    if (/^### /.test(line)) return <p key={i} className="font-medium text-zinc-300 mt-2">{line.replace(/^### /, '')}</p>
     if (/^[*-] /.test(line)) {
-      const content = line.replace(/^[*-] /, '')
       return (
-        <div key={i} className="flex gap-1.5">
-          <span className="text-orange-400/70 shrink-0 mt-0.5">•</span>
-          <span>{content}</span>
+        <div key={i} className="flex gap-2">
+          <span className="text-orange-400/60 shrink-0 mt-0.5">•</span>
+          <span>{line.replace(/^[*-] /, '')}</span>
         </div>
       )
     }
@@ -40,7 +39,7 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
   const [loading, setLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
@@ -53,9 +52,9 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
     el.style.height = `${el.scrollHeight}px`
   }, [input])
 
-  // Scroll to latest message
+  // Scroll to bottom on new messages
   useEffect(() => {
-    if (messages.length > 0) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
   async function handleSend() {
@@ -90,41 +89,47 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
   return (
     <div className="flex flex-col items-center gap-8 py-8">
       {/* Greeting */}
-      <div className="flex items-center gap-4 text-center">
+      <div className="flex items-center gap-4">
         <Sparkles className="h-9 w-9 text-orange-500 shrink-0" />
         <h1 className="text-4xl font-semibold text-foreground tracking-tight">
           {greeting}{firstName ? `, ${firstName}` : ''}
         </h1>
       </div>
 
-      {/* Chat area */}
-      <div className="w-full max-w-2xl space-y-3">
-        {/* Conversation history */}
-        {messages.length > 0 && (
-          <div className="space-y-2 text-left">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'rounded-xl px-4 py-3 text-sm leading-relaxed',
-                  msg.role === 'user'
-                    ? 'bg-zinc-800 text-zinc-200 ml-10'
-                    : 'bg-orange-950/40 border border-orange-900/30 text-zinc-300'
-                )}
-              >
-                {msg.role === 'assistant' ? renderLines(msg.content) : msg.content}
+      {/* Single unified thread */}
+      <div className="w-full max-w-2xl flex flex-col gap-5">
+
+        {/* Messages — no wrapper box, flow naturally */}
+        {messages.map((msg, i) =>
+          msg.role === 'user' ? (
+            // User: right-aligned bubble
+            <div key={i} className="flex justify-end">
+              <div className="max-w-[80%] bg-zinc-800 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-zinc-100 leading-relaxed">
+                {msg.content}
               </div>
-            ))}
-            {loading && (
-              <div className="bg-zinc-800/50 rounded-xl px-4 py-3 text-sm text-zinc-500 animate-pulse">
-                Thinking…
+            </div>
+          ) : (
+            // AI: left-aligned plain text with sparkle icon — no box
+            <div key={i} className="flex gap-3 items-start">
+              <Sparkles className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+              <div className="text-sm text-zinc-300 leading-relaxed space-y-1 flex-1">
+                {renderContent(msg.content)}
               </div>
-            )}
-            <div ref={messagesEndRef} />
+            </div>
+          )
+        )}
+
+        {/* Loading state — same left-aligned style */}
+        {loading && (
+          <div className="flex gap-3 items-center">
+            <Sparkles className="h-4 w-4 text-orange-500 shrink-0 animate-pulse" />
+            <span className="text-sm text-zinc-500">Thinking…</span>
           </div>
         )}
 
-        {/* Input box */}
+        <div ref={bottomRef} />
+
+        {/* Input */}
         <div className="relative rounded-2xl border border-zinc-700 bg-zinc-800/60 shadow-lg transition-all focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:border-orange-700/60">
           <textarea
             ref={textareaRef}
@@ -136,7 +141,7 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
                 handleSend()
               }
             }}
-            placeholder={messages.length === 0 ? 'How can I help you today?' : 'Ask a follow-up…'}
+            placeholder="How can I help you today?"
             rows={3}
             disabled={loading}
             className="w-full bg-transparent px-5 py-4 pr-16 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none resize-none"
@@ -157,7 +162,7 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
 
         {/* Chips — only before first message */}
         {messages.length === 0 && (
-          <div className="flex flex-wrap justify-center gap-2 pt-1">
+          <div className="flex flex-wrap justify-center gap-2">
             {CHIPS.map((chip) => (
               <button
                 key={chip.label}
@@ -173,12 +178,12 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
           </div>
         )}
 
-        {/* Clear */}
-        {messages.length > 0 && (
+        {/* Clear — subtle, inside the thread */}
+        {messages.length > 0 && !loading && (
           <div className="flex justify-center">
             <button
               onClick={() => setMessages([])}
-              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors"
             >
               Clear conversation
             </button>
