@@ -88,11 +88,11 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 py-4">
+    <div className="flex flex-col items-center gap-8 py-8">
       {/* Greeting */}
-      <div className="flex items-center gap-3 text-center">
-        <Sparkles className="h-7 w-7 text-orange-500 shrink-0" />
-        <h1 className="text-3xl font-semibold text-foreground tracking-tight">
+      <div className="flex items-center gap-4 text-center">
+        <Sparkles className="h-9 w-9 text-orange-500 shrink-0" />
+        <h1 className="text-4xl font-semibold text-foreground tracking-tight">
           {greeting}{firstName ? `, ${firstName}` : ''}
         </h1>
       </div>
@@ -137,16 +137,21 @@ export function DashboardHeroChat({ firstName, chatEndpoint }: DashboardHeroChat
               }
             }}
             placeholder={messages.length === 0 ? 'How can I help you today?' : 'Ask a follow-up…'}
-            rows={2}
+            rows={3}
             disabled={loading}
-            className="w-full bg-transparent px-5 py-4 pr-16 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none resize-none"
+            className="w-full bg-transparent px-5 py-4 pr-16 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none resize-none"
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="absolute right-3 bottom-3 w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            className={cn(
+              'absolute right-3 bottom-3 w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+              input.trim() && !loading
+                ? 'bg-orange-600 hover:bg-orange-500 cursor-pointer'
+                : 'bg-zinc-700 cursor-not-allowed'
+            )}
           >
-            <ArrowUp className="h-4 w-4 text-white" />
+            <ArrowUp className={cn('h-4 w-4', input.trim() && !loading ? 'text-white' : 'text-zinc-500')} />
           </button>
         </div>
 
