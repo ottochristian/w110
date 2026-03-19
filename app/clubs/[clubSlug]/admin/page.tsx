@@ -4,17 +4,9 @@ import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import {
   Users,
   FileText,
   DollarSign,
-  Plus,
   ArrowRight,
   AlertCircle,
   AlertTriangle,
@@ -32,11 +24,10 @@ import {
   useRecentRegistrations,
 } from '@/lib/hooks/use-registrations'
 import { useSeasonReadiness } from '@/lib/hooks/use-season-readiness'
-import { AdminPageHeader } from '@/components/admin-page-header'
 import { InlineLoading } from '@/components/ui/loading-states'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { ClubIntelligenceWidget } from '@/components/club-intelligence-widget'
+import { GreetingWidget } from '@/components/greeting-widget'
 
 function statusDot(status: string) {
   switch (status?.toLowerCase()) {
@@ -63,8 +54,6 @@ export default function AdminDashboard() {
   const clubSlug = params.clubSlug as string
   const { profile, loading: authLoading } = useRequireAdmin()
   const selectedSeason = useSelectedSeason()
-  const [insightsEnabled, setInsightsEnabled] = useState(false)
-
   const [weeklyDeltas, setWeeklyDeltas] = useState<{
     newAthletes: number
     newRevenue: number
@@ -81,16 +70,6 @@ export default function AdminDashboard() {
   }>>([])
 
   const [waiverStats, setWaiverStats] = useState<{ signed: number } | null>(null)
-
-  useEffect(() => {
-    if (!profile) return
-    fetch('/api/admin/ai/toggle')
-      .then(r => r.json())
-      .then(data => {
-        setInsightsEnabled(data.ai_enabled && data.ai_insights_enabled)
-      })
-      .catch(() => {})
-  }, [profile])
 
   // Fetch weekly deltas
   useEffect(() => {
@@ -341,19 +320,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* 1. Header */}
-      <AdminPageHeader
-        title="Dashboard"
-        description={selectedSeason ? `Season: ${selectedSeason.name}` : 'Overview of your ski program'}
-        action={
-          <Button asChild size="sm">
-            <Link href={`${basePath}/programs/new`}>
-              <Plus className="h-3.5 w-3.5" />
-              New Program
-            </Link>
-          </Button>
-        }
-      />
+      {/* 1. Greeting */}
+      <GreetingWidget firstName={profile?.first_name ?? ''} />
 
       {/* 2. Season Setup Banner — only when draft + incomplete */}
       {readiness && !readiness.isComplete && (
@@ -377,15 +345,7 @@ export default function AdminDashboard() {
         </Link>
       )}
 
-      {/* 3. Club Intelligence Widget — only when ai_insights_enabled is on */}
-      {insightsEnabled && (
-        <ClubIntelligenceWidget
-          summaryEndpoint="/api/admin/ai/insights"
-          chatEndpoint="/api/admin/ai/insights/chat"
-        />
-      )}
-
-      {/* 4. Metric Strip */}
+      {/* 3. Metric Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-800 rounded-xl overflow-hidden ring-1 ring-zinc-800">
         {/* Athletes */}
         <div className="bg-zinc-900 px-5 py-5">

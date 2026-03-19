@@ -24,13 +24,18 @@ export async function GET(request: NextRequest) {
     .single()
 
   if (!data) {
-    return NextResponse.json({ summary_text: null })
+    return NextResponse.json({ summary_text: null, is_stale: true })
   }
+
+  const today = new Date().toISOString().split('T')[0]
+  const generatedDay = data.generated_at ? data.generated_at.split('T')[0] : null
+  const isStale = generatedDay !== today
 
   return NextResponse.json({
     summary_text: data.summary_text,
     generated_at: data.generated_at,
     season_id: data.season_id,
+    is_stale: isStale,
   })
 }
 
