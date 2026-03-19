@@ -181,32 +181,28 @@ export default function HomePage() {
           </div>
 
           <div className="relative max-w-4xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-600/30 bg-orange-600/10 px-4 py-1.5 text-xs font-medium text-orange-400">
-              Ski club management, reimagined
-            </div>
-
             <h1 className="text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl text-balance leading-[1.05]">
-              Run your club.<br />
-              <span className="text-orange-500">Not spreadsheets.</span>
+              Register your child.<br />
+              <span className="text-orange-500">In minutes.</span>
             </h1>
 
             <p className="mt-6 text-lg text-zinc-400 max-w-2xl mx-auto text-balance">
-              Registrations, payments, athlete management, AI-powered coaching tools — everything your ski program needs in one platform.
+              Sign up, pick a program, and pay — all in one place. No paperwork, no back-and-forth emails.
             </p>
 
             <div className="mt-10 flex justify-center">
               <Link
-                href="/signup/new-club"
+                href="/signup"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-foreground font-semibold px-8 py-3 text-sm transition-colors"
               >
-                Set up your club
+                Register your child
               </Link>
             </div>
             <p className="mt-5 text-sm text-zinc-500">
-              Already a member?{' '}
+              Already have an account?{' '}
               <Link href="/login" className="text-zinc-400 hover:text-foreground underline underline-offset-2 transition-colors">Sign in</Link>
               {' · '}
-              <Link href="/signup" className="text-zinc-400 hover:text-foreground underline underline-offset-2 transition-colors">Create a parent account</Link>
+              <Link href="/signup/new-club" className="text-zinc-400 hover:text-foreground underline underline-offset-2 transition-colors">Setting up a new club?</Link>
             </p>
           </div>
 
@@ -256,12 +252,12 @@ export default function HomePage() {
         <section className="border-t border-zinc-800 py-20 px-6 text-center">
           <div className="mx-auto max-w-xl">
             <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
-            <p className="text-zinc-400 mb-8 text-sm">Set up your club in minutes. No credit card required.</p>
+            <p className="text-zinc-400 mb-8 text-sm">Create your account and register in minutes.</p>
             <Link
-              href="/signup/new-club"
+              href="/signup"
               className="inline-flex items-center justify-center rounded-lg bg-orange-600 hover:bg-orange-500 text-foreground font-semibold px-8 py-3 text-sm transition-colors"
             >
-              Set up your club
+              Register your child
             </Link>
           </div>
         </section>
