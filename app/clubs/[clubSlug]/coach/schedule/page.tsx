@@ -200,7 +200,7 @@ function MiniCalendar({
               className="flex flex-col items-center py-1 rounded-md transition-colors text-xs font-medium hover:bg-zinc-800/50"
             >
               <span className={`w-6 h-6 flex items-center justify-center rounded-full leading-none
-                ${isToday ? 'bg-blue-600 text-white' : inWeek ? 'text-white font-semibold' : 'text-zinc-500'}
+                ${isToday ? 'bg-blue-600 text-white' : inWeek ? 'text-white font-semibold' : 'text-zinc-400'}
               `}>
                 {day.getDate()}
               </span>
@@ -575,65 +575,77 @@ export default function CoachSchedulePage() {
         <div className="grid grid-cols-7 gap-2">
           {weekDays.map((day) => {
             const dayEvents = eventsOnDay(day)
+            const amEvents = dayEvents.filter(ev => new Date(ev.start_at).getHours() < 12)
+            const pmEvents = dayEvents.filter(ev => new Date(ev.start_at).getHours() >= 12)
             const isToday = isSameDay(day, today)
+
+            function EventCard({ ev }: { ev: typeof dayEvents[0] }) {
+              const spColors = ev.sub_program_id ? spColorMap.get(ev.sub_program_id) : undefined
+              const isSelected = selectedEvent?.id === ev.id
+              return (
+                <div
+                  onClick={() => setSelectedEvent(isSelected ? null : ev)}
+                  className={`group relative rounded-md border-l-[3px] border pl-2 pr-2 py-1.5 text-xs cursor-pointer transition-all bg-card
+                    ${spColors ? spColors.border : 'border-l-zinc-600'}
+                    ${isSelected ? 'ring-1 ring-blue-500/60 shadow-md' : 'hover:shadow-sm hover:brightness-110'}`}
+                >
+                  {ev.sub_programs && (
+                    <p className="text-[9px] font-semibold uppercase tracking-wide truncate mb-0.5 opacity-60">
+                      {ev.sub_programs.name}
+                    </p>
+                  )}
+                  <p className="font-medium truncate pr-6">{ev.title}</p>
+                  <p className="text-[10px] opacity-50 mt-0.5">{formatTime(ev.start_at)}</p>
+                  <div className="absolute top-1 right-1 hidden group-hover:flex gap-0.5">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openEdit(ev) }}
+                      className="p-0.5 rounded hover:bg-secondary"
+                    >
+                      <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(ev.id) }}
+                      className="p-0.5 rounded hover:bg-secondary"
+                    >
+                      <Trash2 className="h-2.5 w-2.5 text-zinc-500" />
+                    </button>
+                  </div>
+                </div>
+              )
+            }
+
             return (
-              <div key={day.toISOString()} className="flex flex-col gap-1.5 min-h-[140px]">
+              <div key={day.toISOString()} className="flex flex-col gap-0">
                 {/* Day header */}
-                <div className="text-center pb-1 border-b border-border">
+                <div className="text-center pb-1 border-b border-border mb-1">
                   <p className="text-xs text-muted-foreground">{DAYS[day.getDay()]}</p>
                   <div className={`mx-auto w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold mt-0.5 ${isToday ? 'bg-blue-600 text-white' : ''}`}>
                     {day.getDate()}
                   </div>
                 </div>
 
-                {/* Events */}
-                <div className="flex flex-col gap-1 flex-1">
-                  {dayEvents.map((ev) => {
-                    const spColors = ev.sub_program_id ? spColorMap.get(ev.sub_program_id) : undefined
-                    const isSelected = selectedEvent?.id === ev.id
-                    return (
-                      <div
-                        key={ev.id}
-                        onClick={() => setSelectedEvent(isSelected ? null : ev)}
-                        className={`group relative rounded-md border-l-[3px] border pl-2 pr-2 py-1.5 text-xs cursor-pointer transition-all bg-card
-                          ${spColors ? spColors.border : 'border-l-zinc-600'}
-                          ${isSelected ? 'ring-1 ring-blue-500/60 shadow-md' : 'hover:shadow-sm hover:brightness-110'}`}
-                      >
-                        {/* Program label */}
-                        {ev.sub_programs && (
-                          <p className="text-[9px] font-semibold uppercase tracking-wide truncate mb-0.5 opacity-60">
-                            {ev.sub_programs.name}
-                          </p>
-                        )}
-                        <p className="font-medium truncate pr-6">{ev.title}</p>
-                        <p className="text-[10px] opacity-50 mt-0.5">{formatTime(ev.start_at)}</p>
-                        {/* Actions — stop propagation so they don't trigger detail panel */}
-                        <div className="absolute top-1 right-1 hidden group-hover:flex gap-0.5">
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); openEdit(ev) }}
-                            className="p-0.5 rounded hover:bg-secondary"
-                          >
-                            <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); handleDelete(ev.id) }}
-                            className="p-0.5 rounded hover:bg-secondary"
-                          >
-                            <Trash2 className="h-2.5 w-2.5 text-zinc-500" />
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
+                {/* AM section */}
+                <div className="flex flex-col gap-1 min-h-[60px] pb-1">
+                  <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-600 px-0.5">AM</p>
+                  {amEvents.map(ev => <EventCard key={ev.id} ev={ev} />)}
+                </div>
+
+                {/* Noon divider */}
+                <div className="border-t border-zinc-800 mx-0.5 mb-1" />
+
+                {/* PM section */}
+                <div className="flex flex-col gap-1 min-h-[60px] pb-1">
+                  <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-600 px-0.5">PM</p>
+                  {pmEvents.map(ev => <EventCard key={ev.id} ev={ev} />)}
                 </div>
 
                 {/* Add to this day */}
                 <button
                   type="button"
                   onClick={() => openAdd(day)}
-                  className="text-[10px] text-muted-foreground hover:text-foreground text-center py-1 rounded hover:bg-secondary/50 transition-colors"
+                  className="text-[10px] text-muted-foreground hover:text-foreground text-center py-1 rounded hover:bg-secondary/50 transition-colors mt-auto"
                 >
                   + add
                 </button>
