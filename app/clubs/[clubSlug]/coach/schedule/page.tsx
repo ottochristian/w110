@@ -200,7 +200,7 @@ function MiniCalendar({
               className="flex flex-col items-center py-1 rounded-md transition-colors text-xs font-medium hover:bg-zinc-800/50"
             >
               <span className={`w-6 h-6 flex items-center justify-center rounded-full leading-none
-                ${isToday ? 'bg-blue-600 text-white' : inWeek ? 'text-zinc-200 font-semibold' : 'text-zinc-400'}
+                ${isToday ? 'bg-blue-600 text-white' : inWeek ? 'text-white font-semibold' : 'text-zinc-500'}
               `}>
                 {day.getDate()}
               </span>
@@ -481,8 +481,8 @@ export default function CoachSchedulePage() {
         </div>
       </div>
 
-      {/* Program filter bar */}
-      {subPrograms.length > 0 && (
+      {/* Program filter bar — only shown when there are multiple sub-programs to filter */}
+      {subPrograms.length > 1 && (
         <div className="flex flex-wrap gap-2 items-center">
           <button
             type="button"
@@ -492,7 +492,7 @@ export default function CoachSchedulePage() {
                 ? 'bg-zinc-900 text-foreground ring-zinc-900'
                 : 'bg-card text-muted-foreground ring-border hover:bg-secondary/50'}`}
           >
-            All programs
+            All
           </button>
 
           {[...spByProgram.entries()].map(([progName, sps]) => (
@@ -502,7 +502,6 @@ export default function CoachSchedulePage() {
               {sps.map((sp) => {
                 const colors = spColorMap.get(sp.id)!
                 const isActive = filterSpId === sp.id
-                const isAssigned = assignedSpIds.has(sp.id)
                 return (
                   <button
                     key={sp.id}
@@ -513,7 +512,6 @@ export default function CoachSchedulePage() {
                   >
                     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${colors.dot}`} />
                     {sp.name}
-                    {isAssigned && <CheckCircle2 className="h-3 w-3 text-emerald-500 flex-shrink-0" />}
                   </button>
                 )
               })}
