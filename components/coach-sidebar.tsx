@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
@@ -17,7 +17,6 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
   const pathname = usePathname()
   const { club, loading: clubLoading } = useClub()
   const [logoError, setLogoError] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
 
   const basePath = `/clubs/${clubSlug}/coach`
 
@@ -26,15 +25,8 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
     { label: 'Schedule', href: `${basePath}/schedule`, icon: Calendar },
     { label: 'Athletes', href: `${basePath}/athletes`, icon: Users },
     { label: 'AI Training Plan', href: `${basePath}/training-plan`, icon: Sparkles },
-    { label: 'Messages', href: `${basePath}/messages`, icon: MessageSquare, badge: unreadCount },
+    { label: 'Messages', href: `${basePath}/messages`, icon: MessageSquare },
   ]
-
-  useEffect(() => {
-    fetch('/api/messages/unread-count')
-      .then((r) => r.json())
-      .then((d) => setUnreadCount(d.unread_count ?? 0))
-      .catch(() => {})
-  }, [pathname]) // Re-fetch when navigating so badge clears after reading
 
   const initial = club?.name?.charAt(0).toUpperCase() || 'C'
 
@@ -87,12 +79,7 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {item.badge ? (
-                <span className="bg-orange-600 text-white text-xs font-medium rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
-                  {item.badge > 99 ? '99+' : item.badge}
-                </span>
-              ) : null}
+              {item.label}
             </Link>
           )
         })}

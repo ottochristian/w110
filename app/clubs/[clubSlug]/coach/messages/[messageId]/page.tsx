@@ -17,7 +17,6 @@ type Message = {
   subject: string
   body: string
   sent_at: string
-  read_at: string | null
   program_id: string | null
   sub_program_id: string | null
   group_id: string | null
@@ -50,26 +49,9 @@ export default function MessageDetailPage() {
     async function load() {
       setLoading(true)
 
-      // Try inbox first, then sent
-      const inboxRes = await fetch('/api/messages/inbox')
-      if (inboxRes.ok) {
-        const data = await inboxRes.json()
-        const found = (data.messages ?? []).find((m: Message) => m.id === messageId)
-        if (found) {
-          setMessage(found)
-          // Mark as read if not already
-          if (!found.read_at) {
-            await fetch(`/api/messages/${messageId}/read`, { method: 'PATCH' })
-          }
-          setLoading(false)
-          return
-        }
-      }
-
-      // Try sent
-      const sentRes = await fetch(`/api/messages/sent?clubSlug=${clubSlug}`)
-      if (sentRes.ok) {
-        const data = await sentRes.json()
+      const res = await fetch(`/api/messages/sent?clubSlug=${clubSlug}`)
+      if (res.ok) {
+        const data = await res.json()
         const found = (data.messages ?? []).find((m: Message) => m.id === messageId)
         if (found) {
           setMessage(found)
