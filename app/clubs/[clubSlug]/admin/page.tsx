@@ -28,6 +28,7 @@ import { InlineLoading } from '@/components/ui/loading-states'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { GreetingWidget } from '@/components/greeting-widget'
+import { DashboardHeroChat } from '@/components/dashboard-hero-chat'
 
 function statusDot(status: string) {
   switch (status?.toLowerCase()) {
@@ -54,6 +55,8 @@ export default function AdminDashboard() {
   const clubSlug = params.clubSlug as string
   const { profile, loading: authLoading } = useRequireAdmin()
   const selectedSeason = useSelectedSeason()
+  const [aiEnabled, setAiEnabled] = useState(false)
+
   const [weeklyDeltas, setWeeklyDeltas] = useState<{
     newAthletes: number
     newRevenue: number
@@ -70,6 +73,13 @@ export default function AdminDashboard() {
   }>>([])
 
   const [waiverStats, setWaiverStats] = useState<{ signed: number } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/ai/toggle')
+      .then(r => r.json())
+      .then(data => setAiEnabled(data.ai_enabled && data.ai_insights_enabled))
+      .catch(() => {})
+  }, [])
 
   // Fetch weekly deltas
   useEffect(() => {
@@ -320,8 +330,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* 1. Greeting */}
-      <GreetingWidget firstName={profile?.first_name ?? ''} />
+      {/* 1. Hero — AI chat when enabled, plain greeting otherwise */}
+      {aiEnabled ? (
+        <DashboardHeroChat
+          firstName={profile?.first_name ?? ''}
+          chatEndpoint="/api/admin/ai/insights/chat"
+        />
+      ) : (
+        <GreetingWidget firstName={profile?.first_name ?? ''} />
+      )}
 
       {/* 2. Season Setup Banner — only when draft + incomplete */}
       {readiness && !readiness.isComplete && (
