@@ -200,7 +200,7 @@ function MiniCalendar({
               className="flex flex-col items-center py-1 rounded-md transition-colors text-xs font-medium hover:bg-zinc-800/50"
             >
               <span className={`w-6 h-6 flex items-center justify-center rounded-full leading-none
-                ${isToday ? 'bg-blue-600 text-white' : inWeek ? 'text-white font-semibold' : 'text-zinc-400'}
+                ${isToday ? 'bg-blue-600 text-white' : inWeek ? 'bg-zinc-700 text-white font-semibold' : 'text-zinc-400'}
               `}>
                 {day.getDate()}
               </span>
@@ -466,7 +466,9 @@ export default function CoachSchedulePage() {
           <p className="text-muted-foreground mt-1">
             {activeFilter
               ? <><span className="font-medium">{activeFilter.programs?.name ?? ''}</span> — {activeFilter.name}</>
-              : 'All programs'}
+              : subPrograms.length === 1
+              ? <><span className="font-medium">{subPrograms[0].programs?.name ?? ''}</span> — {subPrograms[0].name}</>
+              : 'Your schedule'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -543,7 +545,6 @@ export default function CoachSchedulePage() {
             size="sm"
             className="w-full"
             onClick={goToday}
-            disabled={isCurrentWeek}
           >
             This week
           </Button>
