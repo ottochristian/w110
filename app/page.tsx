@@ -269,7 +269,7 @@ export default function HomePage() {
                 <p className="text-sm text-zinc-400 mb-8 flex-1">Submit your details and we'll have your club set up and ready to go within 24 hours.</p>
                 <Link
                   href="/signup/new-club"
-                  className="inline-flex items-center justify-center rounded-lg border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-foreground font-semibold px-6 py-2.5 text-sm transition-colors"
+                  className="inline-flex items-center justify-center rounded-lg bg-orange-600 hover:bg-orange-500 text-foreground font-semibold px-6 py-2.5 text-sm transition-colors"
                 >
                   Set up your club
                 </Link>
