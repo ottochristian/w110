@@ -344,6 +344,30 @@ The W110 Team`.trim()
   }
 
   /**
+   * Send "club request declined" email to the requester
+   */
+  async sendClubRequestDeclined(
+    email: string,
+    options: { firstName: string; clubName: string }
+  ): Promise<NotificationResult> {
+    const message = `Hi ${options.firstName},
+
+Thanks for your interest in W110. Unfortunately, we're not able to set up ${options.clubName} at this time.
+
+If you think this was a mistake or have questions, please reply to this email and we'll be happy to help.
+
+Thanks,
+The W110 Team`.trim()
+
+    return this.send({
+      method: 'email',
+      recipient: email,
+      subject: `Update on your club request — ${options.clubName}`,
+      message,
+    })
+  }
+
+  /**
    * Send email via Resend
    */
   private async sendEmail(options: NotificationOptions): Promise<void> {

@@ -99,6 +99,7 @@ export default function NewClubSignupPage() {
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.error || 'Failed to submit request.')
+      await supabase.auth.signOut()
       setSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')

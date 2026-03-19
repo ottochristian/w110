@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useSystemAdmin } from '@/lib/use-system-admin'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Building2, Check, Clock, Users } from 'lucide-react'
+import { Building2, Check, Clock, Users, X } from 'lucide-react'
 
 type ClubRequest = {
   id: string
@@ -19,11 +18,14 @@ type ClubRequest = {
   created_at: string
 }
 
+type Tab = 'pending' | 'approved' | 'rejected'
+
 export default function ClubRequestsPage() {
   const { loading: authLoading } = useSystemAdmin()
   const [requests, setRequests] = useState<ClubRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending')
+  const [activeTab, setActiveTab] = useState<Tab>('pending')
+  const [pendingCount, setPendingCount] = useState(0)
 
   // Approve dialog state
   const [approving, setApproving] = useState<ClubRequest | null>(null)
@@ -32,7 +34,11 @@ export default function ClubRequestsPage() {
   const [approveLoading, setApproveLoading] = useState(false)
   const [approveError, setApproveError] = useState<string | null>(null)
 
-  async function loadRequests(status: 'pending' | 'approved') {
+  // Reject dialog state
+  const [rejecting, setRejecting] = useState<ClubRequest | null>(null)
+  const [rejectLoading, setRejectLoading] = useState(false)
+
+  async function loadRequests(status: Tab) {
     setLoading(true)
     try {
       const resp = await fetch(`/api/system-admin/club-requests?status=${status}`, { credentials: 'include' })
@@ -45,8 +51,19 @@ export default function ClubRequestsPage() {
     }
   }
 
+  async function loadPendingCount() {
+    try {
+      const resp = await fetch('/api/system-admin/club-requests?status=pending', { credentials: 'include' })
+      const data = await resp.json()
+      setPendingCount(data.requests?.length ?? 0)
+    } catch {}
+  }
+
   useEffect(() => {
-    if (!authLoading) loadRequests(activeTab)
+    if (!authLoading) {
+      loadRequests(activeTab)
+      loadPendingCount()
+    }
   }, [authLoading, activeTab])
 
   function openApprove(req: ClubRequest) {
@@ -72,12 +89,35 @@ export default function ClubRequestsPage() {
       if (!resp.ok) throw new Error(data.error || 'Failed to approve')
       setApproving(null)
       loadRequests(activeTab)
+      loadPendingCount()
     } catch (err) {
       setApproveError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setApproveLoading(false)
     }
   }
+
+  async function handleReject() {
+    if (!rejecting) return
+    setRejectLoading(true)
+
+    try {
+      const resp = await fetch(`/api/system-admin/club-requests/${rejecting.id}/reject`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!resp.ok) throw new Error('Failed to reject')
+      setRejecting(null)
+      loadRequests(activeTab)
+      loadPendingCount()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setRejectLoading(false)
+    }
+  }
+
+  const tabs: Tab[] = ['pending', 'approved', 'rejected']
 
   return (
     <div className="space-y-6">
@@ -88,7 +128,7 @@ export default function ClubRequestsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-zinc-800">
-        {(['pending', 'approved'] as const).map(tab => (
+        {tabs.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -99,9 +139,9 @@ export default function ClubRequestsPage() {
             }`}
           >
             {tab}
-            {tab === 'pending' && requests.length > 0 && activeTab === 'pending' && (
+            {tab === 'pending' && pendingCount > 0 && (
               <span className="ml-2 rounded-full bg-orange-600 px-1.5 py-0.5 text-xs text-white">
-                {requests.length}
+                {pendingCount}
               </span>
             )}
           </button>
@@ -124,11 +164,9 @@ export default function ClubRequestsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-foreground">{req.club_name}</h3>
                     <Badge variant={req.status === 'pending' ? 'outline' : 'secondary'} className="text-xs">
-                      {req.status === 'pending' ? (
-                        <><Clock className="h-3 w-3 mr-1" />Pending</>
-                      ) : (
-                        <><Check className="h-3 w-3 mr-1" />Approved</>
-                      )}
+                      {req.status === 'pending' && <><Clock className="h-3 w-3 mr-1" />Pending</>}
+                      {req.status === 'approved' && <><Check className="h-3 w-3 mr-1" />Approved</>}
+                      {req.status === 'rejected' && <><X className="h-3 w-3 mr-1" />Rejected</>}
                     </Badge>
                   </div>
                   <p className="text-sm text-zinc-300">{req.contact_name}</p>
@@ -153,10 +191,17 @@ export default function ClubRequestsPage() {
                 </div>
 
                 {req.status === 'pending' && (
-                  <Button size="sm" onClick={() => openApprove(req)} className="flex-shrink-0">
-                    <Check className="h-3.5 w-3.5 mr-1" />
-                    Approve
-                  </Button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => setRejecting(req)}
+                      className="text-red-400 border-red-900 hover:bg-red-950 hover:text-red-300">
+                      <X className="h-3.5 w-3.5 mr-1" />
+                      Decline
+                    </Button>
+                    <Button size="sm" onClick={() => openApprove(req)}>
+                      <Check className="h-3.5 w-3.5 mr-1" />
+                      Approve
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -169,7 +214,7 @@ export default function ClubRequestsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-xl border border-zinc-700 bg-zinc-900 p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-foreground mb-1">Approve club request</h2>
-            <p className="text-sm text-zinc-400 mb-5">Review the details before provisioning the club.</p>
+            <p className="text-sm text-zinc-400 mb-5">Review the details before provisioning. The requester will receive a "your club is ready" email.</p>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
@@ -183,7 +228,7 @@ export default function ClubRequestsPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-zinc-300">URL slug</label>
-                <div className="flex items-center gap-0">
+                <div className="flex items-center">
                   <span className="rounded-l-lg border border-r-0 border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-500">/clubs/</span>
                   <input
                     type="text"
@@ -209,11 +254,35 @@ export default function ClubRequestsPage() {
             )}
 
             <div className="mt-5 flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setApproving(null)} disabled={approveLoading}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setApproving(null)} disabled={approveLoading}>Cancel</Button>
               <Button onClick={handleApprove} disabled={approveLoading || !approveSlug || !approveClubName}>
                 {approveLoading ? 'Provisioning…' : 'Approve & create club'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject confirmation dialog */}
+      {rejecting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-foreground mb-1">Decline request</h2>
+            <p className="text-sm text-zinc-400 mb-1">
+              Are you sure you want to decline <span className="text-foreground font-medium">{rejecting.club_name}</span>?
+            </p>
+            <p className="text-sm text-zinc-500">
+              {rejecting.contact_name} will receive an email letting them know.
+            </p>
+
+            <div className="mt-5 flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setRejecting(null)} disabled={rejectLoading}>Cancel</Button>
+              <Button
+                onClick={handleReject}
+                disabled={rejectLoading}
+                className="bg-red-700 hover:bg-red-600 text-white"
+              >
+                {rejectLoading ? 'Declining…' : 'Yes, decline'}
               </Button>
             </div>
           </div>
