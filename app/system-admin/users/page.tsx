@@ -36,6 +36,7 @@ export default function UsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all')
   const [updating, setUpdating] = useState<string | null>(null)
+  const [impersonating, setImpersonating] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; ok: boolean } | null>(null)
 
   const loadUsers = async () => {
@@ -82,6 +83,23 @@ export default function UsersPage() {
       showToast('Role updated successfully', true)
     } else {
       showToast(json.error || 'Failed to update role', false)
+    }
+  }
+
+  async function handleImpersonate(userId: string) {
+    setImpersonating(userId)
+    const { data: { session } } = await supabase.auth.getSession()
+    const resp = await fetch('/api/system-admin/impersonate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ userId }),
+    })
+    const json = await resp.json()
+    setImpersonating(null)
+    if (resp.ok) {
+      window.location.href = json.redirectUrl
+    } else {
+      showToast(json.error || 'Failed to impersonate', false)
     }
   }
 
@@ -148,11 +166,12 @@ export default function UsersPage() {
                 <th className="px-5 py-3 text-left">Role</th>
                 <th className="px-5 py-3 text-left">Joined</th>
                 <th className="px-5 py-3 text-left">Change Role</th>
+                <th className="px-5 py-3 text-left">Impersonate</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-zinc-500">No users found</td></tr>
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-zinc-500">No users found</td></tr>
               ) : filtered.map(u => (
                 <tr key={u.id} className="hover:bg-zinc-800/40 transition-colors">
                   <td className="px-5 py-3 font-medium text-foreground">
@@ -181,6 +200,19 @@ export default function UsersPage() {
                     </select>
                     {updating === u.id && <span className="ml-2 text-xs text-zinc-500">Saving…</span>}
                     {u.id === profile?.id && <span className="ml-2 text-xs text-zinc-600">You</span>}
+                  </td>
+                  <td className="px-5 py-3">
+                    {u.id !== profile?.id && u.role !== 'system_admin' ? (
+                      <button
+                        onClick={() => handleImpersonate(u.id)}
+                        disabled={impersonating === u.id}
+                        className="text-xs text-zinc-400 hover:text-orange-400 transition-colors disabled:opacity-40"
+                      >
+                        {impersonating === u.id ? 'Loading…' : 'Impersonate'}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-zinc-700">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

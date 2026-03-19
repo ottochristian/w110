@@ -12,6 +12,7 @@ import { useClub } from '@/lib/club-context'
 import { SeasonProvider } from '@/lib/contexts/season-context'
 import { InlineLoading } from '@/components/ui/loading-states'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { ImpersonationBanner } from '@/components/impersonation-banner'
 
 export default function AdminLayout({
   children,
@@ -51,6 +52,7 @@ export default function AdminLayout({
 
   return (
     <SeasonProvider>
+      <ImpersonationBanner />
       <div className="flex min-h-screen">
         <AdminSidebar profile={profile} clubSlug={clubSlug} />
         <main className="flex-1 ml-64 flex flex-col">

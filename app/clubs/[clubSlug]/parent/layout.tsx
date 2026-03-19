@@ -12,6 +12,7 @@ import { ParentSidebar } from '@/components/parent-sidebar'
 import { ProfileMenu } from '@/components/profile-menu'
 import { Button } from '@/components/ui/button'
 import { InlineLoading } from '@/components/ui/loading-states'
+import { ImpersonationBanner } from '@/components/impersonation-banner'
 
 function ParentLayoutContent({
   children,
@@ -104,6 +105,7 @@ export default function ParentLayout({
 
   return (
     <SeasonProvider>
+      <ImpersonationBanner />
       <CartProvider>
         <ParentLayoutContent clubSlug={clubSlug}>{children}</ParentLayoutContent>
       </CartProvider>
