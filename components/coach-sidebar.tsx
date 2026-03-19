@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
-import { LayoutDashboard, Users, Calendar, MessageSquare, Sparkles } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, MessageSquare, Sparkles, BarChart3 } from 'lucide-react'
 import { useClub } from '@/lib/club-context'
 import { colors } from '@/lib/colors'
 
@@ -22,6 +22,7 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
 
   const menuItems = [
     { label: 'Dashboard', href: basePath, icon: LayoutDashboard },
+    { label: 'Insights', href: `${basePath}/insights`, icon: BarChart3 },
     { label: 'Schedule', href: `${basePath}/schedule`, icon: Calendar },
     { label: 'Athletes', href: `${basePath}/athletes`, icon: Users },
     { label: 'AI Training Plan', href: `${basePath}/training-plan`, icon: Sparkles },

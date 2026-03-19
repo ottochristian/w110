@@ -22,7 +22,7 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
 
   const menuItems = [
     { label: 'Dashboard', href: `${basePath}`, icon: LayoutDashboard },
-    { label: 'Analytics', href: `${basePath}/analytics`, icon: BarChart3 },
+    { label: 'Insights', href: `${basePath}/insights`, icon: BarChart3 },
     { label: 'Programs', href: `${basePath}/programs`, icon: BookOpen },
     { label: 'Registrations', href: `${basePath}/registrations`, icon: FileText },
     { label: 'Athletes', href: `${basePath}/athletes`, icon: Users },
