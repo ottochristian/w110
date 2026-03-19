@@ -7,8 +7,9 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const authResult = await requireAdmin(request)
   if (authResult instanceof NextResponse) return authResult
   if (authResult.profile.role !== 'system_admin') {
@@ -28,7 +29,7 @@ export async function POST(
   const { data: clubRequest, error: fetchError } = await supabase
     .from('club_requests')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('status', 'pending')
     .single()
 
@@ -79,7 +80,7 @@ export async function POST(
   await supabase
     .from('club_requests')
     .update({ status: 'approved', provisioned_club_id: club.id, updated_at: new Date().toISOString() })
-    .eq('id', params.id)
+    .eq('id', id)
 
   // Send "club is ready" email
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.w110.io'
