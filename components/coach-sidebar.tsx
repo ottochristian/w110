@@ -10,19 +10,22 @@ import { colors } from '@/lib/colors'
 
 interface CoachSidebarProps {
   profile: Profile
+  clubSlug: string
 }
 
-export function CoachSidebar({ profile }: CoachSidebarProps) {
+export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
   const pathname = usePathname()
   const { club, loading: clubLoading } = useClub()
   const [logoError, setLogoError] = useState(false)
 
+  const basePath = `/clubs/${clubSlug}/coach`
+
   const menuItems = [
-    { label: 'Dashboard', href: '/coach', icon: LayoutDashboard },
-    { label: 'Schedule', href: '/coach/schedule', icon: Calendar },
-    { label: 'Athletes', href: '/coach/athletes', icon: Users },
-    { label: 'AI Training Plan', href: '/coach/training-plan', icon: Sparkles },
-    { label: 'Messages', href: '/coach/messages', icon: MessageSquare },
+    { label: 'Dashboard', href: basePath, icon: LayoutDashboard },
+    { label: 'Schedule', href: `${basePath}/schedule`, icon: Calendar },
+    { label: 'Athletes', href: `${basePath}/athletes`, icon: Users },
+    { label: 'AI Training Plan', href: `${basePath}/training-plan`, icon: Sparkles },
+    { label: 'Messages', href: `${basePath}/messages`, icon: MessageSquare },
   ]
 
   const initial = club?.name?.charAt(0).toUpperCase() || 'C'
@@ -65,7 +68,7 @@ export function CoachSidebar({ profile }: CoachSidebarProps) {
           const Icon = item.icon
           const isActive =
             pathname === item.href ||
-            (item.href !== '/coach' && pathname.startsWith(item.href))
+            (item.href !== basePath && pathname.startsWith(item.href))
           return (
             <Link
               key={item.href}
