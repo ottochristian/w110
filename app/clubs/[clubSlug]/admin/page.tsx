@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { GreetingWidget } from '@/components/greeting-widget'
 import { DashboardHeroChat } from '@/components/dashboard-hero-chat'
+import { NudgesWidget } from '@/components/nudges-widget'
 
 function statusDot(status: string) {
   switch (status?.toLowerCase()) {
@@ -340,7 +341,17 @@ export default function AdminDashboard() {
         <GreetingWidget firstName={profile?.first_name ?? ''} />
       )}
 
-      {/* 2. Season Setup Banner — only when draft + incomplete */}
+      {/* 2. Nudges — always shown when AI enabled */}
+      {aiEnabled && (
+        <NudgesWidget
+          nudgesEndpoint="/api/admin/nudges"
+          draftEndpoint="/api/admin/nudges/draft"
+          sendEndpoint="/api/messages/send"
+          clubSlug={clubSlug}
+        />
+      )}
+
+      {/* 3. Season Setup Banner — only when draft + incomplete */}
       {readiness && !readiness.isComplete && (
         <Link
           href={`${basePath}/settings/seasons/${selectedSeason?.id}/setup`}
@@ -362,7 +373,7 @@ export default function AdminDashboard() {
         </Link>
       )}
 
-      {/* 3. Metric Strip */}
+      {/* 4. Metric Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-800 rounded-xl overflow-hidden ring-1 ring-zinc-800">
         {/* Athletes */}
         <div className="bg-zinc-900 px-5 py-5">
