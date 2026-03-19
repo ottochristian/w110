@@ -286,21 +286,11 @@ export default function CoachSchedulePage() {
   const [importRows, setImportRows] = useState<ImportRow[]>([])
   const [importing, setImporting] = useState(false)
 
-  // Load sub_programs for the current season only.
-  // Separately track which ones this coach is assigned to (used for visual markers).
-  // RLS enforces write permissions at the DB level.
+  // Load only the sub_programs this coach is assigned to for the current season.
+  // Assignments can be at program, sub_program, or group level — all resolve to sub_programs.
   useEffect(() => {
     if (!club?.id || !currentSeason?.id) return
     async function load() {
-      // Sub_programs scoped to the current season's programs
-      const { data: allSPs } = await supabase
-        .from('sub_programs')
-        .select('id, name, programs!inner(name, season_id)')
-        .eq('programs.season_id', currentSeason!.id)
-        .order('name')
-      setSubPrograms((allSPs as unknown as SubProgram[]) ?? [])
-
-      // Assignments for visual markers
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const { data: coachRow } = await supabase
@@ -309,22 +299,46 @@ export default function CoachSchedulePage() {
 
       const { data: assignments } = await supabase
         .from('coach_assignments')
-        .select('program_id, sub_program_id')
+        .select('program_id, sub_program_id, group_id')
         .eq('coach_id', coachRow.id)
         .is('deleted_at', null)
 
-      if (!assignments?.length) return
-
-      const directIds = new Set(assignments.map(a => a.sub_program_id).filter(Boolean) as string[])
-      const progIds = assignments.map(a => a.program_id).filter(Boolean) as string[]
-
-      // Also mark sub_programs under assigned programs
-      if (progIds.length && allSPs) {
-        for (const sp of allSPs as any[]) {
-          if (sp.programs && progIds.includes(sp.programs.id ?? '')) directIds.add(sp.id)
-        }
+      if (!assignments?.length) {
+        setSubPrograms([])
+        setAssignedSpIds(new Set())
+        return
       }
-      setAssignedSpIds(directIds)
+
+      const directSpIds = new Set(assignments.map(a => a.sub_program_id).filter(Boolean) as string[])
+      const progIds = assignments.map(a => a.program_id).filter(Boolean) as string[]
+      const groupIds = assignments.map(a => a.group_id).filter(Boolean) as string[]
+
+      // Resolve group-level assignments → their sub_program_id
+      if (groupIds.length) {
+        const { data: groupRows } = await supabase
+          .from('groups')
+          .select('sub_program_id')
+          .in('id', groupIds)
+        groupRows?.forEach((g: any) => { if (g.sub_program_id) directSpIds.add(g.sub_program_id) })
+      }
+
+      // Fetch all sub_programs for this season
+      const { data: allSPs } = await supabase
+        .from('sub_programs')
+        .select('id, name, programs!inner(name, season_id)')
+        .eq('programs.season_id', currentSeason!.id)
+        .order('name')
+
+      const allSPsTyped = (allSPs as unknown as SubProgram[]) ?? []
+
+      // Include sub_programs that are directly assigned OR belong to an assigned program
+      const assignedSPs = allSPsTyped.filter(sp =>
+        directSpIds.has(sp.id) ||
+        (sp.programs && progIds.includes((sp.programs as any).id ?? ''))
+      )
+
+      setSubPrograms(assignedSPs)
+      setAssignedSpIds(new Set(assignedSPs.map(sp => sp.id)))
     }
     load()
   }, [club?.id, currentSeason?.id])
