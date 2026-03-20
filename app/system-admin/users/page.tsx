@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSystemAdmin } from '@/lib/use-system-admin'
 import { createClient } from '@/lib/supabase/client'
+import { IMP_SESSION_KEY } from '@/lib/use-impersonation'
 
 type UserRole = 'parent' | 'coach' | 'admin' | 'system_admin'
 
@@ -91,12 +92,14 @@ export default function UsersPage() {
     const { data: { session } } = await supabase.auth.getSession()
     const resp = await fetch('/api/system-admin/impersonate', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
       body: JSON.stringify({ userId }),
     })
     const json = await resp.json()
     setImpersonating(null)
     if (resp.ok) {
+      sessionStorage.setItem(IMP_SESSION_KEY, JSON.stringify(json.ctx))
       window.location.href = json.redirectUrl
     } else {
       showToast(json.error || 'Failed to impersonate', false)
