@@ -53,7 +53,8 @@ export default function AdminDashboard() {
   } = useRecentRegistrations(selectedSeason?.id || null, 5)
 
   // Transform recent registrations to match expected format
-  const transformedRecentRegs = recentRegistrations.map((reg: Record<string, unknown>) => ({
+  type RecentReg = { athletes?: unknown; sub_programs?: { programs?: { name?: string }; name?: string } }
+  const transformedRecentRegs = (recentRegistrations as RecentReg[]).map((reg) => ({
     ...reg,
     athlete: reg.athletes,
     program: reg.sub_programs?.programs || { name: reg.sub_programs?.name || 'Unknown' },
