@@ -161,9 +161,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 5. Enforce capacity: for each registration with status 'pending',
+    // 5. Deduplicate: skip any registrations where an active/waitlisted entry already exists
+    const regSeasonId = registrations[0]?.season_id ?? ''
+    const athleteSubProgramPairs = registrations.map((r: RegistrationRow) => ({
+      athlete_id: r.athlete_id,
+      sub_program_id: r.sub_program_id,
+    }))
+
+    const { data: existingRows } = await adminSupabase
+      .from('registrations')
+      .select('athlete_id, sub_program_id, status')
+      .eq('season_id', regSeasonId)
+      .in('status', ['confirmed', 'pending', 'waitlisted'])
+      .in('athlete_id', athleteSubProgramPairs.map((p: { athlete_id: string }) => p.athlete_id))
+      .in('sub_program_id', athleteSubProgramPairs.map((p: { sub_program_id: string }) => p.sub_program_id))
+
+    const existingKeys = new Set(
+      (existingRows ?? []).map((r: { athlete_id: string; sub_program_id: string }) =>
+        `${r.athlete_id}::${r.sub_program_id}`
+      )
+    )
+
+    const deduped = registrations.filter((r: RegistrationRow) =>
+      !existingKeys.has(`${r.athlete_id}::${r.sub_program_id}`)
+    )
+
+    if (deduped.length === 0) {
+      log.info('All registrations already exist, returning empty', { userId: user.id })
+      return NextResponse.json({ registrations: [] }, { status: 201 })
+    }
+
+    const registrations_to_insert = deduped
+
+    // 6. Enforce capacity: for each registration with status 'pending',
     //    check current enrollment and downgrade to 'waitlisted' if at capacity.
-    const subProgramIds = [...new Set(registrations.map((r: RegistrationRow) => r.sub_program_id))]
+    const subProgramIds = [...new Set(registrations_to_insert.map((r: RegistrationRow) => r.sub_program_id))]
 
     // Fetch sub-program capacities
     const { data: subPrograms } = await adminSupabase
@@ -176,7 +208,7 @@ export async function POST(request: NextRequest) {
       .from('registrations')
       .select('sub_program_id')
       .in('sub_program_id', subProgramIds)
-      .eq('season_id', registrations[0]?.season_id ?? '')
+      .eq('season_id', regSeasonId)
       .in('status', ['confirmed', 'pending'])
 
     const enrollmentCount: Record<string, number> = {}
@@ -190,7 +222,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Resolve final status per registration
-    const registrationsWithStatus = registrations.map((r: RegistrationRow) => {
+    const registrationsWithStatus = registrations_to_insert.map((r: RegistrationRow) => {
       // If caller already set waitlisted, keep it
       if (r.status === 'waitlisted') return r
       const capacity = capacityMap[r.sub_program_id]
