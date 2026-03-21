@@ -241,8 +241,16 @@ export default function CartPage() {
       const responseData = await registrationsResponse.json()
       const allRegistrations: { id: string; sub_program_id: string; athlete_id: string; status: string }[] =
         responseData.registrations
-      if (!Array.isArray(allRegistrations) || allRegistrations.length === 0) {
+
+      if (!Array.isArray(allRegistrations)) {
         throw new Error('Registration API returned unexpected response. Please try again.')
+      }
+
+      // All items already existed in the DB (deduped to empty) — clear cart and confirm
+      if (allRegistrations.length === 0) {
+        clearCart()
+        setWaitlistConfirmed(true)
+        return
       }
 
       // Invalidate registrations cache
