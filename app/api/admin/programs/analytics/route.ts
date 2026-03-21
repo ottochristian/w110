@@ -145,7 +145,8 @@ export async function GET(req: NextRequest) {
       
       if (program && subProgram) {
         log.debug('Program found', { name: program.name, status: program.status })
-        if (program.status === 'active' || program.status === 'full') {
+        const programStatus = (program.status ?? '').toUpperCase()
+        if (programStatus === 'ACTIVE' || programStatus === 'FULL') {
           if (!programMap.has(program.id)) {
             programMap.set(program.id, {
               id: program.id,
