@@ -76,8 +76,8 @@ export async function GET(req: NextRequest) {
         sub_programs!inner(
           id,
           program_id,
-          price,
-          max_participants,
+          registration_fee,
+          max_capacity,
           programs!inner(
             id,
             name,
@@ -163,8 +163,8 @@ export async function GET(req: NextRequest) {
           programData.athleteIds.add(reg.athlete_id)
           
           // Track sub-program prices and capacities for aggregation
-          const price = Number(subProgram.price || 0)
-          const capacity = subProgram.max_participants
+          const price = Number(subProgram.registration_fee || 0)
+          const capacity = subProgram.max_capacity
           
           if (price > 0 && !programData.subProgramPrices.includes(price)) {
             programData.subProgramPrices.push(price)
