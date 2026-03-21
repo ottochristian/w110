@@ -134,6 +134,7 @@ export async function GET(req: NextRequest) {
       name: string
       subProgramPrices: number[]
       subProgramCapacities: number[]
+      seenSubProgramIds: Set<string>
       status: string
       registrations: any[]
       athleteIds: Set<string>
@@ -153,6 +154,7 @@ export async function GET(req: NextRequest) {
               name: program.name,
               subProgramPrices: [],
               subProgramCapacities: [],
+              seenSubProgramIds: new Set(),
               status: program.status,
               registrations: [],
               athleteIds: new Set(),
@@ -162,15 +164,13 @@ export async function GET(req: NextRequest) {
           programData.registrations.push(reg)
           programData.athleteIds.add(reg.athlete_id)
           
-          // Track sub-program prices and capacities for aggregation
-          const price = Number(subProgram.registration_fee || 0)
-          const capacity = subProgram.max_capacity
-          
-          if (price > 0 && !programData.subProgramPrices.includes(price)) {
-            programData.subProgramPrices.push(price)
-          }
-          if (capacity && !programData.subProgramCapacities.includes(capacity)) {
-            programData.subProgramCapacities.push(capacity)
+          // Track sub-program prices and capacities — count each sub-program once
+          if (!programData.seenSubProgramIds.has(subProgram.id)) {
+            programData.seenSubProgramIds.add(subProgram.id)
+            const price = Number(subProgram.registration_fee || 0)
+            const capacity = subProgram.max_capacity
+            if (price > 0) programData.subProgramPrices.push(price)
+            if (capacity) programData.subProgramCapacities.push(capacity)
           }
         }
       } else {
