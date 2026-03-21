@@ -9,7 +9,6 @@ import { SeasonSelector } from '@/components/season-selector'
 import { ProfileMenu } from '@/components/profile-menu'
 import { Profile } from '@/lib/types'
 import { useClub } from '@/lib/club-context'
-import { getUserClub } from '@/lib/club-utils'
 
 export default function AdminLayout({
   children,
@@ -87,7 +86,7 @@ export default function AdminLayout({
     }
 
     checkAuth()
-  }, [router, club, clubLoading])
+  }, [router, club, clubLoading, supabase])
 
   if (isLoading) {
     return (

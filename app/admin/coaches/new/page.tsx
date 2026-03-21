@@ -14,8 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Link from 'next/link'
-import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
+import { InlineLoading } from '@/components/ui/loading-states'
 
 export default function NewCoachPage() {
   const router = useRouter()

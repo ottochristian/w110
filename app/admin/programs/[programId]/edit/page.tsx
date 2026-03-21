@@ -38,23 +38,22 @@ export default function EditProgramPage() {
   const { profile, loading: authLoading } = useRequireAdmin()
   const { data: allPrograms = [], isLoading: programsLoading } = usePrograms()
 
-  // Guard against invalid programId
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [isActive, setIsActive] = useState(true)
+
+  // Find the program from the list
+  const program = allPrograms.find((p: { id: string }) => p.id === programId) as
+    | Program
+    | undefined
+
+  // Guard against invalid programId — placed after all hooks
   if (!programId || programId === 'undefined') {
     router.push('/admin/programs')
     return null
   }
-
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  // Find the program from the list
-  const program = allPrograms.find((p: any) => p.id === programId) as
-    | Program
-    | undefined
-
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [isActive, setIsActive] = useState(true)
 
   // Initialize form when program is loaded
   // Use program ID instead of program object to avoid infinite loops
@@ -87,7 +86,7 @@ export default function EditProgramPage() {
       name,
       description: description || null,
       status: newStatus,
-    } as any)
+    })
 
     if (result.error) {
       console.error('[EditProgram] update error:', result.error)

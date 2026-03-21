@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label'
 import { ImageUpload } from '@/components/image-upload'
 import { AdminPageHeader } from '@/components/admin-page-header'
 import { useToast } from '@/components/ui/use-toast'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
 

@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Card,
@@ -27,11 +26,8 @@ import {
   useRecentRegistrations,
 } from '@/lib/hooks/use-registrations'
 import { AdminPageHeader } from '@/components/admin-page-header'
-import { InlineLoading, ErrorState } from '@/components/ui/loading-states'
-import { programsService } from '@/lib/services/programs-service'
 
 export default function AdminDashboard() {
-  const router = useRouter()
   const { profile, loading: authLoading } = useRequireAdmin()
   const { selectedSeason, loading: seasonLoading } = useSeason()
 
@@ -44,7 +40,7 @@ export default function AdminDashboard() {
   
   // Get programs count (filter by status and season)
   const { data: allPrograms = [], isLoading: programsLoading } = usePrograms(selectedSeason?.id)
-  const programsCount = allPrograms.filter((p: any) => p.status === 'ACTIVE').length
+  const programsCount = allPrograms.filter((p: { status?: string }) => p.status === 'ACTIVE').length
 
   const { data: totalRegistrations = 0, isLoading: registrationsLoading } =
     useRegistrationsCount(selectedSeason?.id)
@@ -57,13 +53,13 @@ export default function AdminDashboard() {
   } = useRecentRegistrations(selectedSeason?.id || null, 5)
 
   // Transform recent registrations to match expected format
-  const transformedRecentRegs = recentRegistrations.map((reg: any) => ({
+  const transformedRecentRegs = recentRegistrations.map((reg: Record<string, unknown>) => ({
     ...reg,
     athlete: reg.athletes,
     program: reg.sub_programs?.programs || { name: reg.sub_programs?.name || 'Unknown' },
   }))
 
-  const isLoading =
+  const _isLoading =
     authLoading ||
     seasonLoading ||
     athletesLoading ||

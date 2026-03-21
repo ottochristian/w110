@@ -88,9 +88,7 @@ export default function AssignCoachPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_existingAssignments, setExistingAssignments] = useState<
-    CoachAssignment[]
-  >([])
+  const [, setExistingAssignments] = useState<CoachAssignment[]>([])
   const [selectedAssignments, setSelectedAssignments] = useState<Set<string>>(
     new Set()
   )
