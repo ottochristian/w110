@@ -27,6 +27,11 @@ import {
 } from '@/lib/hooks/use-registrations'
 import { AdminPageHeader } from '@/components/admin-page-header'
 
+type RecentReg = {
+  athletes?: unknown
+  sub_programs?: { programs?: { name?: string }; name?: string }
+}
+
 export default function AdminDashboard() {
   const { profile, loading: authLoading } = useRequireAdmin()
   const { selectedSeason, loading: seasonLoading } = useSeason()
@@ -53,7 +58,6 @@ export default function AdminDashboard() {
   } = useRecentRegistrations(selectedSeason?.id || null, 5)
 
   // Transform recent registrations to match expected format
-  type RecentReg = { athletes?: unknown; sub_programs?: { programs?: { name?: string }; name?: string } }
   const transformedRecentRegs = (recentRegistrations as RecentReg[]).map((reg) => ({
     ...reg,
     athlete: reg.athletes,
