@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, ShoppingCart, User, CreditCard, Calendar, MapPin, Clock, ChevronRight, X } from 'lucide-react'
+import { Plus, ShoppingCart, User, CreditCard, Calendar, MapPin, Clock, ChevronRight, X, AlertCircle } from 'lucide-react'
 import { useUpcomingEvents } from '@/lib/hooks/use-events'
 import { toast } from 'sonner'
 
@@ -27,6 +27,13 @@ type WaitlistEntry = {
   program_name: string
   sub_program_name: string
   queue_position: number
+}
+
+type PendingPaymentEntry = {
+  registration_id: string
+  athlete_name: string
+  program_name: string
+  sub_program_name: string
 }
 
 export default function ParentDashboardPage() {
@@ -40,6 +47,7 @@ export default function ParentDashboardPage() {
 
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([])
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [pendingPayments, setPendingPayments] = useState<PendingPaymentEntry[]>([])
 
   const seasonId = currentSeason?.id
   const athleteIdList = athletes?.map((a) => a.id).join(',') ?? ''
@@ -90,6 +98,57 @@ export default function ParentDashboardPage() {
     run()
   }, [seasonId, athleteIdList]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load pending registrations that were promoted from waitlist and haven't been paid yet
+  useEffect(() => {
+    if (!seasonId || !athleteIdList) return
+    const supabase = createClient()
+    const athleteIds = athleteIdList.split(',')
+
+    const run = async () => {
+      // Get all pending registrations for this household
+      const { data: pendingRegs } = await supabase
+        .from('registrations')
+        .select(`
+          id,
+          athlete_id,
+          sub_programs!inner(name, programs!inner(name))
+        `)
+        .eq('season_id', seasonId)
+        .eq('status', 'pending')
+        .in('athlete_id', athleteIds)
+
+      if (!pendingRegs || pendingRegs.length === 0) {
+        setPendingPayments([])
+        return
+      }
+
+      // Filter to only those without an existing order (promoted from waitlist, not mid-checkout)
+      const regIds = pendingRegs.map((r: any) => r.id)
+      const { data: existingItems } = await supabase
+        .from('order_items')
+        .select('registration_id')
+        .in('registration_id', regIds)
+
+      const alreadyOrdered = new Set((existingItems ?? []).map((i: any) => i.registration_id))
+
+      const athleteMap = new Map(
+        (athletes ?? []).map((a) => [a.id, `${a.first_name} ${a.last_name}`])
+      )
+
+      const entries: PendingPaymentEntry[] = (pendingRegs as any[])
+        .filter((r) => !alreadyOrdered.has(r.id))
+        .map((r) => ({
+          registration_id: r.id,
+          athlete_name: athleteMap.get(r.athlete_id) ?? 'Unknown',
+          program_name: r.sub_programs?.programs?.name ?? '',
+          sub_program_name: r.sub_programs?.name ?? '',
+        }))
+
+      setPendingPayments(entries)
+    }
+    run()
+  }, [seasonId, athleteIdList]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleRemoveFromWaitlist(registrationId: string, name: string) {
     setRemovingId(registrationId)
     const supabase = createClient()
@@ -124,11 +183,11 @@ export default function ParentDashboardPage() {
             />
           </div>
         )}
-        <div>
-          <h1 className="page-title">
+        <div className="min-w-0">
+          <h1 className="page-title truncate">
             {club?.name ? `${club.name} Dashboard` : 'Dashboard'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground truncate">
             Welcome to your parent portal
           </p>
         </div>
@@ -159,19 +218,17 @@ export default function ParentDashboardPage() {
                         : guardianProfile?.email || 'Unknown'
                       
                       return (
-                        <div key={guardian.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm">
-                              {displayName}
-                              {isCurrentUser && (
-                                <span className="ml-1 text-xs text-muted-foreground">(You)</span>
-                              )}
-                            </p>
-                          </div>
+                        <div key={guardian.id} className="flex items-center justify-between gap-2">
+                          <p className="text-sm truncate min-w-0">
+                            {displayName}
+                            {isCurrentUser && (
+                              <span className="ml-1 text-xs text-muted-foreground">(You)</span>
+                            )}
+                          </p>
                           {guardian.is_primary ? (
-                            <Badge variant="default" className="text-xs">Primary</Badge>
+                            <Badge variant="default" className="text-xs shrink-0">Primary</Badge>
                           ) : (
-                            <Badge variant="secondary" className="text-xs">Secondary</Badge>
+                            <Badge variant="secondary" className="text-xs shrink-0">Secondary</Badge>
                           )}
                         </div>
                       )
@@ -182,8 +239,9 @@ export default function ParentDashboardPage() {
                 {/* Contact Information */}
                 <div className="space-y-2 border-t pt-4">
                   {household.primary_email && (
-                    <p className="text-sm">
-                      <span className="font-medium">Email:</span> {household.primary_email}
+                    <p className="text-sm break-all">
+                      <span className="font-medium">Email:</span>{' '}
+                      {household.primary_email}
                     </p>
                   )}
                   {household.phone && (
@@ -242,6 +300,44 @@ export default function ParentDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Action Required: promoted from waitlist, payment needed */}
+      {pendingPayments.length > 0 && (
+        <Card className="border-yellow-700/40 bg-yellow-950/10">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-yellow-400" />
+              <CardTitle className="text-base text-yellow-300">Action Required</CardTitle>
+            </div>
+            <CardDescription>
+              A spot opened up — please complete payment to secure your registration.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendingPayments.map((entry) => (
+              <div
+                key={entry.registration_id}
+                className="flex items-center justify-between gap-3 rounded-lg border border-yellow-800/30 bg-yellow-950/20 px-4 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{entry.athlete_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {entry.program_name} — {entry.sub_program_name}
+                  </p>
+                </div>
+                <Badge variant="outline" className="border-yellow-700 text-yellow-400 text-xs shrink-0">
+                  Awaiting Payment
+                </Badge>
+              </div>
+            ))}
+            <Link href={`/clubs/${clubSlug}/parent/pending-payment`}>
+              <Button className="w-full mt-2 bg-yellow-600 hover:bg-yellow-500 text-black font-semibold">
+                Complete Registration
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Waitlist */}
       {waitlist.length > 0 && (
