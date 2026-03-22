@@ -80,14 +80,14 @@ function ParentLayoutContent({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen">
       <ParentSidebar
         profile={profile}
         clubSlug={clubSlug}
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
       />
-      <main className="flex-1 md:ml-64 flex flex-col overflow-hidden">
+      <main className="flex-1 min-w-0 md:ml-64 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="fixed top-0 right-0 left-0 md:left-64 border-b border-orange-800/40 bg-background/80 backdrop-blur-sm px-4 md:px-8 py-3 z-10">
           <div className="flex items-center justify-between gap-3">
@@ -108,7 +108,7 @@ function ParentLayoutContent({
           </div>
         </div>
         {/* Content */}
-        <div className="flex-1 overflow-y-auto pt-16 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-16 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
           <div className="px-5 py-5 md:p-8">
             {children}
           </div>

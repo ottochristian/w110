@@ -127,7 +127,7 @@ export default function AthleteDetailPage() {
   }, {})
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 overflow-x-hidden">
       {/* Back */}
       <button
         type="button"
@@ -176,7 +176,7 @@ export default function AthleteDetailPage() {
       <div className="grid gap-6 lg:grid-cols-3 min-w-0">
 
         {/* Left col */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 min-w-0">
 
           {/* Waivers */}
           {requiredWaivers.length > 0 && (
@@ -278,7 +278,7 @@ export default function AthleteDetailPage() {
         </div>
 
         {/* Right col: Registrations by season */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
+        <div className="lg:col-span-2 flex flex-col gap-4 min-w-0">
           <div className="rounded-xl border bg-card p-5 shadow-sm overflow-hidden">
             <h2 className="font-semibold mb-4">
               Program Registrations
