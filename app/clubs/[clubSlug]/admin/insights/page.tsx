@@ -231,7 +231,7 @@ function ProgramsTab({ clubId, seasonId }: { clubId: string; seasonId: string | 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {[
           { label: 'Total Programs', value: summary?.totalPrograms, sub: 'Active this season', icon: Target, color: 'text-blue-500' },
-          { label: 'Avg Enrollment', value: summary?.avgEnrollmentRate !== null ? `${summary?.avgEnrollmentRate}%` : 'N/A', sub: 'Capacity utilization', icon: TrendingUp, color: 'text-purple-500' },
+          { label: 'Avg Enrollment', value: summary?.avgEnrollmentRate !== null ? `${summary?.avgEnrollmentRate}%` : 'N/A', sub: summary?.avgEnrollmentRate !== null ? 'Capacity utilization' : 'No capacity limits set', icon: TrendingUp, color: 'text-purple-500' },
           { label: 'Most Popular', value: summary?.mostPopularProgram?.enrollment ?? 0, sub: summary?.mostPopularProgram?.name || 'N/A', icon: Award, color: 'text-yellow-500' },
           { label: 'Total Revenue', value: `$${(summary?.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}`, sub: 'All programs', icon: DollarSign, color: 'text-green-500' },
           { label: 'Avg Rev/Program', value: `$${(summary?.avgRevenuePerProgram || 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}`, sub: 'Per program average', icon: Users, color: 'text-indigo-500' },
