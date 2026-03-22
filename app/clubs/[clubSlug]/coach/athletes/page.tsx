@@ -483,40 +483,58 @@ export default function CoachAthletesPage() {
           </CardHeader>
           <CardContent>
             {athletes.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Date of Birth</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Program</TableHead>
-                      <TableHead>Sub-Program</TableHead>
-                      <TableHead>Group</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {athletes.map((athlete) => (
-                      <TableRow key={athlete.id}>
-                        <TableCell className="font-medium">
-                          {athlete.first_name} {athlete.last_name}
-                        </TableCell>
-                        <TableCell>
-                          {athlete.date_of_birth
-                            ? new Date(athlete.date_of_birth).toLocaleDateString()
-                            : '-'}
-                        </TableCell>
-                        <TableCell className="capitalize">
-                          {athlete.gender || '-'}
-                        </TableCell>
-                        <TableCell>{athlete.program_name || '-'}</TableCell>
-                        <TableCell>{athlete.sub_program_name || '-'}</TableCell>
-                        <TableCell>{athlete.group_name || '-'}</TableCell>
+              <>
+                {/* Desktop table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Date of Birth</TableHead>
+                        <TableHead>Gender</TableHead>
+                        <TableHead>Program</TableHead>
+                        <TableHead>Sub-Program</TableHead>
+                        <TableHead>Group</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {athletes.map((athlete) => (
+                        <TableRow key={athlete.id}>
+                          <TableCell className="font-medium">
+                            {athlete.first_name} {athlete.last_name}
+                          </TableCell>
+                          <TableCell>
+                            {athlete.date_of_birth
+                              ? new Date(athlete.date_of_birth).toLocaleDateString()
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {athlete.gender || '-'}
+                          </TableCell>
+                          <TableCell>{athlete.program_name || '-'}</TableCell>
+                          <TableCell>{athlete.sub_program_name || '-'}</TableCell>
+                          <TableCell>{athlete.group_name || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile card list */}
+                <div className="md:hidden -mx-6 divide-y divide-border">
+                  {athletes.map((athlete) => (
+                    <div key={athlete.id} className="px-6 py-3">
+                      <p className="text-sm font-medium">{athlete.first_name} {athlete.last_name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {[athlete.program_name, athlete.sub_program_name, athlete.group_name].filter(Boolean).join(' · ') || '-'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+                        {athlete.date_of_birth ? new Date(athlete.date_of_birth).toLocaleDateString() : '-'}{athlete.gender ? ` · ${athlete.gender}` : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="py-12 text-center">
                 <p className="text-muted-foreground">

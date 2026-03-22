@@ -192,12 +192,12 @@ export default function RegistrationsPage() {
       )}
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
-          <div>
+        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
             <h3 className="text-sm font-semibold text-foreground">All Registrations</h3>
             <p className="text-xs text-muted-foreground mt-0.5">{selectedSeason.name}</p>
           </div>
-          <div className="relative w-56 flex-shrink-0">
+          <div className="relative w-full sm:w-56">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search athletes…"
@@ -211,57 +211,88 @@ export default function RegistrationsPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          {registrations.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Athlete</TableHead>
-                  <TableHead>Program</TableHead>
-                  <TableHead>Parent Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment Status</TableHead>
-                  <TableHead>Amount Paid</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {registrations.map((reg) => (
-                  <TableRow key={reg.id}>
-                    <TableCell>
-                      {reg.athlete?.first_name} {reg.athlete?.last_name}
-                      {reg.athlete?.date_of_birth && (
-                        <div className="text-xs text-muted-foreground">
-                          DOB: {new Date(reg.athlete.date_of_birth).toLocaleDateString()}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{reg.program?.name || 'Unknown'}</TableCell>
-                    <TableCell>{reg.parent?.email || 'N/A'}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.status)}`}>
-                        {reg.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.payment_status)}`}>
-                        {reg.payment_status}
-                      </span>
-                    </TableCell>
-                    <TableCell>${Number(reg.amount_paid || 0).toFixed(2)}</TableCell>
-                    <TableCell>
-                      {new Date(reg.created_at).toLocaleDateString()}
-                    </TableCell>
+        {registrations.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No registrations found for this season
+          </p>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Athlete</TableHead>
+                    <TableHead>Program</TableHead>
+                    <TableHead>Parent Email</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Date</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              No registrations found for this season
-            </p>
-          )}
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {registrations.map((reg) => (
+                    <TableRow key={reg.id}>
+                      <TableCell>
+                        {reg.athlete?.first_name} {reg.athlete?.last_name}
+                        {reg.athlete?.date_of_birth && (
+                          <div className="text-xs text-muted-foreground">
+                            DOB: {new Date(reg.athlete.date_of_birth).toLocaleDateString()}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>{reg.program?.name || 'Unknown'}</TableCell>
+                      <TableCell>{reg.parent?.email || 'N/A'}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.status)}`}>
+                          {reg.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.payment_status)}`}>
+                          {reg.payment_status}
+                        </span>
+                      </TableCell>
+                      <TableCell>${Number(reg.amount_paid || 0).toFixed(2)}</TableCell>
+                      <TableCell>{new Date(reg.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden divide-y divide-border">
+              {registrations.map((reg) => (
+                <div key={reg.id} className="px-4 py-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {reg.athlete?.first_name} {reg.athlete?.last_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {reg.program?.name || 'Unknown'}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {reg.parent?.email || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.status)}`}>
+                      {reg.status}
+                    </span>
+                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset capitalize ${statusStyle(reg.payment_status)}`}>
+                      {reg.payment_status}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      ${Number(reg.amount_paid || 0).toFixed(2)} · {new Date(reg.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Pagination controls */}
         {paginatedData && paginatedData.totalPages > 1 && (

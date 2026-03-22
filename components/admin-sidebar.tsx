@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
-import { LayoutDashboard, BookOpen, FileText, Users, Settings, BarChart3, MessageSquare, Clock } from 'lucide-react'
+import { LayoutDashboard, BookOpen, FileText, Users, Settings, BarChart3, MessageSquare, Clock, X } from 'lucide-react'
 import { useClub } from '@/lib/club-context'
 import { useCurrentSeason } from '@/lib/contexts/season-context'
 import { colors } from '@/lib/colors'
@@ -13,9 +13,11 @@ import { createClient } from '@/lib/supabase/client'
 interface AdminSidebarProps {
   profile: Profile
   clubSlug?: string
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
-export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
+export function AdminSidebar({ profile, clubSlug, mobileOpen = false, onMobileClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const { club, loading: clubLoading } = useClub()
   const currentSeason = useCurrentSeason()
@@ -23,6 +25,11 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
   const [waitlistCount, setWaitlistCount] = useState(0)
 
   const basePath = clubSlug ? `/clubs/${clubSlug}/admin` : '/admin'
+
+  // Close drawer on route change
+  useEffect(() => {
+    onMobileClose?.()
+  }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check if there are any active waitlisted registrations for this club/season
   useEffect(() => {
@@ -53,11 +60,10 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
 
   const initial = club?.name?.charAt(0).toUpperCase() || 'S'
 
-  return (
-    <aside className="w-64 bg-zinc-950 flex flex-col h-screen fixed left-0 top-0">
+  const navContent = (
+    <>
       {/* Header — club identity */}
       <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
-        {/* Club logo + name */}
         {club && !clubLoading ? (
           <div className="flex items-center gap-3">
             {club.logo_url && !logoError ? (
@@ -89,7 +95,6 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {menuItems.map((item) => {
           const Icon = item.icon
-          // For Messages, highlight whenever anywhere under /messages
           const messagesBase = `${basePath}/messages`
           const isActive =
             pathname === item.href ||
@@ -123,6 +128,38 @@ export function AdminSidebar({ profile, clubSlug }: AdminSidebarProps) {
         <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto self-start" />
         <p className="text-zinc-600 text-xs">Admin Portal</p>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <aside className="hidden md:flex w-64 bg-zinc-950 flex-col h-screen fixed left-0 top-0">
+        {navContent}
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          onClick={onMobileClose}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <aside
+            className="absolute left-0 top-0 h-full w-72 bg-zinc-950 flex flex-col shadow-2xl border-r border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="absolute top-4 right-4 p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {navContent}
+          </aside>
+        </div>
+      )}
+    </>
   )
 }

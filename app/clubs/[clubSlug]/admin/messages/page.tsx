@@ -92,7 +92,8 @@ export default function AdminMessagesPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-zinc-800 overflow-hidden">
-          <table className="w-full text-sm">
+          {/* Desktop table */}
+          <table className="hidden md:table w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
                 <th className="text-left px-4 py-3 font-medium">Subject</th>
@@ -103,10 +104,7 @@ export default function AdminMessagesPage() {
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {sent.map((m) => (
-                <tr
-                  key={m.id}
-                  className="hover:bg-zinc-800/40 transition-colors"
-                >
+                <tr key={m.id} className="hover:bg-zinc-800/40 transition-colors">
                   <td className="px-4 py-3">
                     <Link
                       href={`${basePath}/messages/${m.id}`}
@@ -116,9 +114,7 @@ export default function AdminMessagesPage() {
                     </Link>
                     <p className="text-xs text-zinc-600 mt-0.5 truncate max-w-sm">{m.body}</p>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400">
-                    {senderName(m.sender)}
-                  </td>
+                  <td className="px-4 py-3 text-zinc-400">{senderName(m.sender)}</td>
                   <td className="px-4 py-3 text-right text-zinc-400">
                     {m.recipient_count}
                     {!m.email_sent_at && (
@@ -132,6 +128,30 @@ export default function AdminMessagesPage() {
               ))}
             </tbody>
           </table>
+
+          {/* Mobile card list */}
+          <div className="md:hidden divide-y divide-zinc-800">
+            {sent.map((m) => (
+              <div key={m.id} className="px-4 py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <Link
+                    href={`${basePath}/messages/${m.id}`}
+                    className="font-medium text-foreground hover:text-orange-400 transition-colors flex-1 min-w-0"
+                  >
+                    <p className="truncate">{m.subject}</p>
+                  </Link>
+                  <span className="text-xs text-zinc-500 flex-shrink-0">{formatRelativeTime(m.sent_at)}</span>
+                </div>
+                <div className="flex items-center justify-between mt-1 gap-2">
+                  <p className="text-xs text-zinc-600 truncate">{m.body}</p>
+                  <span className="text-xs text-zinc-400 flex-shrink-0">
+                    {m.recipient_count} families
+                    {!m.email_sent_at && <span className="ml-1 text-yellow-600">·pending</span>}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

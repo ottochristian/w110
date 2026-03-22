@@ -1,16 +1,24 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
-import { LayoutDashboard, Building2, Users, UserCog, CreditCard, Activity, Inbox } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, UserCog, CreditCard, Activity, Inbox, X } from 'lucide-react'
 
 interface SystemAdminSidebarProps {
   profile: Profile
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
-export function SystemAdminSidebar({ profile }: SystemAdminSidebarProps) {
+export function SystemAdminSidebar({ profile, mobileOpen = false, onMobileClose }: SystemAdminSidebarProps) {
   const pathname = usePathname()
+
+  // Close drawer on route change
+  useEffect(() => {
+    onMobileClose?.()
+  }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const menuItems = [
     { label: 'Dashboard', href: '/system-admin', icon: LayoutDashboard },
@@ -22,8 +30,8 @@ export function SystemAdminSidebar({ profile }: SystemAdminSidebarProps) {
     { label: 'Subscriptions', href: '/system-admin/subscriptions', icon: CreditCard },
   ]
 
-  return (
-    <aside className="w-64 bg-zinc-950 flex flex-col h-screen fixed left-0 top-0">
+  const navContent = (
+    <>
       {/* Header */}
       <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
         <div className="flex items-center gap-2.5">
@@ -61,6 +69,38 @@ export function SystemAdminSidebar({ profile }: SystemAdminSidebarProps) {
       <div className="px-5 py-4 border-t border-zinc-800">
         <p className="text-zinc-600 text-xs">System Admin Portal</p>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <aside className="hidden md:flex w-64 bg-zinc-950 flex-col h-screen fixed left-0 top-0">
+        {navContent}
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          onClick={onMobileClose}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <aside
+            className="absolute left-0 top-0 h-full w-72 bg-zinc-950 flex flex-col shadow-2xl border-r border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="absolute top-4 right-4 p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {navContent}
+          </aside>
+        </div>
+      )}
+    </>
   )
 }

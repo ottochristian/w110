@@ -484,72 +484,107 @@ export default function RevenuePage() {
               No outstanding payments
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-6 px-6">
-              <table className="w-full min-w-[800px]">
-                <thead>
-                  <tr className="border-b text-sm text-muted-foreground">
-                    <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Household</th>
-                    <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Programs</th>
-                    <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Amount</th>
-                    <th className="text-center py-3 px-4 font-medium whitespace-nowrap">Status</th>
-                    <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Days Since Order</th>
-                    <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Order Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {outstandingData.outstanding.map((payment) => (
-                    <tr key={payment.orderId} className="border-b hover:bg-muted/50">
-                      <td className="py-3 px-4">
-                        <span className="font-medium">{payment.householdName}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-wrap gap-1">
-                          {payment.programs.length > 0 ? (
-                            payment.programs.map((prog, idx) => (
-                              <span
-                                key={idx}
-                                className="text-xs bg-orange-900/30 text-orange-400 px-2 py-0.5 rounded whitespace-nowrap"
-                              >
-                                {prog}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">No programs</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-semibold whitespace-nowrap">
-                        ${payment.amount.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <Badge
-                          variant={payment.status === 'unpaid' ? 'destructive' : 'default'}
-                          className="whitespace-nowrap"
-                        >
-                          {payment.status}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
-                        <span
-                          className={
-                            payment.daysSinceCreated > 30
-                              ? 'text-red-500 font-semibold'
-                              : payment.daysSinceCreated > 14
-                              ? 'text-amber-500 font-medium'
-                              : 'text-muted-foreground'
-                          }
-                        >
-                          {payment.daysSinceCreated} days
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right text-sm text-muted-foreground whitespace-nowrap">
-                        {payment.orderDate}
-                      </td>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto -mx-6 px-6">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b text-sm text-muted-foreground">
+                      <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Household</th>
+                      <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Programs</th>
+                      <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Amount</th>
+                      <th className="text-center py-3 px-4 font-medium whitespace-nowrap">Status</th>
+                      <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Days Since Order</th>
+                      <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Order Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {outstandingData.outstanding.map((payment) => (
+                      <tr key={payment.orderId} className="border-b hover:bg-muted/50">
+                        <td className="py-3 px-4">
+                          <span className="font-medium">{payment.householdName}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            {payment.programs.length > 0 ? (
+                              payment.programs.map((prog, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs bg-orange-900/30 text-orange-400 px-2 py-0.5 rounded whitespace-nowrap"
+                                >
+                                  {prog}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">No programs</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right font-semibold whitespace-nowrap">
+                          ${payment.amount.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <Badge
+                            variant={payment.status === 'unpaid' ? 'destructive' : 'default'}
+                            className="whitespace-nowrap"
+                          >
+                            {payment.status}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <span
+                            className={
+                              payment.daysSinceCreated > 30
+                                ? 'text-red-500 font-semibold'
+                                : payment.daysSinceCreated > 14
+                                ? 'text-amber-500 font-medium'
+                                : 'text-muted-foreground'
+                            }
+                          >
+                            {payment.daysSinceCreated} days
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right text-sm text-muted-foreground whitespace-nowrap">
+                          {payment.orderDate}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile card list */}
+              <div className="md:hidden -mx-6 divide-y divide-border">
+                {outstandingData.outstanding.map((payment) => (
+                  <div key={payment.orderId} className="px-6 py-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{payment.householdName}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {payment.programs.length > 0 ? (
+                          payment.programs.map((prog, idx) => (
+                            <span key={idx} className="text-xs bg-orange-900/30 text-orange-400 px-2 py-0.5 rounded">
+                              {prog}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No programs</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{payment.orderDate}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <span className="text-sm font-semibold">${payment.amount.toLocaleString()}</span>
+                      <Badge variant={payment.status === 'unpaid' ? 'destructive' : 'default'}>
+                        {payment.status}
+                      </Badge>
+                      <span className={`text-xs ${payment.daysSinceCreated > 30 ? 'text-red-500 font-semibold' : payment.daysSinceCreated > 14 ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                        {payment.daysSinceCreated}d
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

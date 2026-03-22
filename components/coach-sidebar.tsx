@@ -1,24 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Profile } from '@/lib/types'
-import { LayoutDashboard, Users, Calendar, MessageSquare, Sparkles, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, MessageSquare, Sparkles, BarChart3, X } from 'lucide-react'
 import { useClub } from '@/lib/club-context'
 import { colors } from '@/lib/colors'
 
 interface CoachSidebarProps {
   profile: Profile
   clubSlug: string
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
-export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
+export function CoachSidebar({ profile, clubSlug, mobileOpen = false, onMobileClose }: CoachSidebarProps) {
   const pathname = usePathname()
   const { club, loading: clubLoading } = useClub()
   const [logoError, setLogoError] = useState(false)
 
   const basePath = `/clubs/${clubSlug}/coach`
+
+  // Close drawer on route change
+  useEffect(() => {
+    onMobileClose?.()
+  }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const menuItems = [
     { label: 'Dashboard', href: basePath, icon: LayoutDashboard },
@@ -31,8 +38,8 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
 
   const initial = club?.name?.charAt(0).toUpperCase() || 'C'
 
-  return (
-    <aside className="w-64 bg-zinc-950 flex flex-col h-screen fixed left-0 top-0">
+  const navContent = (
+    <>
       {/* Header — club identity */}
       <div className="px-5 py-5 flex-shrink-0 border-b border-zinc-800">
         {club && !clubLoading ? (
@@ -94,6 +101,38 @@ export function CoachSidebar({ profile, clubSlug }: CoachSidebarProps) {
         <img src="/w110-logo-dark.svg" alt="W110" className="h-5 w-auto self-start" />
         <p className="text-zinc-600 text-xs">Coach Portal</p>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <aside className="hidden md:flex w-64 bg-zinc-950 flex-col h-screen fixed left-0 top-0">
+        {navContent}
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          onClick={onMobileClose}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <aside
+            className="absolute left-0 top-0 h-full w-72 bg-zinc-950 flex flex-col shadow-2xl border-r border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="absolute top-4 right-4 p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {navContent}
+          </aside>
+        </div>
+      )}
+    </>
   )
 }
