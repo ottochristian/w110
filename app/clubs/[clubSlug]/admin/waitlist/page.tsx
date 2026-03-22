@@ -174,7 +174,8 @@ export default function AdminWaitlistPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="rounded-lg border border-border overflow-hidden">
-                  <table className="w-full text-sm">
+                  {/* Desktop table */}
+                  <table className="hidden sm:table w-full text-sm">
                     <thead>
                       <tr className="bg-zinc-900 text-xs text-muted-foreground">
                         <th className="text-left px-4 py-2 font-medium w-10">#</th>
@@ -187,22 +188,33 @@ export default function AdminWaitlistPage() {
                       {group.entries.map((entry) => (
                         <tr key={entry.registration_id} className="hover:bg-zinc-900/50">
                           <td className="px-4 py-2.5">
-                            <span className="text-purple-400 font-semibold">
-                              {entry.queue_position}
-                            </span>
+                            <span className="text-purple-400 font-semibold">{entry.queue_position}</span>
                           </td>
                           <td className="px-4 py-2.5 font-medium">{entry.athlete_name}</td>
                           <td className="px-4 py-2.5 text-muted-foreground">{entry.household_name}</td>
                           <td className="px-4 py-2.5 text-muted-foreground">
-                            {new Date(entry.registered_at).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
+                            {new Date(entry.registered_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Mobile list */}
+                  <div className="sm:hidden divide-y divide-border">
+                    {group.entries.map((entry) => (
+                      <div key={entry.registration_id} className="px-4 py-2.5 flex items-center gap-3">
+                        <span className="text-purple-400 font-semibold w-6 flex-shrink-0 text-sm">{entry.queue_position}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{entry.athlete_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{entry.household_name}</p>
+                        </div>
+                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                          {new Date(entry.registered_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>

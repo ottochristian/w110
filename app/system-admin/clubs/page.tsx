@@ -109,67 +109,79 @@ export default function ClubsPage() {
           <h3 className="text-sm font-semibold text-foreground">All Clubs</h3>
           <p className="text-xs text-zinc-400 mt-0.5">{clubs.length} clubs registered</p>
         </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Admins</TableHead>
-                <TableHead>Athletes</TableHead>
-                <TableHead>Programs</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clubs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-zinc-400">
-                    No clubs found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                clubs.map((club) => (
-                  <TableRow key={club.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-3 w-3 rounded-full"
-                          style={{
-                            backgroundColor: club.primary_color || colors.primary,
-                          }}
-                        />
-                        {club.name}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{club.slug}</TableCell>
-                    <TableCell>{club.admin_count || 0}</TableCell>
-                    <TableCell>{club.athlete_count || 0}</TableCell>
-                    <TableCell>{club.program_count || 0}</TableCell>
-                    <TableCell>
-                      {new Date(club.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/system-admin/clubs/${club.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/system-admin/clubs/${club.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
+        {clubs.length === 0 ? (
+          <div className="px-5 py-10 text-center text-sm text-zinc-400">No clubs found</div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead>Admins</TableHead>
+                    <TableHead>Athletes</TableHead>
+                    <TableHead>Programs</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {clubs.map((club) => (
+                    <TableRow key={club.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: club.primary_color || colors.primary }} />
+                          {club.name}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{club.slug}</TableCell>
+                      <TableCell>{club.admin_count || 0}</TableCell>
+                      <TableCell>{club.athlete_count || 0}</TableCell>
+                      <TableCell>{club.program_count || 0}</TableCell>
+                      <TableCell>{new Date(club.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/system-admin/clubs/${club.id}`}><Eye className="h-4 w-4" /></Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/system-admin/clubs/${club.id}/edit`}><Edit className="h-4 w-4" /></Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden divide-y divide-zinc-800">
+              {clubs.map((club) => (
+                <div key={club.id} className="px-4 py-3 flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: club.primary_color || colors.primary }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{club.name}</p>
+                    <p className="text-xs text-zinc-400 font-mono">{club.slug}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {club.admin_count || 0} admins · {club.athlete_count || 0} athletes · {club.program_count || 0} programs
+                    </p>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/system-admin/clubs/${club.id}`}><Eye className="h-4 w-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/system-admin/clubs/${club.id}/edit`}><Edit className="h-4 w-4" /></Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

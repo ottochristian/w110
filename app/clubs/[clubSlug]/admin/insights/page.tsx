@@ -384,7 +384,7 @@ function ProgramsTab({ clubId, seasonId }: { clubId: string; seasonId: string | 
                           style={{ width: `${Math.min(rate || 0, 100)}%` }} />
                       </div>
                     </div>
-                    <div className="grid grid-cols-5 gap-4 pt-2 border-t border-zinc-800 text-xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-2 border-t border-zinc-800 text-xs">
                       <div><p className="text-zinc-500">Paid</p><p className="font-semibold text-green-400">{program.paidCount}</p></div>
                       <div><p className="text-zinc-500">Unpaid</p><p className="font-semibold text-red-400">{program.unpaidCount}</p></div>
                       <div><p className="text-zinc-500">Waitlisted</p><p className="font-semibold text-amber-400">{program.waitlistedCount}</p></div>
